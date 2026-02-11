@@ -1,0 +1,113 @@
+! Generated EIGRP Classic Mode config for {{ hostname }} from YAML
+hostname {{ hostname }}
+
+! Physical Interfaces
+{% for intf_name, intf in interfaces.items() %}
+{%- if intf_name != oob_interface %}
+interface {{ intf_name }}
+{%- if intf.description and intf.description.strip() %}
+ description {{ intf.description.strip() }}
+{%- endif %}
+{%- if intf.ip and intf.ip != "" and '/' in intf.ip %}
+ ip address {{ intf.ip.split('/')[0] }} {{ intf.ip.split('/')[1] | cidr_to_netmask }}
+{%- endif %}
+{%- if intf.speed and intf.speed != "" %}
+ speed {{ intf.speed }}
+{%- endif %}
+{%- if intf.duplex and intf.duplex != "" %}
+ duplex {{ intf.duplex }}
+{%- endif %}
+{%- if intf.mtu and intf.mtu != "" %}
+ mtu {{ intf.mtu }}
+{%- endif %}
+{%- if intf.bandwidth and intf.bandwidth != "" %}
+ bandwidth {{ intf.bandwidth }}
+{%- endif %}
+{%- if intf.delay and intf.delay != "" %}
+ delay {{ intf.delay }}
+{%- endif %}
+{%- if intf.shutdown | default(true) %}
+ shutdown
+{%- else %}
+ no shutdown
+{%- endif %}
+!
+{%- endif %}
+{%- endfor %}
+
+! Loopback Interfaces
+{% for lb_name, lb in loopbacks.items() | default({}) %}
+interface {{ lb_name }}
+{% if lb.description and lb.description.strip() %}
+ description {{ lb.description.strip() }}
+{% endif %}
+{% if lb.ip and lb.ip != "" %}
+ ip address {{ lb.ip.split('/')[0] }} {{ lb.ip.split('/')[1] | cidr_to_netmask }}
+{% endif %}
+{% if lb.shutdown | default(false) %}
+ shutdown
+{% else %}
+ no shutdown
+{% endif %}
+!
+{% endfor %}
+
+! DEBUG: Key chains for this router: {{ eigrp.key_chains | default([]) | length }}
+! DEBUG: Raw key_chains data: {{ eigrp.key_chains | default('NONE') }}
+! Key Chains (for MD5 authentication)
+{% for chain in eigrp.key_chains | default([]) -%}
+! DEBUG: Rendering chain name: {{ chain.name }}
+key chain {{ chain.name }}
+{%- for key in chain['keys'] | default([]) %}
+ key {{ key.id }}
+  key-string {{ key.string }}
+{%- endfor %}
+!
+{%- endfor %}
+
+! EIGRP Process
+router eigrp {{ eigrp.as }}
+{%- if eigrp.auto_summary | default(false) %}
+ auto-summary
+{%- endif %}
+{%- if eigrp.passive_default | default(false) %}
+ passive-interface default
+{%- endif %}
+{%- for no_passive in eigrp.no_passive_interfaces | default([]) %}
+ no passive-interface {{ no_passive }}
+{%- endfor %}
+{%- for passive in eigrp.passive_interfaces | default([]) %}
+ passive-interface {{ passive }}
+{%- endfor %}
+{%- for net in eigrp.networks | default([]) %}
+ network {{ net.network }} {{ net.wildcard }}
+{%- endfor %}
+{%- for neigh in eigrp.static_neighbors | default([]) %}
+ neighbor {{ neigh.ip }} {{ neigh.interface }}
+{%- endfor %}
+{%- if eigrp.variance | default(1) > 1 %}
+ variance {{ eigrp.variance }}
+{%- endif %}
+!
+
+! Per-interface Authentication
+{%- if eigrp.authentication is mapping %}
+interface {{ eigrp.authentication.interface }}
+ ip authentication mode eigrp {{ eigrp.as }} {{ eigrp.authentication.mode }}
+ ip authentication key-chain eigrp {{ eigrp.as }} {{ eigrp.authentication.key_chain }}
+!
+{%- elif eigrp.authentication is sequence %}
+{%- for auth in eigrp.authentication %}
+interface {{ auth.interface }}
+ ip authentication mode eigrp {{ eigrp.as }} {{ auth.mode }}
+ ip authentication key-chain eigrp {{ eigrp.as }} {{ auth.key_chain }}
+!
+{%- endfor %}
+{%- endif %}
+
+! EIGRP Summarization
+{%- for sum in eigrp.summaries | default([]) %}
+interface {{ sum.interface }}
+ ip summary-address eigrp {{ eigrp.as }} {{ sum.prefix }} {{ sum.mask }}
+!
+{%- endfor %}

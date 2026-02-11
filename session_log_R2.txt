@@ -1,0 +1,88 @@
+R2#
+R2#terminal width 511
+R2#terminal length 0
+R2#
+R2#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#! Generated EIGRP Classic Mode config for R2 from YAML
+R2(config)#hostname R2
+R2(config)#! Physical Interfaces
+R2(config)#interface Ethernet0/0
+R2(config-if)# description To R1
+R2(config-if)# ip address 10.12.12.2 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet0/1
+R2(config-if)# description To R3
+R2(config-if)# ip address 192.1.23.2 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet0/2
+R2(config-if)# shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet0/3
+R2(config-if)# shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet1/0
+R2(config-if)# shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet1/1
+R2(config-if)# shutdown
+R2(config-if)#!
+R2(config-if)#interface Ethernet1/2
+R2(config-if)# shutdown
+R2(config-if)#!
+R2(config-if)#! Loopback Interfaces
+R2(config-if)#interface Loopback1
+R2(config-if)# ip address 10.2.2.2 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)#!
+R2(config-if)#interface Loopback2
+R2(config-if)# ip address 2.0.0.2 255.0.0.0
+R2(config-if)# no shutdown
+R2(config-if)#!
+R2(config-if)#interface Loopback3
+R2(config-if)# ip address 22.2.2.2 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)#!
+R2(config-if)#! DEBUG: Key chains for this router: 2
+R2(config-if)#! DEBUG: Raw key_chains data: [{'name': 'BBB', 'keys': [{'id': 1, 'string': 'Cisco123'}]}, {'name': 'BC', 'keys': [{'id': 1, 'string': 'Ccie123'}]}]
+R2(config-if)#! Key Chains (for MD5 authentication)
+R2(config-if)#! DEBUG: Rendering chain name: BBB
+R2(config-if)#key chain BBB
+R2(config-keychain)# key 1
+R2(config-keychain-key)#  key-string Cisco123
+R2(config-keychain-key)#!! DEBUG: Rendering chain name: BC
+R2(config-keychain-key)#key chain BC
+R2(config-keychain)# key 1
+R2(config-keychain-key)#  key-string Ccie123
+R2(config-keychain-key)#!
+R2(config-keychain-key)#! EIGRP Process
+R2(config-keychain-key)#router eigrp 100
+R2(config-router)# auto-summary
+R2(config-router)# passive-interface Loopback1
+R2(config-router)# passive-interface Loopback2
+R2(config-router)# passive-interface Loopback3
+R2(config-router)# network 10.2.2.0 0.0.0.255
+R2(config-router)# network 2.0.0.0 0.255.255.255
+R2(config-router)# network 22.2.2.0 0.0.0.255
+R2(config-router)# neighbor 10.12.12.1 Ethernet0/0
+R2(config-router)#!
+R2(config-router)#! Per-interface Authentication
+R2(config-router)#interface Ethernet0/0
+R2(config-if)# ip authentication mode eigrp 100 md5
+R2(config-if)# ip authentication key-chain eigrp 100 BBB
+R2(config-if)#!
+R2(config-if)#interface Ethernet0/1
+R2(config-if)# ip authentication mode eigrp 100 md5
+R2(config-if)# ip authentication key-chain eigrp 100 BC
+R2(config-if)#!
+R2(config-if)#! EIGRP Summarization
+R2(config-if)#end
+R2#
+R2#write memory
+Building configuration...
+
+  [OK]
+R2#
+R2#exit

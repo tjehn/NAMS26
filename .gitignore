@@ -1,0 +1,74 @@
+# Python-specific
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments & tools
+pip-log.txt
+pip-delete-this-directory.txt
+venv/
+.venv/
+.env
+.env.*
+!.env.example
+
+# PyCharm / JetBrains IDE
+.idea/
+*.iml
+*.iws
+out/
+
+# Logs, temp, backups
+*.log*
+*.bak
+*.sw?
+*.tmp
+*.temp
+*~
+
+# Draw.io / diagrams backups & autosaves
+*.drawio~
+*.drawio.bak
+*.drawio.autosave
+
+# Ansible-specific
+*.retry
+ansible.log
+fact_cache/
+*.vault
+vault_password.txt
+*.aes256
+collections/               # ← optional: local collections
+
+# Project-specific: lab generated configs & backups
+labs/*/configs/*
+!labs/*/configs/.gitkeep
+
+# General OS / editor junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Optional: large binaries (rare in this project)
+*.bin
+*.zip
+*.tgz

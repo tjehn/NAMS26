@@ -1,0 +1,69 @@
+R5#
+R5#terminal width 511
+R5#terminal length 0
+R5#
+R5#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R5(config)#! Generated EIGRP Classic Mode config for R5 from YAML
+R5(config)#hostname R5
+R5(config)#! Physical Interfaces
+R5(config)#interface Ethernet0/0
+R5(config-if)# description To R4
+R5(config-if)# ip address 192.1.45.5 255.255.255.0
+R5(config-if)# bandwidth 25000
+R5(config-if)# no shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet0/1
+R5(config-if)# description To R6
+R5(config-if)# ip address 192.1.56.5 255.255.255.0
+R5(config-if)# bandwidth 5000
+R5(config-if)# no shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet0/2
+R5(config-if)# shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet0/3
+R5(config-if)# shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet1/0
+R5(config-if)# shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet1/1
+R5(config-if)# shutdown
+R5(config-if)#!
+R5(config-if)#interface Ethernet1/2
+R5(config-if)# shutdown
+R5(config-if)#!
+R5(config-if)#! Loopback Interfaces
+R5(config-if)#interface Loopback1
+R5(config-if)# ip address 5.0.0.5 255.0.0.0
+R5(config-if)# no shutdown
+R5(config-if)#!
+R5(config-if)#interface Loopback2
+R5(config-if)# ip address 55.5.5.5 255.255.255.0
+R5(config-if)# no shutdown
+R5(config-if)#!
+R5(config-if)#! DEBUG: Key chains for this router: 0
+R5(config-if)#! DEBUG: Raw key_chains data: NONE
+R5(config-if)#! Key Chains (for MD5 authentication)
+R5(config-if)#! EIGRP Process
+R5(config-if)#router eigrp 100
+R5(config-router)# auto-summary
+R5(config-router)# passive-interface default
+R5(config-router)# no passive-interface Ethernet0/0
+R5(config-router)# no passive-interface Ethernet0/1
+R5(config-router)# network 192.1.45.0 0.0.0.255
+R5(config-router)# network 192.1.56.0 0.0.0.255
+R5(config-router)# network 5.0.0.0 0.255.255.255
+R5(config-router)# network 55.5.5.0 0.0.0.255
+R5(config-router)#!
+R5(config-router)#! Per-interface Authentication
+R5(config-router)#! EIGRP Summarization
+R5(config-router)#end
+R5#
+R5#write memory
+Building configuration...
+
+  [OK]
+R5#
+R5#exit

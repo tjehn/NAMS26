@@ -1,0 +1,19 @@
+# Core SSH connection library for network devices (built on Paramiko)
+netmiko>=4.0.0
+
+# YAML parsing (for Ansible-style inventories, configs, or data files)
+pyyaml>=6.0
+
+# Optional but highly recommended: Structured parsing of show commands
+# (NTC-Templates integrates with Netmiko's use_textfsm=True)
+ntc-templates>=3.0.0
+
+# Optional extras (uncomment as you need them)
+textfsm>=1.1.0                  # Included via ntc-templates, but explicit if customizing templates
+# paramiko>=3.0.0               # Usually pulled by netmiko, but pin if needed for SSH tweaks
+# python-dotenv>=1.0.0          # For loading secrets from .env files (e.g., creds)
+jinja2>=3.0                     # Template rendering (e.g., generating configs from Jinja templates)
+# rich>=13.0                    # Pretty console output / tables for script feedback
+tabulate>=0.9                   # Simple table formatting for parsed data
+# requests>=2.30                # If hitting REST APIs (e.g., Cisco DNA Center later)
+black==26.1.0                   # Black: The uncompromising Python code formatter

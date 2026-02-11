@@ -1,0 +1,120 @@
+R1#
+R1#terminal width 511
+R1#terminal length 0
+R1#
+R1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#! Generated EIGRP Classic Mode config for R1 from YAML
+R1(config)#hostname R1
+R1(config)#! Physical Interfaces
+R1(config)#interface Ethernet0/0
+R1(config-if)# description To R2
+R1(config-if)# ip address 10.12.12.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet0/1
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet0/2
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet0/3
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet1/0
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet1/1
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#interface Ethernet1/2
+R1(config-if)# shutdown
+R1(config-if)#!
+R1(config-if)#! Loopback Interfaces
+R1(config-if)#interface Loopback1
+R1(config-if)# ip address 10.1.1.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback2
+R1(config-if)# ip address 10.1.2.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback3
+R1(config-if)# ip address 11.1.1.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback4
+R1(config-if)# ip address 150.1.32.1 255.255.224.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback5
+R1(config-if)# ip address 150.1.64.1 255.255.240.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback6
+R1(config-if)# ip address 150.1.88.1 255.255.248.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback7
+R1(config-if)# ip address 150.1.128.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback8
+R1(config-if)# ip address 101.1.4.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback9
+R1(config-if)# ip address 101.1.5.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback10
+R1(config-if)# ip address 101.1.6.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#interface Loopback11
+R1(config-if)# ip address 101.1.7.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)#!
+R1(config-if)#! DEBUG: Key chains for this router: 1
+R1(config-if)#! DEBUG: Raw key_chains data: [{'name': 'ABC', 'keys': [{'id': 1, 'string': 'Cisco123'}]}]
+R1(config-if)#! Key Chains (for MD5 authentication)
+R1(config-if)#! DEBUG: Rendering chain name: ABC
+R1(config-if)#key chain ABC
+R1(config-keychain)# key 1
+R1(config-keychain-key)#  key-string Cisco123
+R1(config-keychain-key)#!
+R1(config-keychain-key)#! EIGRP Process
+R1(config-keychain-key)#router eigrp 100
+R1(config-router)# auto-summary
+R1(config-router)# passive-interface default
+R1(config-router)# no passive-interface Ethernet0/0
+R1(config-router)# network 10.1.1.0 0.0.0.255
+R1(config-router)# network 10.1.2.0 0.0.0.255
+R1(config-router)# network 11.1.1.0 0.0.0.255
+R1(config-router)# network 150.1.32.0 0.0.31.255
+R1(config-router)# network 150.1.64.0 0.0.15.255
+R1(config-router)# network 150.1.88.0 0.0.7.255
+R1(config-router)# network 150.1.128.0 0.0.0.255
+R1(config-router)# network 101.1.4.0 0.0.0.255
+R1(config-router)# network 101.1.5.0 0.0.0.255
+R1(config-router)# network 101.1.6.0 0.0.0.255
+R1(config-router)# network 101.1.7.0 0.0.0.255
+R1(config-router)# neighbor 10.12.12.2 Ethernet0/0
+R1(config-router)#!
+R1(config-router)#! Per-interface Authentication
+R1(config-router)#interface Ethernet0/0
+R1(config-if)# ip authentication mode eigrp 100 md5
+R1(config-if)# ip authentication key-chain eigrp 100 ABC
+R1(config-if)#!
+R1(config-if)#! EIGRP Summarization
+R1(config-if)#interface Ethernet0/0
+R1(config-if)# ip summary-address eigrp 100 101.1.4.0 255.255.252.0
+R1(config-if)#!
+R1(config-if)#end
+R1#
+R1#write memory
+Building configuration...
+
+  [OK]
+R1#
+R1#exit

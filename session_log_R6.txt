@@ -1,0 +1,66 @@
+R6#
+R6#terminal width 511
+R6#terminal length 0
+R6#
+R6#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R6(config)#! Generated EIGRP Classic Mode config for R6 from YAML
+R6(config)#hostname R6
+R6(config)#! Physical Interfaces
+R6(config)#interface Ethernet0/0
+R6(config-if)# description To R4
+R6(config-if)# ip address 192.1.46.6 255.255.255.0
+R6(config-if)# bandwidth 50000
+R6(config-if)# no shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet0/1
+R6(config-if)# description To R5
+R6(config-if)# ip address 192.1.56.6 255.255.255.0
+R6(config-if)# bandwidth 5000
+R6(config-if)# no shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet0/2
+R6(config-if)# shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet0/3
+R6(config-if)# shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet1/0
+R6(config-if)# shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet1/1
+R6(config-if)# shutdown
+R6(config-if)#!
+R6(config-if)#interface Ethernet1/2
+R6(config-if)# shutdown
+R6(config-if)#!
+R6(config-if)#! Loopback Interfaces
+R6(config-if)#interface Loopback1
+R6(config-if)# ip address 6.0.0.6 255.0.0.0
+R6(config-if)# no shutdown
+R6(config-if)#!
+R6(config-if)#interface Loopback2
+R6(config-if)# ip address 66.6.6.6 255.255.255.0
+R6(config-if)# no shutdown
+R6(config-if)#!
+R6(config-if)#! DEBUG: Key chains for this router: 0
+R6(config-if)#! DEBUG: Raw key_chains data: NONE
+R6(config-if)#! Key Chains (for MD5 authentication)
+R6(config-if)#! EIGRP Process
+R6(config-if)#router eigrp 100
+R6(config-router)# auto-summary
+R6(config-router)# passive-interface Loopback1
+R6(config-router)# passive-interface Loopback2
+R6(config-router)# network 6.0.0.0 0.255.255.255
+R6(config-router)# network 66.6.6.0 0.0.0.255
+R6(config-router)#!
+R6(config-router)#! Per-interface Authentication
+R6(config-router)#! EIGRP Summarization
+R6(config-router)#end
+R6#
+R6#write memory
+Building configuration...
+
+  [OK]
+R6#
+R6#exit

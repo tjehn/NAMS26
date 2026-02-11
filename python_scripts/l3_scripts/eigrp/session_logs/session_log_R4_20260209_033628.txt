@@ -1,0 +1,95 @@
+R4#
+R4#terminal width 511
+R4#terminal length 0
+R4#
+R4#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R4(config)#! Generated EIGRP Classic Mode config for R4 from YAML
+R4(config)#hostname R4
+R4(config)#! Physical Interfaces
+R4(config)#interface Ethernet0/0
+R4(config-if)# description To R3
+R4(config-if)# ip address 192.1.34.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet0/1
+R4(config-if)# description To R5
+R4(config-if)# ip address 192.1.45.4 255.255.255.0
+R4(config-if)# bandwidth 25000
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet0/2
+R4(config-if)# description To R6
+R4(config-if)# ip address 192.1.46.4 255.255.255.0
+R4(config-if)# bandwidth 50000
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet0/3
+R4(config-if)# shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet1/0
+R4(config-if)# shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet1/1
+R4(config-if)# shutdown
+R4(config-if)#!
+R4(config-if)#interface Ethernet1/2
+R4(config-if)# shutdown
+R4(config-if)#!
+R4(config-if)#! Loopback Interfaces
+R4(config-if)#interface Loopback1
+R4(config-if)# ip address 4.0.0.4 255.0.0.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Loopback2
+R4(config-if)# ip address 44.4.4.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Loopback3
+R4(config-if)# ip address 101.1.8.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Loopback4
+R4(config-if)# ip address 101.1.9.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Loopback5
+R4(config-if)# ip address 101.1.10.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#interface Loopback6
+R4(config-if)# ip address 101.1.11.4 255.255.255.0
+R4(config-if)# no shutdown
+R4(config-if)#!
+R4(config-if)#! DEBUG: Key chains for this router: 0
+R4(config-if)#! DEBUG: Raw key_chains data: NONE
+R4(config-if)#! Key Chains (for MD5 authentication)
+R4(config-if)#! EIGRP Process
+R4(config-if)#router eigrp 100
+R4(config-router)# passive-interface default
+R4(config-router)# no passive-interface Ethernet0/0
+R4(config-router)# no passive-interface Ethernet0/1
+R4(config-router)# no passive-interface Ethernet0/2
+R4(config-router)# network 192.1.34.0 0.0.0.255
+R4(config-router)# network 192.1.45.0 0.0.0.255
+R4(config-router)# network 192.1.46.0 0.0.0.255
+R4(config-router)# network 4.0.0.0 0.255.255.255
+R4(config-router)# network 44.4.4.0 0.255.255.255
+R4(config-router)# network 101.1.8.0 0.0.0.255
+R4(config-router)# network 101.1.9.0 0.0.0.255
+R4(config-router)# network 101.1.10.0 0.0.0.255
+R4(config-router)# network 101.1.11.0 0.0.0.255
+R4(config-router)#!
+R4(config-router)#! Per-interface Authentication
+R4(config-router)#! EIGRP Summarization
+R4(config-router)#interface Ethernet0/0
+R4(config-if)# ip summary-address eigrp 100 101.1.8.0 255.255.252.0
+R4(config-if)#!
+R4(config-if)#end
+R4#
+R4#write memory
+Building configuration...
+
+  [OK]
+R4#
+R4#exit
