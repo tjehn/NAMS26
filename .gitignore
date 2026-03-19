@@ -72,3 +72,13 @@ desktop.ini
 *.bin
 *.zip
 *.tgz
+# Module rendered configs (generated output — not source)
+
+# Module operational logs (generated output — not source)
+modules/logs/
+logs/
+
+# Module rendered configs (generated output — not source)
+modules/*/configs/*.cfg
+modules/*/configs/*.conf
+modules/*/configs/*.txt

@@ -1,0 +1,5 @@
+# Open .gitignore and find these two lines:
+# modules/*/configs/
+# !modules/*/configs/.gitkeep
+
+# Replace them with more explicit rules

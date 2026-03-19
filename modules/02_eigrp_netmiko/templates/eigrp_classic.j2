@@ -1,0 +1,110 @@
+{# =============================================================================
+   Module 02 — EIGRP Classic Mode
+   File     : modules/02_eigrp_netmiko/templates/eigrp_classic.j2
+   Purpose  : Renders Cisco IOS EIGRP Classic Mode configuration from YAML
+              device data. Consumed by configure_eigrp_classic.py.
+   Filter   : cidr_to_netmask — converts CIDR prefix length to dotted-decimal
+              subnet mask. Registered in configure_eigrp_classic.py.
+   Note     : Uses Environment(trim_blocks=True, lstrip_blocks=True).
+============================================================================= #}
+hostname {{ hostname }}
+!
+! =========================================
+! Physical Interfaces
+! =========================================
+{% for intf_name, intf in interfaces.items() %}
+{% if intf_name != oob_interface %}
+interface {{ intf_name }}
+{% if intf.description and intf.description.strip() %} description {{ intf.description.strip() }}
+{% endif %}
+{% if intf.ip and intf.ip != "" and '/' in intf.ip %} ip address {{ intf.ip.split('/')[0] }} {{ intf.ip.split('/')[1] | cidr_to_netmask }}
+{% endif %}
+{% if intf.speed and intf.speed != "" %} speed {{ intf.speed }}
+{% endif %}
+{% if intf.duplex and intf.duplex != "" %} duplex {{ intf.duplex }}
+{% endif %}
+{% if intf.mtu and intf.mtu != "" %} mtu {{ intf.mtu }}
+{% endif %}
+{% if intf.bandwidth and intf.bandwidth != "" %} bandwidth {{ intf.bandwidth }}
+{% endif %}
+{% if intf.delay and intf.delay != "" %} delay {{ intf.delay }}
+{% endif %}
+{% if intf.shutdown | default(true) %} shutdown
+{% else %} no shutdown
+{% endif %}
+!
+{% endif %}
+{% endfor %}
+! =========================================
+! Loopback Interfaces
+! =========================================
+{% for lb_name, lb in loopbacks.items() %}
+interface {{ lb_name }}
+{% if lb.description and lb.description.strip() %} description {{ lb.description.strip() }}
+{% endif %}
+{% if lb.ip and lb.ip != "" and '/' in lb.ip %} ip address {{ lb.ip.split('/')[0] }} {{ lb.ip.split('/')[1] | cidr_to_netmask }}
+{% endif %}
+{% if lb.shutdown | default(false) %} shutdown
+{% else %} no shutdown
+{% endif %}
+!
+{% endfor %}
+{% if eigrp.key_chains | default([]) | length > 0 %}
+! =========================================
+! Key Chains
+! =========================================
+{% for chain in eigrp.key_chains %}
+key chain {{ chain.name }}
+{% for key in chain['keys'] | default([]) %} key {{ key.id }}
+  key-string {{ key.string }}
+{% endfor %}
+!
+{% endfor %}
+{% endif %}
+! =========================================
+! EIGRP Process
+! =========================================
+router eigrp {{ eigrp.as }}
+{% if eigrp.auto_summary | default(false) %} auto-summary
+{% endif %}
+{% if eigrp.passive_default | default(false) %} passive-interface default
+{% endif %}
+{% for intf in eigrp.no_passive_interfaces | default([]) %} no passive-interface {{ intf }}
+{% endfor %}
+{% for intf in eigrp.passive_interfaces | default([]) %} passive-interface {{ intf }}
+{% endfor %}
+{% for net in eigrp.networks | default([]) %} network {{ net.network }} {{ net.wildcard }}
+{% endfor %}
+{% for neigh in eigrp.static_neighbors | default([]) %} neighbor {{ neigh.ip }} {{ neigh.interface }}
+{% endfor %}
+{% if eigrp.variance | default(1) > 1 %} variance {{ eigrp.variance }}
+{% endif %}
+!
+{% if eigrp.authentication %}
+! =========================================
+! EIGRP Authentication (Per-Interface)
+! =========================================
+{% if eigrp.authentication is mapping %}
+interface {{ eigrp.authentication.interface }}
+ ip authentication mode eigrp {{ eigrp.as }} {{ eigrp.authentication.mode }}
+ ip authentication key-chain eigrp {{ eigrp.as }} {{ eigrp.authentication.key_chain }}
+!
+{% elif eigrp.authentication is iterable %}
+{% for auth in eigrp.authentication %}
+interface {{ auth.interface }}
+ ip authentication mode eigrp {{ eigrp.as }} {{ auth.mode }}
+ ip authentication key-chain eigrp {{ eigrp.as }} {{ auth.key_chain }}
+!
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if eigrp.summaries | default([]) | length > 0 %}
+! =========================================
+! EIGRP Summarization
+! =========================================
+{% for summary in eigrp.summaries %}
+interface {{ summary.interface }}
+ ip summary-address eigrp {{ eigrp.as }} {{ summary.prefix }} {{ summary.mask }}
+!
+{% endfor %}
+{% endif %}

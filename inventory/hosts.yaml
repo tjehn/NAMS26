@@ -1,41 +1,10 @@
----
+# NAMS26 Master Inventory
+# Populate per-lab hosts here or use per-module data/ YAML files
 all:
+  hosts:
   children:
-    eve_ng_routers:
+    routers:
       hosts:
-        R1:
-          ansible_host: 192.168.1.101
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          # Optional: device-specific vars
-          oob_interface: Ethernet1/3
-
-        R2:
-          ansible_host: 192.168.1.102
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          oob_interface: Ethernet1/3
-
-        R3:
-          ansible_host: 192.168.1.103
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          oob_interface: Ethernet1/3
-
-        R4:
-          ansible_host: 192.168.1.104
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          oob_interface: Ethernet1/3
-
-        R5:
-          ansible_host: 192.168.1.105
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          oob_interface: Ethernet1/3
-
-        R6:
-          ansible_host: 192.168.1.106
-          ansible_user: netadmin
-          ansible_ssh_pass: admin
-          oob_interface: Ethernet1/3cdecho $SHELL
+    switches:
+      hosts:
+ssh
