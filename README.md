@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # NAMS26 — Network Automation Management Station 2026
 
 A professional-grade network automation lab and curriculum showcasing Python
