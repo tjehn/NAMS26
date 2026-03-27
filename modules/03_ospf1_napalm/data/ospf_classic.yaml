@@ -1,0 +1,1932 @@
+---
+# =============================================================================
+# Module: modules/03_ospf1_napalm
+# File:   data/ospf_classic.yaml
+# Desc:   Device inventory and variable definitions for OSPF Classic lab.
+#         Covers single-process OSPF (PID 1), Area 0 and Area 10, with
+#         mixed authentication methods across segments — plain-text
+#         (per-interface and area-level) and MD5 (per-interface and
+#         area-level) — plus unauthenticated segments. Demonstrates
+#         DR/BDR priority manipulation, point-to-point network type
+#         override, inter-area summarization, and PPP encapsulation
+#         on serial links.
+# =============================================================================
+
+lab_name: ospf_classic_lab
+ospf_process_id_default: 1
+
+default_credentials: &creds
+  username: netadmin
+  password: admin
+
+devices:
+
+  R1:
+    hostname: R1
+    dns_name: r1.lab
+    oob_ip: 192.168.1.101/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 1.1.1.1/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R2 R3 R11 - Area 0"
+        ip: 192.1.100.1/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: plaintext
+          key: cisco123
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.101/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.1
+      networks:
+        - prefix: 192.1.100.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 1.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R2:
+    hostname: R2
+    dns_name: r2.lab
+    oob_ip: 192.168.1.102/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 2.2.2.2/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R1 R3 R11 - Area 0"
+        ip: 192.1.100.2/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: 10
+        ospf_authentication:
+          type: plaintext
+          key: cisco123
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.102/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Serial2/0:
+        description: "To R5 - Area 0 MD5"
+        ip: 192.1.101.2/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: md5
+          key: ccie123
+          key_id: 1
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.2
+      networks:
+        - prefix: 192.1.100.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 2.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.101.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R3:
+    hostname: R3
+    dns_name: r3.lab
+    oob_ip: 192.168.1.103/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 3.3.3.3/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R1 R2 R11 - Area 0"
+        ip: 192.1.100.3/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: plaintext
+          key: cisco123
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: "To R4 R6 - Area 0 No Auth"
+        ip: 192.1.103.3/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: 5
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.103/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.3
+      networks:
+        - prefix: 192.1.100.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 3.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.103.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R4:
+    hostname: R4
+    dns_name: r4.lab
+    oob_ip: 192.168.1.104/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 4.4.4.4/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R3 R6 - Area 0 No Auth"
+        ip: 192.1.103.4/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: 10
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.104/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Serial2/0:
+        description: "To R5 - Area 0 MD5"
+        ip: 192.1.102.4/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: md5
+          key: ccie123
+          key_id: 1
+        encapsulation: ppp
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.4
+      networks:
+        - prefix: 192.1.103.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 4.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.102.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R5:
+    hostname: R5
+    dns_name: r5.lab
+    oob_ip: 192.168.1.105/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 5.5.5.5/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.105/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Serial2/0:
+        description: "To R2 - Area 0 MD5 area-level"
+        ip: 192.1.101.5/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: md5
+          key: ccie123
+          key_id: 1
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Serial2/1:
+        description: "To R4 - Area 0 MD5 area-level"
+        ip: 192.1.102.5/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: md5
+          key: ccie123
+          key_id: 1
+        encapsulation: ppp
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.5
+      networks:
+        - prefix: 192.1.101.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 5.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.102.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication:
+        - area: 0
+          type: message-digest
+      area_range: []
+      passive_interfaces: []
+
+  R6:
+    hostname: R6
+    dns_name: r6.lab
+    oob_ip: 192.168.1.106/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 6.6.6.6/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R3 R4 - Area 0 No Auth"
+        ip: 192.1.103.6/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: 10
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: "To R7 - Area 0"
+        ip: 192.1.67.6/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.106/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.6
+      networks:
+        - prefix: 192.1.103.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 6.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.67.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R7:
+    hostname: R7
+    dns_name: r7.lab
+    oob_ip: 192.168.1.107/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 7.7.7.7/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R6 - Area 0"
+        ip: 192.1.67.7/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: "To R8 - Area 0 P2P"
+        ip: 192.1.78.7/24
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.107/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.7
+      networks:
+        - prefix: 192.1.67.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 7.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+        - prefix: 192.1.78.0
+          wildcard: 0.0.0.255
+          area: 0
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R8:
+    hostname: R8
+    dns_name: r8.lab
+    oob_ip: 192.168.1.108/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 8.8.8.8/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R7 - Area 0 P2P"
+        ip: 192.1.78.8/24
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: "To R9 - Area 10"
+        ip: 192.1.89.8/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.108/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.8
+      networks:
+        - prefix: 192.1.78.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 8.0.0.0
+          wildcard: 0.255.255.255
+          area: 10
+        - prefix: 192.1.89.0
+          wildcard: 0.0.0.255
+          area: 10
+      area_authentication: []
+      area_range:
+        - area: 0
+          prefix: 192.1.100.0
+          mask: 255.255.252.0
+      passive_interfaces: []
+
+  R9:
+    hostname: R9
+    dns_name: r9.lab
+    oob_ip: 192.168.1.109/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 9.9.9.9/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R8 - Area 10"
+        ip: 192.1.89.9/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: "To R10 - Area 10"
+        ip: 192.1.90.9/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.109/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.9
+      networks:
+        - prefix: 9.0.0.0
+          wildcard: 0.255.255.255
+          area: 10
+        - prefix: 192.1.89.0
+          wildcard: 0.0.0.255
+          area: 10
+        - prefix: 192.1.90.0
+          wildcard: 0.0.0.255
+          area: 10
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R10:
+    hostname: R10
+    dns_name: r10.lab
+    oob_ip: 192.168.1.110/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 10.10.10.10/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R9 - Area 10"
+        ip: 192.1.90.10/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.110/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.10
+      networks:
+        - prefix: 10.0.0.0
+          wildcard: 0.255.255.255
+          area: 10
+        - prefix: 192.1.90.0
+          wildcard: 0.0.0.255
+          area: 10
+      area_authentication: []
+      area_range: []
+      passive_interfaces: []
+
+  R11:
+    hostname: R11
+    dns_name: r11.lab
+    oob_ip: 192.168.1.111/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ip: 11.11.11.11/8
+        shutdown: false
+        ospf_network_type: point-to-point
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/0:
+        description: "To R1 R2 R3 - Area 0"
+        ip: 192.1.100.11/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: plaintext
+          key: cisco123
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet0/3:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/0:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/1:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/2:
+        description: ""
+        ip: ""
+        shutdown: true
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ip: 192.168.1.111/24
+        shutdown: false
+        ospf_network_type: ""
+        ospf_priority: ""
+        ospf_authentication:
+          type: none
+          key: ""
+          key_id: ""
+        encapsulation: ""
+        speed: ""
+        duplex: ""
+        mtu: ""
+        bandwidth: ""
+        delay: ""
+    ospf:
+      process_id: 1
+      router_id: 0.0.0.11
+      networks:
+        - prefix: 192.1.100.0
+          wildcard: 0.0.0.255
+          area: 0
+        - prefix: 11.0.0.0
+          wildcard: 0.255.255.255
+          area: 0
+      area_authentication:
+        - area: 0
+          type: plaintext
+      area_range: []
+      passive_interfaces: []

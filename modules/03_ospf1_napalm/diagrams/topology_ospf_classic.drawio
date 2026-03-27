@@ -1,0 +1,210 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6">
+  <diagram name="Page-1" id="ospf-classic-mod03">
+    <mxGraphModel dx="2066" dy="1210" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3333FF;fontColor=#ffffff;strokeColor=#001DBC;" value="" vertex="1">
+          <mxGeometry height="1200" width="1600" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontStyle=1;" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;OSPF Classic Mode — Module 03&lt;/font&gt;" vertex="1">
+          <mxGeometry height="34" width="600" x="500" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontStyle=2;" value="PID 1  |  Area 0 / Area 10  |  Tool: NAPALM  |  Devices: Cisco IOL L3" vertex="1">
+          <mxGeometry height="22" width="600" x="500" y="54" as="geometry" />
+        </mxCell>
+        <mxCell id="area0_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#001DBC;strokeColor=#FFFFFF;strokeWidth=2;opacity=40;fontColor=#FFFFFF;fontSize=12;fontStyle=1;verticalAlign=top;" value="Area 0 (Backbone)" vertex="1">
+          <mxGeometry height="720" width="1180" x="30" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="area10_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#001DBC;strokeColor=#FFFFFF;strokeWidth=2;opacity=40;fontColor=#FFFFFF;fontSize=12;fontStyle=1;verticalAlign=top;" value="Area 10" vertex="1">
+          <mxGeometry height="360" width="340" x="1230" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="R1" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R1" vertex="1">
+          <mxGeometry height="53" width="78" x="502" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="R2" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R2" vertex="1">
+          <mxGeometry height="53" width="78" x="170" y="326.5" as="geometry" />
+        </mxCell>
+        <mxCell id="R3" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R3" vertex="1">
+          <mxGeometry height="53" width="78" x="502" y="326.5" as="geometry" />
+        </mxCell>
+        <mxCell id="R11" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R11" vertex="1">
+          <mxGeometry height="53" width="78" x="170" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="R4" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R4" vertex="1">
+          <mxGeometry height="53" width="78" x="502" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="R5" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R5" vertex="1">
+          <mxGeometry height="53" width="78" x="170" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="R6" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R6" vertex="1">
+          <mxGeometry height="53" width="78" x="760" y="442.5" as="geometry" />
+        </mxCell>
+        <mxCell id="R7" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R7" vertex="1">
+          <mxGeometry height="53" width="78" x="980" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="R8" parent="1" style="strokeColor=#FFD700;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFD700;fontSize=13;fontStyle=1;" value="R8 (ABR)" vertex="1">
+          <mxGeometry height="53" width="78" x="1178.5" y="266" as="geometry" />
+        </mxCell>
+        <mxCell id="R9" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R9" vertex="1">
+          <mxGeometry height="53" width="78" x="1370" y="177" as="geometry" />
+        </mxCell>
+        <mxCell id="R10" parent="1" style="strokeColor=#ffffff;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" value="R10" vertex="1">
+          <mxGeometry height="53" width="78" x="1430" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="lan100" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3333FF;strokeColor=#FFFFFF;strokeWidth=2;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" value="192.1.100.0/24" vertex="1">
+          <mxGeometry height="30" width="160" x="310" y="223" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r1_lan100" edge="1" parent="1" source="R1" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="lan100" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="link_r2_lan100" edge="1" parent="1" source="R2" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="lan100" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r3_lan100" edge="1" parent="1" source="R3" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="lan100" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r11_lan100" edge="1" parent="1" source="R11" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="lan100" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r2_r5" edge="1" parent="1" source="R2" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;dashed=1;" target="R5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r2_r5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="192.1.101.0/24" vertex="1">
+          <mxGeometry height="16" width="110" x="220" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r4_r5" edge="1" parent="1" source="R4" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;dashed=1;" target="R5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r4_r5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="192.1.102.0/24" vertex="1">
+          <mxGeometry height="16" width="110" x="330" y="634" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r3_r4" edge="1" parent="1" source="R3" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="pDLiGUUItSb7-IX1FhU0-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r4_r6" edge="1" parent="1" source="pDLiGUUItSb7-IX1FhU0-2" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="R6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r6_r7" edge="1" parent="1" source="R6" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;" target="R7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r6_r7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="192.1.67.0/24" vertex="1">
+          <mxGeometry height="16" width="100" x="838" y="394" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r7_r8" edge="1" parent="1" source="R7" style="endArrow=none;html=1;strokeColor=#FFD700;strokeWidth=2;" target="R8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r7_r8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFD700;fontSize=10;" value="192.1.78.0/24&#xa;[P2P]" vertex="1">
+          <mxGeometry height="28" width="90" x="1050" y="299" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r8_r9" edge="1" parent="1" source="R8" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;" target="R9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r8_r9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="192.1.89.0/24" vertex="1">
+          <mxGeometry height="16" width="110" x="1270" y="267" as="geometry" />
+        </mxCell>
+        <mxCell id="link_r9_r10" edge="1" parent="1" source="R9" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;" target="R10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="net_r9_r10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="192.1.90.0/24" vertex="1">
+          <mxGeometry height="16" width="110" x="1430" y="272" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 1.1.1.1/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.100.1/24&lt;/div&gt;&lt;div&gt;Auth: plain-text&lt;/div&gt;&lt;div&gt;RID: 0.0.0.1&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.101&lt;/div&gt;" vertex="1">
+          <mxGeometry height="74" width="140" x="530" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 2.2.2.2/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.100.2/24 pri=10&lt;/div&gt;&lt;div&gt;S2/0: 192.1.101.2/24&lt;/div&gt;&lt;div&gt;Auth: plain-text E0/0, MD5 S2/0&lt;/div&gt;&lt;div&gt;RID: 0.0.0.2&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.102&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="54" y="364" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 3.3.3.3/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.100.3/24&lt;/div&gt;&lt;div&gt;E0/1: 192.1.103.3/24 pri=5&lt;/div&gt;&lt;div&gt;Auth: plain-text E0/0, none E0/1&lt;/div&gt;&lt;div&gt;RID: 0.0.0.3&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.103&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="390" y="364" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 11.11.11.11/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.100.11/24&lt;/div&gt;&lt;div&gt;Auth: area-level plain-text&lt;/div&gt;&lt;div&gt;RID: 0.0.0.11&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.111&lt;/div&gt;" vertex="1">
+          <mxGeometry height="74" width="155" x="54" y="181" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 4.4.4.4/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.103.4/24 pri=10&lt;/div&gt;&lt;div&gt;S2/0: 192.1.102.4/24 PPP&lt;/div&gt;&lt;div&gt;Auth: none E0/0, MD5 S2/0&lt;/div&gt;&lt;div&gt;RID: 0.0.0.4&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.104&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="390" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 5.5.5.5/8 (P2P)&lt;/div&gt;&lt;div&gt;S2/0: 192.1.101.5/24&lt;/div&gt;&lt;div&gt;S2/1: 192.1.102.5/24 PPP&lt;/div&gt;&lt;div&gt;Auth: area-level MD5&lt;/div&gt;&lt;div&gt;RID: 0.0.0.5&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.105&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="54" y="529" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 6.6.6.6/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.103.6/24 pri=10&lt;/div&gt;&lt;div&gt;E0/1: 192.1.67.6/24&lt;/div&gt;&lt;div&gt;Auth: none&lt;/div&gt;&lt;div&gt;RID: 0.0.0.6&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.106&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="760" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 7.7.7.7/8 (P2P)&lt;/div&gt;&lt;div&gt;E0/0: 192.1.67.7/24&lt;/div&gt;&lt;div&gt;E0/1: 192.1.78.7/24 [P2P]&lt;/div&gt;&lt;div&gt;Auth: none&lt;/div&gt;&lt;div&gt;RID: 0.0.0.7&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.107&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="980" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFD700;fontSize=10;" value="&lt;div&gt;Lo0: 8.8.8.8/8 (P2P) Area 10&lt;/div&gt;&lt;div&gt;E0/0: 192.1.78.8/24 Area 0 [P2P]&lt;/div&gt;&lt;div&gt;E0/1: 192.1.89.8/24 Area 10&lt;/div&gt;&lt;div&gt;area 0 range 192.1.100.0/22&lt;/div&gt;&lt;div&gt;Auth: none&lt;/div&gt;&lt;div&gt;RID: 0.0.0.8&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.108&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="175" x="1055" y="183" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 9.9.9.9/8 (P2P) Area 10&lt;/div&gt;&lt;div&gt;E0/0: 192.1.89.9/24&lt;/div&gt;&lt;div&gt;E0/1: 192.1.90.9/24&lt;/div&gt;&lt;div&gt;Auth: none&lt;/div&gt;&lt;div&gt;RID: 0.0.0.9&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.109&lt;/div&gt;" vertex="1">
+          <mxGeometry height="86" width="150" x="1250" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="detail_R10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontColor=#FFFFFF;fontSize=10;" value="&lt;div&gt;Lo0: 10.10.10.10/8 (P2P) Area 10&lt;/div&gt;&lt;div&gt;E0/0: 192.1.90.10/24&lt;/div&gt;&lt;div&gt;Auth: none&lt;/div&gt;&lt;div&gt;RID: 0.0.0.10&lt;/div&gt;&lt;div&gt;OOB: 192.168.1.110&lt;/div&gt;" vertex="1">
+          <mxGeometry height="74" width="155" x="1293" y="316" as="geometry" />
+        </mxCell>
+        <mxCell id="auth_box" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=#001DBC;align=left;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=10;spacingLeft=6;" value="&lt;b&gt;Authentication&lt;/b&gt;&lt;br&gt;192.1.100.0/24: plain-text (cisco123)&lt;br&gt;192.1.101.0/24: MD5 per-interface (ccie123)&lt;br&gt;192.1.102.0/24: MD5 per-interface + PPP (ccie123)&lt;br&gt;192.1.103.0/24: none&lt;br&gt;192.1.67.0/24 — 192.1.90.0/24: none&lt;br&gt;R5: area 0 authentication message-digest&lt;br&gt;R11: area 0 authentication (plain-text)" vertex="1">
+          <mxGeometry height="104" width="310" x="30" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="dr_box" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=#001DBC;align=left;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=10;spacingLeft=6;" value="&lt;b&gt;DR/BDR Priority&lt;/b&gt;&lt;br&gt;192.1.100.0/24: R2 pri=10 (DR)&lt;br&gt;192.1.103.0/24: R4/R6 pri=10, R3 pri=5&lt;br&gt;192.1.78.0/24: P2P — no DR election&lt;br&gt;All loopbacks: ip ospf network point-to-point" vertex="1">
+          <mxGeometry height="74" width="280" x="360" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="sum_box" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=#001DBC;align=left;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=10;spacingLeft=6;" value="&lt;b&gt;Inter-Area Summarization&lt;/b&gt;&lt;br&gt;R8: area 0 range 192.1.100.0 255.255.252.0&lt;br&gt;Covers: 192.1.100-103.0/24 → one Type 3 LSA&lt;br&gt;Visible as O IA on R9 and R10" vertex="1">
+          <mxGeometry height="60" width="290" x="660" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="napalm_box" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=#001DBC;align=left;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=10;spacingLeft=6;" value="&lt;b&gt;Tool: NAPALM&lt;/b&gt;&lt;br&gt;load_merge_candidate → compare_config → commit_config&lt;br&gt;IOL: dest_file_system=nvram:, inline_transfer=True" vertex="1">
+          <mxGeometry height="50" width="300" x="970" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="oob_note" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=#001DBC;align=center;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=10;fontStyle=2;" value="OOB Mgmt: 192.168.1.0/24  (Ethernet1/3 on all routers — excluded from OSPF)" vertex="1">
+          <mxGeometry height="26" width="640" x="480" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#001DBC;strokeColor=#FFFFFF;" value="" vertex="1">
+          <mxGeometry height="110" width="360" x="30" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" value="Legend" vertex="1">
+          <mxGeometry height="18" width="100" x="42" y="976" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1a" edge="1" parent="1" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="42" y="1004" as="sourcePoint" />
+            <mxPoint x="82" y="1004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg1b" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FFFFFF;" value="OSPF adjacency (Ethernet)" vertex="1">
+          <mxGeometry height="18" width="270" x="90" y="995" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2a" edge="1" parent="1" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="42" y="1024" as="sourcePoint" />
+            <mxPoint x="82" y="1024" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg2b" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FFFFFF;" value="OSPF adjacency (Serial / PPP)" vertex="1">
+          <mxGeometry height="18" width="270" x="90" y="1015" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3a" edge="1" parent="1" style="endArrow=none;html=1;strokeColor=#FFD700;strokeWidth=2;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="42" y="1044" as="sourcePoint" />
+            <mxPoint x="82" y="1044" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg3b" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FFFFFF;" value="ABR boundary / P2P override link" vertex="1">
+          <mxGeometry height="18" width="270" x="90" y="1035" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=10;fontColor=#FFD700;" value="Gold = ABR (R8) and ABR-adjacent elements" vertex="1">
+          <mxGeometry height="16" width="320" x="42" y="1056" as="geometry" />
+        </mxCell>
+        <mxCell id="pDLiGUUItSb7-IX1FhU0-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3333FF;strokeColor=#FFFFFF;strokeWidth=2;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" value="192.168.103.0/24" vertex="1">
+          <mxGeometry height="30" width="160" x="510" y="454" as="geometry" />
+        </mxCell>
+        <mxCell id="pDLiGUUItSb7-IX1FhU0-4" edge="1" parent="1" source="R4" style="endArrow=none;html=1;strokeColor=#FFFFFF;strokeWidth=2;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" target="pDLiGUUItSb7-IX1FhU0-2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="522" y="387" as="sourcePoint" />
+            <mxPoint x="585" y="464" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

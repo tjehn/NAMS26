@@ -1,0 +1,84 @@
+{# =============================================================================
+   Module 03 — OSPF Classic Mode
+   File     : modules/03_ospf1_napalm/templates/ospf_classic.j2
+   Purpose  : Renders Cisco IOS OSPF Classic Mode configuration from YAML
+              device data. Consumed by configure_ospf_classic.py.
+   Filter   : cidr_to_netmask — converts CIDR prefix length to dotted-decimal
+              subnet mask. Registered in configure_ospf_classic.py.
+   Note     : Uses Environment(trim_blocks=True, lstrip_blocks=True).
+============================================================================= #}
+hostname {{ hostname }}
+!
+! =========================================
+! Physical Interfaces
+! =========================================
+{% for intf_name, intf in interfaces.items() %}
+{% if intf_name != oob_interface and 'Loopback' not in intf_name %}
+interface {{ intf_name }}
+{% if intf.description and intf.description.strip() %} description {{ intf.description.strip() }}
+{% endif %}
+{% if intf.encapsulation and intf.encapsulation != "" %} encapsulation {{ intf.encapsulation }}
+{% endif %}
+{% if intf.ip and intf.ip != "" and '/' in intf.ip %} ip address {{ intf.ip.split('/')[0] }} {{ intf.ip.split('/')[1] | cidr_to_netmask }}
+{% endif %}
+{% if intf.ospf_network_type and intf.ospf_network_type != "" %} ip ospf network {{ intf.ospf_network_type }}
+{% endif %}
+{% if intf.ospf_priority and intf.ospf_priority != "" %} ip ospf priority {{ intf.ospf_priority }}
+{% endif %}
+{% if intf.ospf_authentication is defined and intf.ospf_authentication.type | default('none') == 'plaintext' %} ip ospf authentication
+ ip ospf authentication-key {{ intf.ospf_authentication.key }}
+{% endif %}
+{% if intf.ospf_authentication is defined and intf.ospf_authentication.type | default('none') == 'md5' %} ip ospf authentication message-digest
+ ip ospf message-digest-key {{ intf.ospf_authentication.key_id }} md5 {{ intf.ospf_authentication.key }}
+{% endif %}
+{% if intf.speed and intf.speed != "" %} speed {{ intf.speed }}
+{% endif %}
+{% if intf.duplex and intf.duplex != "" %} duplex {{ intf.duplex }}
+{% endif %}
+{% if intf.mtu and intf.mtu != "" %} mtu {{ intf.mtu }}
+{% endif %}
+{% if intf.bandwidth and intf.bandwidth != "" %} bandwidth {{ intf.bandwidth }}
+{% endif %}
+{% if intf.delay and intf.delay != "" %} delay {{ intf.delay }}
+{% endif %}
+{% if intf.shutdown | default(true) %} shutdown
+{% else %} no shutdown
+{% endif %}
+!
+{% endif %}
+{% endfor %}
+! =========================================
+! Loopback Interfaces
+! =========================================
+{% for lb_name, lb in interfaces.items() %}
+{% if 'Loopback' in lb_name %}
+interface {{ lb_name }}
+{% if lb.description and lb.description.strip() %} description {{ lb.description.strip() }}
+{% endif %}
+{% if lb.ip and lb.ip != "" and '/' in lb.ip %} ip address {{ lb.ip.split('/')[0] }} {{ lb.ip.split('/')[1] | cidr_to_netmask }}
+{% endif %}
+{% if lb.ospf_network_type and lb.ospf_network_type != "" %} ip ospf network {{ lb.ospf_network_type }}
+{% endif %}
+{% if lb.shutdown | default(false) %} shutdown
+{% else %} no shutdown
+{% endif %}
+!
+{% endif %}
+{% endfor %}
+! =========================================
+! OSPF Process
+! =========================================
+router ospf {{ ospf.process_id }}
+ router-id {{ ospf.router_id }}
+{% for auth in ospf.area_authentication | default([]) %}
+{% if auth.type == 'plaintext' %} area {{ auth.area }} authentication
+{% elif auth.type == 'message-digest' %} area {{ auth.area }} authentication message-digest
+{% endif %}
+{% endfor %}
+{% for net in ospf.networks | default([]) %} network {{ net.prefix }} {{ net.wildcard }} area {{ net.area }}
+{% endfor %}
+{% for rng in ospf.area_range | default([]) %} area {{ rng.area }} range {{ rng.prefix }} {{ rng.mask }}
+{% endfor %}
+{% for intf in ospf.passive_interfaces | default([]) %} passive-interface {{ intf }}
+{% endfor %}
+!
