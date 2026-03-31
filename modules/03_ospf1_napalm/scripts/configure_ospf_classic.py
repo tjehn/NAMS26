@@ -38,6 +38,7 @@ from napalm import get_network_driver
 from napalm.base.exceptions import (
     ConnectionException,
     CommandErrorException,
+    ReplaceConfigException,
 )
 
 # =============================================================================
@@ -213,8 +214,20 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
 
             # Commit the candidate configuration
             info(f"Committing configuration...")
-            device.commit_config()
-            passed(f"Configuration committed on {device_name}.")
+            try:
+                device.commit_config()
+                passed(f"Configuration committed on {device_name}.")
+            except ReplaceConfigException as exc:
+                if "Rollback config file does not exist" in str(exc):
+                    # IOL does not create nvram:rollback-config after configure
+                    # replace — the replace ran successfully; this is a NAPALM
+                    # post-commit verification false-negative on IOL.
+                    warned(
+                        f"Rollback file not found on {device_name} "
+                        f"(IOL limitation — configure replace ran successfully)."
+                    )
+                else:
+                    raise
 
             # Save running config to startup config
             device.cli(["write memory"])

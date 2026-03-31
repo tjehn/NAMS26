@@ -82,3 +82,4 @@ router ospf {{ ospf.process_id }}
 {% for intf in ospf.passive_interfaces | default([]) %} passive-interface {{ intf }}
 {% endfor %}
 !
+end
