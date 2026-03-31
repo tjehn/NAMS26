@@ -82,3 +82,6 @@ logs/
 modules/*/configs/*.cfg
 modules/*/configs/*.conf
 modules/*/configs/*.txt
+
+# CoS sync exchange directory (local only — not a project deliverable)
+modules/CoS_NAMS26_SYNC/
