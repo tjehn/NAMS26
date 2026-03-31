@@ -38,6 +38,23 @@ black modules/03_ospf1_napalm/scripts/configure_ospf_classic.py  # Single file
 
 Black is the only configured code tool (no linter, no test runner).
 
+## Interface Standards
+
+These standards apply to all modules and must be reflected in every YAML data file:
+
+| Interface type | `speed` | `duplex` | `description` | `shutdown` |
+|----------------|---------|----------|---------------|------------|
+| Active Ethernet (UP/UP) | `100` | `full` | descriptive | `false` |
+| Unused Ethernet | `""` | `""` | `UNUSED` | `true` |
+| Active Serial | `""` | `""` | descriptive | `false` |
+| Unused Serial | `""` | `""` | `UNUSED` | `true` |
+| Loopback | `""` | `""` | descriptive | `false` |
+| OOB (`Ethernet1/3`) | `""` | `""` | `OOB Management` | `false` |
+
+**Base config demarc:** `Ethernet1/3` (OOB), hostname, credentials, domain, VTY/console, and NTP are managed by the lab admin as a pre-loaded base configuration. The automation scripts do not render or modify these. The OOB interface entry in each YAML is reference data only — the template explicitly excludes it from rendering.
+
+All shutdown Serial interfaces (e.g., `Serial2/1`, `Serial2/2`, `Serial2/3`) must be present in the YAML with `description: UNUSED`. Do not omit unused interfaces.
+
 ## Architecture
 
 ### Module Layout

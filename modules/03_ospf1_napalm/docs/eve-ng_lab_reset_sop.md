@@ -3,6 +3,17 @@
 
 ---
 
+## Responsibilities
+
+| Scope | Owner |
+|-------|-------|
+| Base configuration (hostname, credentials, OOB, VTY, NTP) | Lab Admin |
+| OSPF configuration (interfaces, routing, authentication) | NAMS26 Automation Scripts |
+
+**Base configuration** is pre-loaded onto each router via console after every Wipe. It is the pre-condition for SSH access. The automation scripts assume it is already in place and do not touch it.
+
+---
+
 ## Working Directory
 
 ```
@@ -20,7 +31,46 @@
 
 ---
 
-## Phase 2 — Router Baseline Verification
+## Phase 2 — Base Configuration (Console — R1–R11)
+
+Apply the base configuration to each router via console. This establishes hostname, credentials, OOB management, SSH access, and NTP before handing off to automation.
+
+```
+hostname Rn
+!
+no ip domain lookup
+ip domain name lab.local
+!
+username netadmin privilege 15 secret 5 <hash>
+!
+interface Ethernet1/3
+ no shutdown
+ description OOB Management
+ ip address 192.168.1.10n 255.255.255.0
+ duplex auto
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+ntp server <ntp-ip>
+ntp server pool.ntp.org
+!
+end
+```
+
+Save config after applying:
+```
+write memory
+```
+
+---
+
+## Phase 3 — Router Baseline Verification
 
 5. Confirm OOB reachability:
    ```
@@ -30,7 +80,7 @@
 
 ---
 
-## Phase 3 — SSH Preparation
+## Phase 4 — SSH Preparation
 
 6. Generate RSA keys on each router (via console, R1–R11):
    ```
@@ -55,7 +105,7 @@
 
 ---
 
-## Phase 4 — Configuration Deployment
+## Phase 5 — Configuration Deployment
 
 9. Dry run — validate rendering, no SSH push:
    ```
@@ -69,7 +119,7 @@
 
 ---
 
-## Phase 5 — Verification
+## Phase 6 — Verification
 
 11. Run automated verification:
     ```
@@ -78,12 +128,12 @@
 
 12. Review session logs:
     ```
-    NAMS26/logs/
+    modules/03_ospf1_napalm/logs/
     ```
 
 13. Review rendered configuration files:
     ```
-    NAMS26/modules/03_ospf1_napalm/configs/
+    modules/03_ospf1_napalm/configs/
     ```
 
 ---
@@ -96,9 +146,9 @@ Stop all nodes → Wipe all nodes → Start all nodes
 Open consoles in SecureCRT
 
 # Each Router (via console, R1–R11)
-configure terminal
+[Apply base configuration]
+write memory
 crypto key generate rsa modulus 1024
-end
 write memory
 
 # NAMS26 Workstation — utils/
