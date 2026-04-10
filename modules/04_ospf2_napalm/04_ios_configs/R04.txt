@@ -1,0 +1,196 @@
+Current configuration : 2228 bytes
+!
+! Last configuration change at 09:35:41 UTC Fri Apr 3 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R4
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username netadmin privilege 15 password 0 admin
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 4.0.0.4 255.0.0.0
+ ip ospf network point-to-point
+!
+interface Loopback1
+ ip address 44.0.0.4 255.0.0.0
+ ip ospf network point-to-point
+!
+interface Loopback12
+ ip address 105.1.12.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback13
+ ip address 105.1.13.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback14
+ ip address 105.1.14.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback15
+ ip address 105.1.15.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback16
+ ip address 105.1.16.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback17
+ ip address 105.1.17.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback18
+ ip address 105.1.18.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Loopback19
+ ip address 105.1.19.4 255.255.255.0
+ ip ospf network point-to-point
+!
+interface Ethernet0/0
+ ip address 192.1.24.4 255.255.255.0
+ duplex auto
+!
+interface Ethernet0/1
+ ip address 192.1.40.4 255.255.255.0
+ duplex auto
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/1
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/3
+ description OOB Management
+ ip address 192.168.1.104 255.255.255.0
+ duplex auto
+!
+router ospf 1
+ router-id 0.0.0.4
+ network 4.0.0.0 0.255.255.255 area 10
+ network 44.0.0.0 0.255.255.255 area 10
+ network 105.1.12.0 0.0.3.255 area 10
+ network 105.1.16.0 0.0.3.255 area 10
+ network 192.1.24.0 0.0.0.255 area 10
+ network 192.1.40.0 0.0.0.255 area 10
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+ntp server 34.202.215.187
+ntp server pool.ntp.org
+!
+end

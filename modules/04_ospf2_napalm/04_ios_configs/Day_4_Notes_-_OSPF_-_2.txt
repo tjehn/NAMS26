@@ -1,0 +1,504 @@
+1. Multi-Area OSPF
+2. Multi-Domain (EIGRP & OSPF)
+3. Filtering
+4. Redistribution
+5. LSA Type 4 & 5
+6. Area Types
+   - Stub
+   - Totally Stub
+   - NSSA
+   - NSSA - Stub
+   - NSSA - Totally Stub
+7. Virtual Links
+======================================
+Base Configuration
+======================================
+
+------------------
+EIGRP - 100
+------------------
+
+R1
+
+Router eigrp 100
+ network 192.1.17.0
+ network 192.1.18.0
+
+R7
+
+Router eigrp 100
+ network 192.1.17.0
+ network 7.0.0.0
+ network 77.0.0.0
+ network 107.0.0.0
+
+R8
+
+Router eigrp 100
+ network 192.1.18.0
+ network 8.0.0.0
+ network 88.0.0.0
+
+------------------
+OSPF - Area 0
+------------------
+
+R1
+
+Router ospf 1
+ router-id 0.0.0.1
+ network 192.1.12.0 0.0.0.255 area 0
+ network 192.1.13.0 0.0.0.255 area 0
+ network 1.0.0.0 0.255.255.255 area 0
+ network 11.0.0.0 0.255.255.255 area 0
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback1
+ ip ospf network point-to-point
+
+R2
+
+Router ospf 1
+ router-id 0.0.0.2
+ network 192.1.12.0 0.0.0.255 area 0
+ network 2.0.0.0 0.255.255.255 area 0
+ network 22.0.0.0 0.255.255.255 area 0
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback1
+ ip ospf network point-to-point
+
+R3
+
+Router ospf 1
+ router-id 0.0.0.3
+ network 192.1.13.0 0.0.0.255 area 0
+ network 3.0.0.0 0.255.255.255 area 0
+ network 33.0.0.0 0.255.255.255 area 0
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback1
+ ip ospf network point-to-point
+
+------------------
+OSPF - Area 10
+------------------
+
+R2
+
+Router ospf 1
+ network 192.1.24.0 0.0.0.255 area 10
+
+R4
+
+Router ospf 1
+ router-id 0.0.0.4
+ network 192.1.24.0 0.0.0.255 area 10
+ network 192.1.40.0 0.0.0.255 area 10
+ network 4.0.0.0 0.255.255.255 area 10
+ network 44.0.0.0 0.255.255.255 area 10
+ network 105.0.0.0 0.255.255.255 area 10
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback1
+ ip ospf network point-to-point
+!
+interface loopback11
+ ip ospf network point-to-point
+!
+interface loopback12
+ ip ospf network point-to-point
+!
+interface loopback13
+ ip ospf network point-to-point
+!
+interface loopback14
+ ip ospf network point-to-point
+
+R10
+
+Router ospf 1
+ router-id 0.0.0.10
+ network 192.1.40.0 0.0.0.255 area 10
+ network 10.0.0.0 0.255.255.255 area 10
+ network 100.0.0.0 0.255.255.255 area 10
+ network 101.0.0.0 0.255.255.255 area 10
+ network 102.0.0.0 0.255.255.255 area 10
+ network 103.0.0.0 0.255.255.255 area 10
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback11
+ ip ospf network point-to-point
+!
+interface loopback12
+ ip ospf network point-to-point
+!
+interface loopback13
+ ip ospf network point-to-point
+!
+interface loopback14
+ ip ospf network point-to-point
+
+------------------
+OSPF - Area 20
+------------------
+
+R3
+
+Router ospf 1
+ network 192.1.35.0 0.0.0.255 area 20
+
+R5
+
+Router ospf 1
+ router-id 0.0.0.5
+ network 192.1.35.0 0.0.0.255 area 20
+ network 192.1.56.0 0.0.0.255 area 20
+ network 5.0.0.0 0.255.255.255 area 20
+ network 55.0.0.0 0.255.255.255 area 20
+!
+interface loopback0
+ ip ospf network point-to-point
+!
+interface loopback1
+ ip ospf network point-to-point
+
+R6
+
+Router ospf 1
+ router-id 0.0.0.6
+ network 192.1.56.0 0.0.0.255 area 20
+
+------------------
+EIGRP - 111
+------------------
+
+R6
+
+Router eigrp 111
+ network 192.1.69.0
+ network 6.0.0.0
+ network 66.0.0.0
+
+R9
+
+Router eigrp 111
+ network 192.1.69.0
+ network 9.0.0.0
+ network 99.0.0.0
+
+============================================
+Filtering
+============================================
+
+- LSA Type 3 filtering is possible on the ABR's.
+- It uses a Prefix-list to do filtering.
+- LSA Type 3 filtering is done from the perspective of the Area not the Router.
+
+Requirement#1: Block the 102.0.0.0/8 & 103.0.0.0/8 networks from leaving area 10.
+
+R2
+
+ip prefix-list A10-OUT deny 102.0.0.0/8
+ip prefix-list A10-OUT deny 103.0.0.0/8
+ip prefix-list A10-OUT permit 0.0.0.0/0 le 32
+!
+router ospf 1
+ area 10 filter-list prefix A10-OUT out
+
+Requirement#2: Block any network or subnet in the 100.0.0.0/8 network from entering area 20.
+
+R3
+
+ip prefix-list A20-IN deny 100.0.0.0/8 le 32
+ip prefix-list A20-IN permit 0.0.0.0/0 le 32
+!
+router ospf 1
+ area 20 filter-list prefix A20-IN in
+
+============================================
+Redistribution
+============================================
+
+------------------
+OSPF Into EIGRP
+------------------
+
+-------
+R1
+-------
+
+Router eigrp 100
+ redistribute ospf 1 metric 10 10 10 10 10
+
+or
+
+Router eigrp 100
+ redistribute ospf 1
+ default-metric 10 10 10 10 10
+
+------------------
+EIGRP Into OSPF
+------------------
+
+-------
+R1
+-------
+
+router ospf 1
+ redistribute eigrp 100
+
+Note: OSPF has a default metric by default. It is a cost of 20.
+
+- By default OSPF inject the routes with a metric type of O E2. (Metric-type 2).
+- E2 routes do not add the cost of the links to the routes as they propagate thru the OSPF domain.
+- This is fine as OSPF routers determine the best route by looking the advertising routers router-id. It looks at the local OSPF LSA Type1/2 database and figures out the best route.
+- If you want to see the addition of the cost of the links, you can change the metric type to 1 (O E1) on the redistributing router.
+
+router ospf 1
+ redistribute eigrp 100 metric-type 1
+
+- Router-id reachability is only known to routers within the area that the ASBR is in.
+- If an ABR inject an external route into another area, it needs to help the routers in that area to determine the path to the ASBR. The ABR helps them by injecting a Type 4 LSA which basically tells them to reach the remote ASBR they need to come via the ABR.
+
+Verification commands:
+
+show ip ospf database external (Displays the External Routes)
+show ip ospf database asbr-summary (Displays the ABR/ASBR Mapping).
+
+------------------------------------------
+Redistributing between OSPF and EIGRP 111
+------------------------------------------
+
+R6
+
+router eigrp 111
+ redistribute ospf 1 metric 10 10 10 10 10
+!
+router ospf 1
+ redistribute eigrp 111 metric-type 1
+
+=======================================
+6. Area Types
+=======================================
+
+--------------------------
+- Stub
+--------------------------
+
+Characteristics
+
+1. The ABR blocks all external routes (Type 5 LSA; Type 4 LSA).
+2. The ABR injects a default route into the area to maintain reachability (Type 3).
+
+Configuration:
+
+On ALL Routers within the area including the ABR.
+
+router ospf 1
+ area 10 stub
+
+--------------------------
+- Totally Stubby
+--------------------------
+
+Characteristics
+
+1. Extension of the Stub (2 Characteristics)
+2. ABR also block the Type 3 LSA from Other Areas.
+
+Configuration:
+
+Only needs to be on the ABR
+
+router ospf 1
+ area 10 stub no-summary
+
+--------------------------
+- NSSA
+--------------------------
+
+Characteristics
+
+1. The ABR blocks all external routes (Type 5 LSA; Type 4 LSA) from the Backbone.
+2. The ASBR within the NSSA area will inject the external routes as Type 7 (O N2)
+3. The ABR will convert the Type 7 into a Type 5 before sending it into the Backbone.
+
+Note: There is no default route injected hence you loose connectivity to the external routes from the backbone.
+
+Configuration:
+
+On ALL Routers within the area including the ABR.
+
+router ospf 1
+ area 20 nssa
+
+--------------------------
+- NSSA - Stub
+--------------------------
+
+Characteristics
+
+1. Extension of the NSSA (3 Characteristics)
+2. The ABR will inject a Default Route into the Area as Type 7.
+
+Configuration:
+
+Only needs to be on the ABR
+
+router ospf 1
+ area 20 nssa default-information-originate
+
+
+--------------------------
+- NSSA - Totally Stubby
+--------------------------
+
+Characteristics
+
+1. Extension of the NSSA (3 Characteristics)
+2. The ABR will inject a Default Route into the Area as Type 3.
+3. The ABR will block the Type 3 LSAs.
+
+Configuration:
+
+Only needs to be on the ABR
+
+router ospf 1
+ area 20 nssa no-summary
+
+============================================
+7. Virtual Links
+============================================
+
+------------------
+Base Config
+------------------
+
+R1
+
+Router ospf 1
+ router-id 0.0.0.1
+ network 192.1.12.0 0.0.0.255 area 0
+ network 1.0.0.0 0.255.255.255 area 0
+ network 11.0.0.0 0.255.255.255 area 0
+!
+Interface loo0
+ ip ospf network point-to-point
+!
+Interface loo1
+ ip ospf network point-to-point
+
+R2
+
+Router ospf 1
+ router-id 0.0.0.2
+ network 192.1.12.0 0.0.0.255 area 0
+ network 2.0.0.0 0.255.255.255 area 0
+ network 22.0.0.0 0.255.255.255 area 0
+ network 192.1.23.0 0.0.0.255 area 10
+!
+Interface loo0
+ ip ospf network point-to-point
+!
+Interface loo1
+ ip ospf network point-to-point
+
+R3
+
+Router ospf 1
+ router-id 0.0.0.3
+ network 0.0.0.0 255.255.255.255 area 10
+!
+Interface loo0
+ ip ospf network point-to-point
+!
+Interface loo1
+ ip ospf network point-to-point
+
+R4
+
+Router ospf 1
+ router-id 0.0.0.4
+ network 192.1.34.0 0.0.0.255 area 10
+ network 4.0.0.0 0.255.255.255 area 20
+ network 44.0.0.0 0.255.255.255 area 10
+ network 192.1.45.0 0.0.0.255 area 20
+!
+Interface loo0
+ ip ospf network point-to-point
+!
+Interface loo1
+ ip ospf network point-to-point
+
+R5
+
+Router ospf 1
+ router-id 0.0.0.5
+ network 192.1.45.0 0.0.0.255 area 20
+ network 5.0.0.0 0.255.255.255 area 20
+
+--------------------------------------------
+Configuring a Virtual-Link between R2 & R4
+--------------------------------------------
+
+R2
+
+router ospf 1
+ area 10 virtual-link 0.0.0.4
+
+R4
+
+router ospf 1
+ area 10 virtual-link 0.0.0.2
+
+--------------------------------------------
+Configuring Area 30
+--------------------------------------------
+
+R5
+
+Router ospf 1
+ network 192.1.56.0 0.0.0.255 area 30
+ network 55.0.0.0 0.255.255.255 area 30
+
+R6
+
+Router ospf 1
+ router-id 0.0.0.6
+ network 192.1.56.0 0.0.0.255 area 30
+ network 66.0.0.0 0.255.255.255 area 30
+ network 6.0.0.0 0.255.255.255 area 30
+!
+Interface loo0
+ ip ospf network point-to-point
+!
+Interface loo1
+ ip ospf network point-to-point
+
+
+--------------------------------------------
+Configuring a Virtual-Link between R4 & R5
+--------------------------------------------
+
+R4
+
+router ospf 1
+ area 20 virtual-link 0.0.0.5
+
+R5
+
+router ospf 1
+ area 20 virtual-link 0.0.0.4
+
+

@@ -1,0 +1,161 @@
+Current configuration : 1820 bytes
+!
+! Last configuration change at 09:51:43 UTC Fri Apr 3 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R5
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username netadmin privilege 15 password 0 admin
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 5.0.0.5 255.0.0.0
+ ip ospf network point-to-point
+!
+interface Loopback1
+ ip address 55.0.0.5 255.0.0.0
+ ip ospf network point-to-point
+!
+interface Ethernet0/0
+ ip address 192.1.35.5 255.255.255.0
+!
+interface Ethernet0/1
+ ip address 192.1.56.5 255.255.255.0
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/1
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/3
+ description OOB Management
+ ip address 192.168.1.105 255.255.255.0
+ duplex auto
+!
+router ospf 1
+ router-id 0.0.0.5
+ area 20 nssa
+ network 5.0.0.0 0.255.255.255 area 20
+ network 55.0.0.0 0.255.255.255 area 20
+ network 192.1.35.0 0.0.0.255 area 20
+ network 192.1.56.0 0.0.0.255 area 20
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+ntp server 34.202.215.187
+ntp server pool.ntp.org
+!
+end
