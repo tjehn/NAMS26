@@ -1,12 +1,12 @@
 # EVE-NG Lab Reset & Sea Trials SOP
-## Module 02 — EIGRP Classic Mode
+## NAMS26 | Network Automation Management Station 2026
 
 ---
 
 ## Working Directory
 
 ```
-/home/netauto/PycharmProjects/NAMS26/modules/02_eigrp_netmiko/utils
+modules/<module_dir>/utils/
 ```
 
 ---
@@ -20,19 +20,19 @@
 
 ---
 
-## Phase 2 — Router Baseline Verification
+## Phase 2 — Node Baseline Verification
 
-5. Confirm OOB reachability:
+5. Confirm OOB reachability for all nodes:
    ```
    python ping_hosts.py
    ```
-   Expected: 6/6 hosts reachable. Only OOB IP (Ethernet1/3) should be configured.
+   Expected: all nodes reachable. Only OOB IP (Ethernet1/3) should be configured.
 
 ---
 
-## Phase 3 — SSH Preparation
+## Phase 3 — SSH Initialization
 
-6. Generate RSA keys on each router (via console, R1–R6):
+6. Apply base configuration to all nodes (via console):
    ```
    configure terminal
    crypto key generate rsa modulus 1024
@@ -45,12 +45,12 @@
    bash clear_known_hosts.sh
    ```
 
-8. Verify SSH connectivity and refresh known_hosts:
+8. Initialize SSH — accept host keys and populate known_hosts:
    ```
-   python check_ssh.py
+   python init_ssh.py
    ```
-   Expected: 6/6 hosts SSH reachable. Host keys written to ~/.ssh/known_hosts under FQDN (r1.lab, etc.).
-   > Note: Always use FQDN for manual SSH sessions (ssh netadmin@r1.lab).
+   Expected: all nodes SSH reachable. Host keys written to ~/.ssh/known_hosts.
+   > Note: Always use FQDN for manual SSH sessions (e.g. ssh netadmin@r1.lab).
 
 ---
 
@@ -58,12 +58,12 @@
 
 9. Dry run — validate rendering, no SSH push:
    ```
-   python configure_eigrp_classic.py --dry-run
+   python configure_*.py --dry-run
    ```
 
-10. Deploy configuration to all routers:
+10. Deploy configuration to all nodes:
     ```
-    python configure_eigrp_classic.py
+    python configure_*.py
     ```
 
 ---
@@ -72,17 +72,17 @@
 
 11. Run automated verification:
     ```
-    python verify_eigrp_classic.py
+    python verify_*.py
     ```
 
 12. Review session logs:
     ```
-    NAMS26/modules/logs/
+    modules/<module_dir>/logs/
     ```
 
 13. Review rendered configuration files:
     ```
-    NAMS26/modules/02_eigrp_netmiko/configs/
+    modules/<module_dir>/configs/
     ```
 
 ---
@@ -94,7 +94,7 @@
 Stop all nodes → Wipe all nodes → Start all nodes
 Open consoles in SecureCRT
 
-# Each Router (via console)
+# All nodes (via console)
 configure terminal
 crypto key generate rsa modulus 1024
 end
@@ -103,10 +103,14 @@ write memory
 # NAMS26 Workstation — utils/
 python ping_hosts.py
 bash clear_known_hosts.sh
-python check_ssh.py
+python init_ssh.py
 
 # NAMS26 Workstation — scripts/
-python configure_eigrp_classic.py --dry-run
-python configure_eigrp_classic.py
-python verify_eigrp_classic.py
+python configure_*.py --dry-run
+python configure_*.py
+python verify_*.py
 ```
+
+---
+
+*NAMS26 — Network Automation Management Station 2026*
