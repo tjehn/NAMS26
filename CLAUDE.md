@@ -11,7 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 There is no build system. Scripts are invoked directly from each module directory. Each module follows the same CLI contract:
 
 ```bash
-# Pre-flight: run after every EVE-NG lab reboot to populate ~/.ssh/known_hosts
+# Pre-flight (lab reset sequence — run in this order):
+bash modules/02_eigrp_netmiko/utils/clear_known_hosts.sh   # 1. purge stale keys
+python modules/02_eigrp_netmiko/utils/init_ssh.py           # 2. accept new keys, populate known_hosts
+python modules/02_eigrp_netmiko/utils/ping_hosts.py         # 3. confirm ICMP reachability
+
+# Troubleshooting SSH (not part of reset — verifies existing known_hosts entries)
 python modules/02_eigrp_netmiko/utils/check_ssh.py
 
 # Render configs locally only — no SSH connection
@@ -63,13 +68,55 @@ All 11 modules share an identical structure:
 
 ```
 modules/NN_name_tool/
-├── data/           # YAML device inventory + routing config
-├── templates/      # Jinja2 .j2 templates (one per protocol variant)
-├── scripts/        # configure_*.py, verify_*.py, troubleshoot_*.py
-├── utils/          # check_ssh.py, ping_hosts.py, push_config.py, module-specific tools
-├── configs/        # Rendered device configs (git-ignored, written by --dry-run)
-└── logs/           # Session logs (git-ignored)
+├── NN_ios_configs/                    # Raw IOS configs captured from EVE-NG lab
+├── configs/                           # Rendered device configs (git-ignored, written by --dry-run)
+├── data/                              # YAML device inventory + routing config
+├── diagrams/                          # moduleNN_topology_*.drawio + moduleNN_topology_*.drawio.svg
+├── docs/
+│   ├── eve-ng_lab_reset_sop.md
+│   ├── moduleNN_planning.md
+│   └── moduleNN_closing_demo.md
+├── logs/                              # Session logs (git-ignored)
+├── README.md
+├── scripts/                           # configure_*.py, verify_*.py, troubleshoot_*.py
+├── templates/                         # *.j2 Jinja2 templates
+├── utils/                             # check_ssh.py, clear_known_hosts.sh, ping_hosts.py, push_config.py
+└── verbal_script/
+    └── moduleNN_verbal_script_final.md
 ```
+
+**Git-ignored directories require a `.gitkeep` placeholder** so git tracks the directory and scripts
+can write to it on a fresh clone without a `mkdir` guard. Required for: `configs/`, `logs/`,
+`NN_ios_configs/` (when empty), and `utils/` (when scaffold only).
+
+### File Naming Conventions
+
+- **Diagram files:** `moduleNN_topology_<protocol>.drawio` and `moduleNN_topology_<protocol>.drawio.svg`
+  — the `moduleNN_` prefix makes files unambiguous when viewed outside their directory context.
+- **Verbal script:** `moduleNN_verbal_script_final.md` — the `_final` suffix signals the script
+  is production-ready. Do not rename until the content is finalized.
+- **`docs/` standard files:** all three (`eve-ng_lab_reset_sop.md`, `moduleNN_planning.md`,
+  `moduleNN_closing_demo.md`) are required for every completed module.
+
+### `utils/` Standard Scripts
+
+Every module's `utils/` must contain these five files (copy from the previous module and adapt):
+
+| File | Purpose | Referenced in SOP |
+|------|---------|-------------------|
+| `init_ssh.py` | Lab initialization — drives the interactive SSH first-connection flow using pexpect, accepts host key fingerprints, and populates `~/.ssh/known_hosts`. Run after every EVE-NG lab reset. | Yes |
+| `check_ssh.py` | Troubleshooting — verifies SSH connectivity against existing `~/.ssh/known_hosts` entries using Netmiko. Used when diagnosing lab connectivity issues, not as part of the reset sequence. | No |
+| `clear_known_hosts.sh` | Removes lab router entries from `~/.ssh/known_hosts` before a wipe/restart | Yes |
+| `ping_hosts.py` | ICMP reachability check against all devices in the module YAML | Yes |
+| `push_config.py` | Standalone config push utility (bypasses the full configure script) | No |
+
+**`init_ssh.py` vs `check_ssh.py`:** These are distinct tools with different purposes.
+`init_ssh.py` is the lab reset script — it must run after every EVE-NG Wipe+Start because IOL
+regenerates RSA host keys on each cycle. `check_ssh.py` is a troubleshooting diagnostic that
+confirms existing known_hosts entries are still valid.
+
+Module-specific utility scripts (e.g., `module04_ospf_topology_map.py`) also live in `utils/`
+and follow the same `moduleNN_` naming prefix.
 
 ### Data → Template → Device Flow
 
@@ -169,10 +216,43 @@ false FAILs in verify and troubleshoot scripts. See `modules/03_ospf1_napalm/doc
 
 ## Adding a New Module
 
-Follow the existing module structure exactly. Copy `check_ssh.py`, `ping_hosts.py`, and
-`push_config.py` from an existing module's `utils/`. The `configure_*.py` script must:
+### Step 1 — Create the scaffold
+
+Create all directories with `.gitkeep` placeholders for the git-ignored ones:
+
+```bash
+mkdir -p modules/NN_name_tool/{NN_ios_configs,data,diagrams,docs,scripts,templates,verbal_script}
+mkdir -p modules/NN_name_tool/configs && touch modules/NN_name_tool/configs/.gitkeep
+mkdir -p modules/NN_name_tool/logs    && touch modules/NN_name_tool/logs/.gitkeep
+```
+
+### Step 2 — Copy `utils/` from the previous module
+
+```bash
+cp -r modules/04_ospf2_napalm/utils/ modules/NN_name_tool/utils/
+```
+
+Adapt `init_ssh.py` and `ping_hosts.py` for the new module's YAML filename and tool name.
+Update the module number in headers and the "Ready to run" message at the bottom of `init_ssh.py`.
+Remove or replace `module04_ospf_topology_map.py` as appropriate.
+
+### Step 3 — Create `docs/` standard files
+
+All three are required before the module is considered complete:
+- `docs/eve-ng_lab_reset_sop.md` — copy from Module 04, update if lab topology changed
+- `docs/moduleNN_planning.md` — module design and topology planning notes
+- `docs/moduleNN_closing_demo.md` — closing demo script / fault injection procedure
+
+### Step 4 — Write the `configure_*.py` script
+
+The script must:
 - Resolve all paths using the four-level chain from `__file__` (see Path Resolution above)
 - Support `--dry-run` and `--router` flags
 - Write rendered configs to `configs/` during dry-run
 - Log session output to `modules/NN_name_tool/logs/`
 - For NAPALM modules: always include IOL optional_args (see NAPALM section above)
+
+### Step 5 — Name diagram and verbal script files correctly
+
+- Diagrams: `diagrams/moduleNN_topology_<protocol>.drawio` + `.svg`
+- Verbal script: `verbal_script/moduleNN_verbal_script_final.md` (only rename to `_final` when complete)

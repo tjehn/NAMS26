@@ -1,0 +1,229 @@
+.
+├── ansible
+│   ├── ansible.cfg
+│   ├── group_vars
+│   ├── host_vars
+│   ├── inventories
+│   ├── playbooks
+│   ├── roles
+│   │   ├── bgp_mpls
+│   │   │   ├── defaults
+│   │   │   ├── handlers
+│   │   │   ├── meta
+│   │   │   ├── tasks
+│   │   │   ├── templates
+│   │   │   └── vars
+│   │   ├── mpls_vpn
+│   │   │   ├── defaults
+│   │   │   ├── handlers
+│   │   │   ├── meta
+│   │   │   ├── tasks
+│   │   │   ├── templates
+│   │   │   └── vars
+│   │   └── vpn_gre
+│   │       ├── defaults
+│   │       ├── handlers
+│   │       ├── meta
+│   │       ├── tasks
+│   │       ├── templates
+│   │       └── vars
+│   └── vault
+│       └── README.md
+├── CLAUDE.md
+├── docs
+│   ├── git_reference_nams26.md
+│   └── style_guide.md
+├── inventory
+│   └── hosts.yaml
+├── logs
+├── modules
+│   ├── 01_introduction
+│   │   ├── docs
+│   │   ├── README.md
+│   │   └── verbal_script
+│   ├── 02_eigrp_netmiko
+│   │   ├── configs
+│   │   ├── data
+│   │   │   └── eigrp_classic.yaml
+│   │   ├── diagrams
+│   │   │   ├── topology_eigrp_classic.drawio
+│   │   │   └── topology_eigrp_classic.drawio.svg
+│   │   ├── docs
+│   │   │   ├── eve-ng_lab_reset_sop.md
+│   │   │   ├── module02_closing_demo.md
+│   │   │   └── README.md
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   │   ├── configure_eigrp_classic.py
+│   │   │   ├── troubleshoot_eigrp_classic.py
+│   │   │   └── verify_eigrp_classic.py
+│   │   ├── templates
+│   │   │   └── eigrp_classic.j2
+│   │   ├── utils
+│   │   │   ├── check_ssh.py
+│   │   │   ├── clear_known_hosts.sh
+│   │   │   ├── ping_hosts.py
+│   │   │   └── push_config.py
+│   │   └── verbal_script
+│   │       └── module02_verbal_script_final.md
+│   ├── 03_ospf1_napalm
+│   │   ├── 03_ios_configs
+│   │   │   ├── create_files.bat
+│   │   │   ├── R01.txt
+│   │   │   ├── R02.txt
+│   │   │   ├── R03.txt
+│   │   │   ├── R04.txt
+│   │   │   ├── R05.txt
+│   │   │   ├── R06.txt
+│   │   │   ├── R07.txt
+│   │   │   ├── R08.txt
+│   │   │   ├── R09.txt
+│   │   │   ├── R10.txt
+│   │   │   └── R11.txt
+│   │   ├── configs
+│   │   │   ├── R10_ospf_classic.cfg
+│   │   │   ├── R11_ospf_classic.cfg
+│   │   │   ├── R1_ospf_classic.cfg
+│   │   │   ├── R2_ospf_classic.cfg
+│   │   │   ├── R3_ospf_classic.cfg
+│   │   │   ├── R4_ospf_classic.cfg
+│   │   │   ├── R5_ospf_classic.cfg
+│   │   │   ├── R6_ospf_classic.cfg
+│   │   │   ├── R7_ospf_classic.cfg
+│   │   │   ├── R8_ospf_classic.cfg
+│   │   │   └── R9_ospf_classic.cfg
+│   │   ├── data
+│   │   │   └── ospf_classic.yaml
+│   │   ├── diagrams
+│   │   │   ├── topology_ospf_classic.drawio
+│   │   │   └── topology_ospf_classic.drawio.svg
+│   │   ├── docs
+│   │   │   ├── eve-ng_lab_reset_sop.md
+│   │   │   ├── module03_closing_demo.md
+│   │   │   └── module03_verbal_script_final.md
+│   │   ├── logs
+│   │   │   └── ospf_topology_map_20260328_035200.log
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   │   ├── configure_ospf_classic.py
+│   │   │   ├── troubleshoot_ospf_classic.py
+│   │   │   └── verify_ospf_classic.py
+│   │   ├── templates
+│   │   │   └── ospf_classic.j2
+│   │   ├── utils
+│   │   │   ├── check_ssh.py
+│   │   │   ├── clear_known_hosts.sh
+│   │   │   ├── ospf_topology_map.py
+│   │   │   ├── ping_hosts.py
+│   │   │   └── push_config.py
+│   │   └── verbal_script
+│   ├── 04_ospf2_napalm
+│   │   ├── 04_ios_configs
+│   │   │   ├── Day_4_Notes_-_OSPF_-_2.txt
+│   │   │   ├── OnC_CoS.txt
+│   │   │   ├── R01.txt
+│   │   │   ├── R02.txt
+│   │   │   ├── R03.txt
+│   │   │   ├── R04.txt
+│   │   │   ├── R05.txt
+│   │   │   ├── R06.txt
+│   │   │   ├── R07.txt
+│   │   │   ├── R08.txt
+│   │   │   ├── R09.txt
+│   │   │   └── R10.txt
+│   │   ├── configs
+│   │   ├── data
+│   │   │   └── ospf_advanced.yaml
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   │   ├── config_review_notes.md
+│   │   │   └── module04_planning.md
+│   │   ├── logs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   │   ├── configure_ospf_advanced.py
+│   │   │   ├── troubleshoot_ospf_advanced.py
+│   │   │   └── verify_ospf_advanced.py
+│   │   ├── templates
+│   │   │   └── ospf_advanced.j2
+│   │   ├── utils
+│   │   │   ├── check_ssh.py
+│   │   │   ├── clear_known_hosts.sh
+│   │   │   ├── init_ssh.py
+│   │   │   ├── ping_hosts.py
+│   │   │   └── push_config.py
+│   │   └── verbal_script
+│   ├── 05_ipv6_isis_nornir
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 06_isis_nornir
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 07_bgp1_pyats
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 08_bgp2_pyats
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 09_bgp_mpls_ansible
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 10_mpls_vpn_ansible
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── 11_vpn_gre_ansible
+│   │   ├── configs
+│   │   ├── data
+│   │   ├── diagrams
+│   │   ├── docs
+│   │   ├── README.md
+│   │   ├── scripts
+│   │   ├── templates
+│   │   └── verbal_script
+│   ├── CoS_NAMS26_SYNC
+│   └── logs
+├── NAMS26_context.md
+├── README.md
+├── requirements.txt
+├── structure.txt
+└── utils
+    ├── config_generator.py
+    ├── helpers.py
+    ├── __init__.py
+    └── verify.py
