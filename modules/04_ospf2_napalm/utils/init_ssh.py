@@ -73,8 +73,11 @@ def info(msg):   print(f"{CYAN}  [INFO]{RESET} {msg}")
 # SSH CHECK
 # =============================================================================
 
-# Timeout in seconds per expect() call. IOL can be slow to respond
-# immediately after boot — 15 seconds is generous but reliable.
+# Maximum seconds pexpect waits for any single pattern match during the SSH
+# handshake (host key prompt → password prompt → router prompt → exit).
+# IOL routers on EVE-NG can be slow to respond; 15 s gives enough headroom
+# without letting a dead host stall the sequence for too long.
+# Current: 15 s   Practical range: 10 – 30 s
 SSH_TIMEOUT = 15
 
 # Patterns pexpect will watch for during the SSH handshake sequence.
@@ -115,8 +118,16 @@ def check_ssh_router(device_name: str, dns_name: str,
     """
     ssh_cmd = (
         f"ssh "
+        # Accept new host keys automatically; reject keys that changed (protects
+        # against accidental connection to the wrong host after a lab rebuild).
         f"-o StrictHostKeyChecking=accept-new "
+        # Write accepted keys to the standard known_hosts file so Netmiko/NAPALM
+        # scripts can connect without host-key prompts after init_ssh runs.
         f"-o UserKnownHostsFile={os.path.expanduser('~/.ssh/known_hosts')} "
+        # TCP-level connection timeout in seconds — distinct from SSH_TIMEOUT
+        # (which governs pexpect pattern matching). A host that does not respond
+        # to TCP SYN within this window is immediately reported FAIL.
+        # Current: 10 s   Practical range: 5 – 20 s
         f"-o ConnectTimeout=10 "
         f"{username}@{dns_name}"
     )

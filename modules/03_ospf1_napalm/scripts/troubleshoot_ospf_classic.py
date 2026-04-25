@@ -93,7 +93,7 @@ PROJECT_ROOT = os.path.dirname(MODULE_DIR)
 YAML_FILE     = os.path.join(MODULE_DIR, "data",      "ospf_classic.yaml")
 TEMPLATE_DIR  = os.path.join(MODULE_DIR, "templates")
 TEMPLATE_FILE = "ospf_classic.j2"
-LOG_DIR       = os.path.join(PROJECT_ROOT, "logs")
+LOG_DIR       = os.path.join(MODULE_DIR, "logs")
 
 KNOWN_HOSTS_FILE = os.path.expanduser("~/.ssh/known_hosts")
 
@@ -593,6 +593,10 @@ def connect(device_name: str, dns_name: str, creds: dict, lf=None):
             hostname=dns_name,
             username=creds.get("username", ""),
             password=creds.get("password", ""),
+            # global_delay_factor is a Netmiko parameter forwarded through NAPALM's
+            # optional_args to the underlying SSH connection. Doubles all internal
+            # Netmiko timing constants — needed because IOL routers respond slowly.
+            # Current: 2.0   Range: 1.0 (fastest, may miss prompts) – 5.0 (slow hosts)
             optional_args={"global_delay_factor": 2.0},
         )
         device.open()

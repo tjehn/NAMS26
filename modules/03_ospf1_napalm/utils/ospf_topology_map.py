@@ -188,8 +188,13 @@ def connect(router: str, username: str, password: str, lf=None):
     driver = get_network_driver("ios")
     optional_args = {
         "ssh_config_file":  None,
+        # IOL has no flash: filesystem — redirect NAPALM's dir space check to nvram:
         "dest_file_system": "nvram:",
+        # Send config over the SSH session instead of SCP — IOL does not support SCP
         "inline_transfer":  True,
+        # global_delay_factor is forwarded by NAPALM to the underlying Netmiko connection.
+        # Doubles all Netmiko internal timing constants to accommodate slow IOL responses.
+        # Current: 2.0   Range: 1.0 (fastest, may miss prompts) – 5.0 (slow hosts)
         "global_delay_factor": 2.0,
     }
     try:

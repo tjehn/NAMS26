@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**NAMS26** (Network Automation Management Station 2026) is an 11-module network automation curriculum using Python and Cisco IOS (IOL) routers in an EVE-NG lab. Each module introduces a new automation tool: Netmiko → NAPALM → Nornir → pyATS/Genie → Ansible.
+**NAMS26** (Network Automation Management Station 2026) is a 12-module network automation curriculum using Python and Cisco IOS (IOL) routers in an EVE-NG lab. Each module introduces a new automation tool: Netmiko → NAPALM → Nornir → pyATS/Genie → Ansible.
+
+## Project Root
+J:\CCIE EI Lab - Q1 2020\NAMS26_V03
+(also accessible as \\nas01\SynologySync1\CCIE EI Lab - Q1 2020\NAMS26_V03)
+
 
 ## Running Scripts
 
@@ -43,6 +48,42 @@ black modules/03_ospf1_napalm/scripts/configure_ospf_classic.py  # Single file
 
 Black is the only configured code tool (no linter, no test runner).
 
+## Code Commenting Standard
+
+Do not comment obvious code. Add a comment only when the WHY is non-obvious: a hidden constraint, a subtle invariant, or a parameter whose effect would surprise a reader.
+
+**Non-obvious variables must document three things:** current setting, purpose, and valid range. Format:
+
+```python
+# One-line description of what this controls.
+# Current: X   Range: min – max
+"variable_name": value,
+```
+
+Apply this to all connection timing parameters (`global_delay_factor`, `delay_factor`,
+`conn_timeout`, `SSH_TIMEOUT`) and any parameter whose effect is not obvious from its name.
+Do not comment path assignments, standard library imports, or self-explanatory flag names.
+
+### Netmiko Timing Parameters
+
+| Parameter | Scope | Behavior |
+|-----------|-------|----------|
+| `global_delay_factor` | Connection-wide | Multiplies **all** internal Netmiko delay constants: post-login settling, inter-command pause, prompt-detection loops. Set in `ConnectHandler()` or via NAPALM `optional_args`. |
+| `delay_factor` | Per-`send_command` | Multiplies that single command's wait time. Stacks **multiplicatively** with `global_delay_factor`: `effective wait = base × global_delay_factor × delay_factor`. |
+| `conn_timeout` | TCP only | TCP handshake timeout. Raises `NetmikoTimeoutException` if exceeded. Does not affect application-level prompt timeouts. |
+
+In NAPALM scripts, `global_delay_factor` is passed via `optional_args` and forwarded to the
+underlying Netmiko connection — it is a Netmiko parameter, not a NAPALM one.
+
+Typical values used in this project:
+
+| Script type | `global_delay_factor` | `delay_factor` |
+|-------------|----------------------|----------------|
+| `push_config.py` (Netmiko, `send_config_set`) | 2.0 | — |
+| `configure_*.py` (Netmiko, line-by-line `send_command`) | 4.0 | 5.0 |
+| `verify_*.py` / `troubleshoot_*.py` | 2.0 | — |
+| NAPALM scripts (via `optional_args`) | 2.0 | — |
+
 ## Interface Standards
 
 These standards apply to all modules and must be reflected in every YAML data file:
@@ -56,6 +97,10 @@ These standards apply to all modules and must be reflected in every YAML data fi
 | Loopback | `""` | `""` | descriptive | `false` |
 | OOB (`Ethernet1/3`) | `""` | `""` | `OOB Management` | `false` |
 
+**`speed: 100` must be an unquoted YAML integer, not a quoted string (`speed: "100"` is wrong).**
+The value `100` renders correctly in Jinja2 either way, but the unquoted form is the project standard.
+Serial and Loopback interfaces have no applicable speed or duplex — use empty strings for both.
+
 **Base config demarc:** `Ethernet1/3` (OOB), hostname, credentials, domain, VTY/console, and NTP are managed by the lab admin as a pre-loaded base configuration. The automation scripts do not render or modify these. The OOB interface entry in each YAML is reference data only — the template explicitly excludes it from rendering.
 
 All shutdown Serial interfaces (e.g., `Serial2/1`, `Serial2/2`, `Serial2/3`) must be present in the YAML with `description: UNUSED`. Do not omit unused interfaces.
@@ -64,7 +109,7 @@ All shutdown Serial interfaces (e.g., `Serial2/1`, `Serial2/2`, `Serial2/3`) mus
 
 ### Module Layout
 
-All 11 modules share an identical structure:
+All 12 modules share an identical structure:
 
 ```
 modules/NN_name_tool/
@@ -97,6 +142,19 @@ can write to it on a fresh clone without a `mkdir` guard. Required for: `configs
   is production-ready. Do not rename until the content is finalized.
 - **`docs/` standard files:** all three (`eve-ng_lab_reset_sop.md`, `moduleNN_planning.md`,
   `moduleNN_closing_demo.md`) are required for every completed module.
+
+### Verbal Script Log Path Standard
+
+Verbal scripts must reference the **module-specific** log path. Never use generic references
+like "project-level `logs/`" or "`modules/logs/`":
+
+```
+WRONG:  "A timestamped session log is written to the project-level logs/ directory"
+WRONG:  "All output is mirrored to a timestamped log file in modules/logs/"
+CORRECT: "A timestamped session log is written to modules/02_eigrp_netmiko/logs/"
+```
+
+This mirrors the `LOG_DIR = os.path.join(MODULE_DIR, "logs")` standard in every script.
 
 ### `utils/` Standard Scripts
 
@@ -145,6 +203,22 @@ LOG_DIR      = os.path.join(MODULE_DIR, "logs")
 - Project root is one more level up → PROJECT_ROOT
 - Logs go to the **module's own** `logs/` directory, not the project root logs/
 
+**Common LOG_DIR mistakes to avoid:**
+
+```python
+# WRONG — points to project root logs/, not the module's logs/
+LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+
+# WRONG — os.path.dirname(MODULE_DIR) resolves to MODULES_DIR (modules/), not MODULE_DIR
+LOG_DIR = os.path.join(os.path.dirname(MODULE_DIR), "logs")
+
+# CORRECT
+LOG_DIR = os.path.join(MODULE_DIR, "logs")
+```
+
+Both wrong forms write logs to a shared directory outside the module, breaking the
+per-module isolation enforced by the directory structure.
+
 ### YAML Device Structure
 
 ```yaml
@@ -175,9 +249,9 @@ devices:
 |---------|------|-------------------|
 | 02 | Netmiko | SSH, direct `send_config_set` |
 | 03–04 | NAPALM | `merge_candidate` + `commit_config`; requires `inline_transfer: True` for Cisco IOL |
-| 05–06 | Nornir | Task-based, parallel |
-| 07–08 | pyATS/Genie | Structured output parsing |
-| 09–11 | Ansible | Roles in `ansible/roles/` |
+| 05–07 | Nornir | Task-based, parallel |
+| 08–09 | pyATS/Genie | Structured output parsing |
+| 10–12 | Ansible | Roles in `ansible/roles/` |
 
 ### NAPALM / Cisco IOL Compatibility — REQUIRED STANDARD (Modules 03+)
 
@@ -187,14 +261,31 @@ configure script targeting IOL **must** use these `optional_args` exactly — no
 ```python
 optional_args = {
     "ssh_config_file": None,
-    "session_log": session_log_path,
+    "session_log":      session_log_path,
+    # IOL has no flash: filesystem — point NAPALM's space check at nvram: instead.
     "dest_file_system": "nvram:",
-    "inline_transfer": True,
+    # IOL does not support SCP — send config inline over the SSH session.
+    "inline_transfer":  True,
 }
 ```
 
 Omitting `dest_file_system` or `inline_transfer` will cause NAPALM to fail silently
 or raise a file transfer error on every IOL router.
+
+**Module 04 adds one additional key** — `enable_scp: False` — as a belt-and-suspenders
+guard against IOL MD5 checksum errors when SCP is attempted against `nvram:` on some
+image versions. `inline_transfer` already prevents SCP; `enable_scp: False` makes the
+intent explicit and disables SCP at the NAPALM layer as well:
+
+```python
+optional_args = {
+    "ssh_config_file":  None,
+    "session_log":      session_log_path,
+    "dest_file_system": "nvram:",
+    "inline_transfer":  True,
+    "enable_scp":       False,   # Module 04+ only
+}
+```
 
 ### Ansible
 
@@ -206,7 +297,7 @@ or raise a file transfer error on every IOL router.
 - **Lab DNS:** `192.168.1.12` — resolves `r1.lab` through `r11.lab`
 - **Default SSH credentials:** `netadmin` / `admin` (set in each module's YAML)
 - **Git remotes:** `origin` → Gitea at `192.168.1.12:8418` (dev), `github` → GitHub (production)
-- **Python venv:** `.venv/` at project root (git-ignored)
+- **Python venv:** `venv/` at project root (git-ignored). PyCharm cannot resolve the interpreter path when the project is opened from a UNC or mapped-drive path (`J:\` / `\\nas01\...`) — use the system Python (`C:\Users\tjehn\AppData\Local\Programs\Python\Python313\python.exe`) as the PyCharm interpreter in that case. All required packages are installed there.
 
 ## EVE-NG Lab Reset — CRITICAL
 

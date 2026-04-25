@@ -1,0 +1,662 @@
+1. Multi-Area IS-IS Configuration
+2. Multi-Domain IS-IS Configuration (EIGRP/OSPF)
+3. Summarization
+4. Authentication
+5. Metric-Style 
+6. IPv6 in a Multi-Domain Setup including IS-IS
+========================================================
+Configuring IS-IS in a Multi-Area setup
+========================================================
+
+---------------
+R1
+---------------
+
+router isis
+ net 49.AAAA.1111.1111.1111.00
+ is-type level-2
+!
+Interface E 0/0
+ ip router isis
+!
+Interface E 0/1
+ ip router isis
+!
+Interface loo0
+ ip router isis
+
+---------------
+R2
+---------------
+
+router isis
+ net 49.AAAA.2222.2222.2222.00
+ is-type level-2
+!
+Interface E 0/0
+ ip router isis
+!
+Interface E 0/1
+ ip router isis
+!
+Interface loo0
+ ip router isis
+!
+Interface loo1
+ ip router isis
+
+---------------
+R3
+---------------
+
+router isis
+ net 49.AAAA.3333.3333.3333.00
+ is-type level-2
+!
+Interface E 0/0
+ ip router isis
+!
+Interface E 0/1
+ ip router isis
+!
+Interface loo0
+ ip router isis
+!
+Interface loo1
+ ip router isis
+
+---------------
+R4
+---------------
+
+router isis
+ net 49.BBBB.4444.4444.4444.00
+!
+Interface E 0/0
+ ip router isis
+!
+Interface E 0/1
+ ip router isis
+!
+Interface loo0
+ ip router isis
+!
+Interface loo1
+ ip router isis
+!
+Interface loo11
+ ip router isis
+!
+Interface loo12
+ ip router isis
+!
+Interface loo13
+ ip router isis
+!
+Interface loo14
+ ip router isis
+
+---------------
+R10
+---------------
+
+router isis
+ net 49.BBBB.1010.1010.1010.00
+ is-type level-1
+!
+Interface E 0/0
+ ip router isis
+ isis circuit-type level-1
+!
+Interface E 0/1
+ ip router isis
+ isis circuit-type level-1
+!
+Interface loo0
+ ip router isis
+!
+Interface loo11
+ ip router isis
+!
+Interface loo12
+ ip router isis
+!
+Interface loo13
+ ip router isis
+!
+Interface loo14
+ ip router isis
+
+---------------
+R11
+---------------
+
+router isis
+ net 49.BBBB.1110.1110.1110.00
+ is-type level-1
+!
+Interface E 0/0
+ ip router isis
+!
+Interface loo0
+ ip router isis
+
+---------------
+R5
+---------------
+
+router isis
+ net 49.CCCC.5555.5555.5555.00
+!
+Interface E 0/0
+ ip router isis
+!
+Interface E 0/1
+ ip router isis
+!
+Interface loo0
+ ip router isis
+!
+Interface loo1
+ ip router isis
+
+---------------
+R6
+---------------
+
+router isis
+ net 49.CCCC.6666.6666.6666.00
+ is-type level-2
+!
+Interface E 0/0
+ ip router isis
+!
+Interface loo0
+ ip router isis
+
+========================================================
+Configuring Route Summarization on the Edge Router
+========================================================
+
+-----------
+R4
+-----------
+
+router isis
+ summary-address 105.1.4.0 255.255.252.0
+ summary-address 100.0.0.0 252.0.0.0
+
+
+========================================================
+Configuring Neighbor Authentication
+========================================================
+
+-----------
+R4
+-----------
+
+Key chain ABC
+ key 1
+  key-string cisco123
+!
+Interface E 0/1
+ isis authentication mode md5
+ isis authentication key-chain ABC
+
+-----------
+R10
+-----------
+
+Key chain ABC
+ key 1
+  key-string cisco123
+!
+Interface E 0/0
+ isis authentication mode md5
+ isis authentication key-chain ABC
+
+========================================================
+Configuring Multi-Domain - EIGRP & OSPF
+========================================================
+
+***********
+EIGRP-ISIS
+***********
+
+---------------
+R1
+---------------
+
+Router eigrp 111
+ network 192.1.17.0
+ network 192.1.18.0
+ network 11.0.0.0
+ redistribute isis metric 10 10 10 10 10
+ redistribute connected
+!
+router isis
+ redistribute eigrp 111
+
+---------------
+R7
+---------------
+
+Router eigrp 111
+ network 192.1.17.0
+ network 7.0.0.0
+ network 77.0.0.0
+ network 107.0.0.0
+
+---------------
+R8
+---------------
+
+Router eigrp 111
+ network 192.1.18.0
+ network 8.0.0.0
+ network 88.0.0.0
+
+
+***********
+OSPF-ISIS
+***********
+
+---------------
+R6
+---------------
+
+Router ospf 1
+ router-id 0.0.0.6
+ network 192.1.69.0 0.0.0.255 area 0
+ network 66.0.0.0 0.255.255.255 area 0
+ redistribute isis 
+ redistribute connected
+!
+router isis
+ redistribute ospf 1 
+
+---------------
+R9
+---------------
+
+Router ospf 1
+ router-id 0.0.0.9
+ network 192.1.69.0 0.0.0.255 area 0
+ network 9.0.0.0 0.255.255.255 area 0
+ network 99.0.0.0 0.255.255.255 area 0
+
+========================================================
+Configuring Wide-Metric
+========================================================
+
+- A bunch of technologies that are run on IS-IS require a large metric.
+- The default IS-IS Metric is narrow (6 Bits).
+- You can change it by using the metric-style command.
+
+--------------------------
+R1,R2,R3,R4,R5,R6,R10,R11
+--------------------------
+
+Router isis
+ metric-style wide
+
+========================================================
+Configuring Route Taggin with IS-IS
+========================================================
+
+Requirement: EIGRP and OSPF networks should not be exchanged with each other. EIGRP should have full reachability to IS-IS Networks. OSPF should have full reachability to IS-IS Networks.
+
+--------------------------
+R1
+--------------------------
+
+route-map E2I permit 10
+ set tag 111
+!
+router isis
+ redistribute eigrp 111 route-map E2I
+!
+route-map I2E deny 10
+ match tag 222
+route-map I2E permit 20
+!
+router eigrp 111
+ redistribute isis route-map I2E metric 10 10 10 10 10
+
+
+--------------------------
+R6
+--------------------------
+
+route-map I2O deny 10
+ match tag 111
+route-map I2O permit 20
+!
+router ospf 1
+ redistribute isis route-map I2O
+!
+route-map O2I permit 10
+ set tag 222
+!
+router isis
+ redistribute ospf 1 route-map O2I
+==============================================================
+Configuring the existing IPv4 network with a Dual-Stack IPv6
+==============================================================
+
+***************
+IS-IS
+***************
+
+------
+R1
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:1:1:1::1/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:12::1/64
+ ipv6 address fe80::1 link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:13::1/64
+ ipv6 address fe80::1 link-local
+ ipv6 router isis
+
+------
+R2
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:2:2:2::2/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:22:22:22::22/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:12::2/64
+ ipv6 address fe80::2 link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:24::2/64
+ ipv6 address fe80::2 link-local
+ ipv6 router isis
+
+------
+R3
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:3:3:3::3/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:33:33:33::33/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:13::3/64
+ ipv6 address fe80::3 link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:35::3/64
+ ipv6 address fe80::3 link-local
+ ipv6 router isis
+ 
+------
+R4
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:4:4:4::4/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:44:44:44::44/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:24::4/64
+ ipv6 address fe80::4 link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:40::4/64
+ ipv6 address fe80::4 link-local
+ ipv6 router isis
+
+------
+R10
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:10:10:10::10/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:AAAA:AAAA:AAAA::AAAA/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:40::10/64
+ ipv6 address fe80::A link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:110::10/64
+ ipv6 address fe80::A link-local
+ ipv6 router isis
+
+------
+R11
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:11:11:11::11/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:BBBB:BBBB:BBBB::BBBB/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:110::11/64
+ ipv6 address fe80::B link-local
+ ipv6 router isis
+
+------
+R5
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:5:5:5::5/64
+ ipv6 router isis
+!
+Interface Loo1
+ ipv6 address fc00:55:55:55::55/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:35::5/64
+ ipv6 address fe80::5 link-local
+ ipv6 router isis
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:56::5/64
+ ipv6 address fe80::5 link-local
+ ipv6 router isis
+
+------
+R6
+------
+
+ipv6 unicast-routing
+!
+Interface Loo0
+ ipv6 address fc00:6:6:6::6/64
+ ipv6 router isis
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:56::6/64
+ ipv6 address fe80::6 link-local
+ ipv6 router isis
+
+***************
+EIGRP
+***************
+
+------
+R1
+------
+
+ipv6 router eigrp 111
+ router-id 1.1.1.1
+!
+Interface Loo1
+ ipv6 address fc00:11:11:11::11/64
+ ipv6 eigrp 111
+!
+Interface E 0/2
+ ipv6 address fc00:192:1:17::1/64
+ ipv6 address fe80::1 link-local
+ ipv6 eigrp 111
+!
+Interface E 0/3
+ ipv6 address fc00:192:1:18::1/64
+ ipv6 address fe80::1 link-local
+ ipv6 eigrp 111
+
+------
+R7
+------
+
+ipv6 unicast-routing
+!
+ipv6 router eigrp 111
+ router-id 7.7.7.7
+!
+Interface Loo0
+ ipv6 address fc00:7:7:7::7/64
+ ipv6 eigrp 111
+!
+Interface Loo1
+ ipv6 address fc00:77:77:77::77/64
+ ipv6 eigrp 111
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:17::7/64
+ ipv6 address fe80::7 link-local
+ ipv6 eigrp 111
+
+------
+R8
+------
+
+ipv6 unicast-routing
+!
+ipv6 router eigrp 111
+ router-id 8.8.8.8
+!
+Interface Loo0
+ ipv6 address fc00:8:8:8::8/64
+ ipv6 eigrp 111
+!
+Interface Loo1
+ ipv6 address fc00:88:88:88::88/64
+ ipv6 eigrp 111
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:18::8/64
+ ipv6 address fe80::8 link-local
+ ipv6 eigrp 111
+
+***************
+OSPF
+***************
+
+------
+R6
+------
+
+ipv6 router ospf 1
+ router-id 6.6.6.6
+!
+Interface Loo1
+ ipv6 address fc00:66:66:66::66/64
+ ipv6 ospf 1 area 0
+!
+Interface E 0/1
+ ipv6 address fc00:192:1:69::6/64
+ ipv6 address fe80::6 link-local
+ ipv6 ospf 1 area 0
+
+------
+R9
+------
+
+ipv6 unicast-routing
+!
+ipv6 router ospf 1
+ router-id 9.9.9.9
+!
+Interface Loo0
+ ipv6 address fc00:9:9:9::9/64
+ ipv6 ospf 1 area 0
+!
+Interface Loo1
+ ipv6 address fc00:99:99:99::99/64
+ ipv6 ospf 1 area 0
+!
+Interface E 0/0
+ ipv6 address fc00:192:1:69::9/64
+ ipv6 address fe80::9 link-local
+ ipv6 ospf 1 area 0
+
+================
+Redistribution
+================
+
+--------
+R1
+--------
+
+router isis
+ address-family ipv6
+  redistribute eigrp 111 
+!
+ipv6 router eigrp 111
+ redistribute isis metric 10 10 10 10 10
+
+--------
+R6
+--------
+
+router isis
+ address-family ipv6
+  redistribute ospf 1
+!
+ipv6 router ospf 1
+ redistribute isis
+
+

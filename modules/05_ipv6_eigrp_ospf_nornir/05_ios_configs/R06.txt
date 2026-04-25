@@ -1,0 +1,176 @@
+Current configuration : 2119 bytes
+!
+! Last configuration change at 07:57:31 UTC Fri Apr 24 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R6
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username netadmin privilege 15 password 0 admin
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 6.6.6.6 255.255.255.255
+ ipv6 address FE80:10:6:6::6 link-local
+ ipv6 address FC00:10:6:6::6/64
+ ipv6 ospf 1 area 20
+ ipv6 ospf network point-to-point
+!
+interface Loopback1
+ no ip address
+ ipv6 address FE80:10:66:66::6 link-local
+ ipv6 address FC00:10:66:66::6/64
+ ipv6 eigrp 111
+!
+interface Ethernet0/0
+ no ip address
+ duplex auto
+ ipv6 address FE80:192:168:46::6 link-local
+ ipv6 address FC00:192:168:46::6/64
+ ipv6 ospf 1 area 20
+!
+interface Ethernet0/1
+ no ip address
+ duplex auto
+ ipv6 address FE80:192:168:68::6 link-local
+ ipv6 address FC00:192:168:68::6/64
+ ipv6 eigrp 111
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/1
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/3
+ description OOB Management
+ ip address 192.168.1.106 255.255.255.0
+ duplex auto
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+ipv6 router eigrp 111
+ eigrp router-id 6.6.6.6
+ redistribute ospf 1 metric 10000 100 255 1 1500
+!
+ipv6 router ospf 1
+ area 20 nssa
+ redistribute eigrp 111
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+ntp server 34.202.215.187
+ntp server 34.208.249.133
+ntp server pool.ntp.org
+!
+end

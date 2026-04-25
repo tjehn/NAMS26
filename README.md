@@ -1,7 +1,7 @@
 # NAMS26 — Network Automation Management Station 2026
 
 A professional-grade network automation lab and curriculum showcasing Python
-scripting, network protocols, and automation tools across an eleven-module
+scripting, network protocols, and automation tools across a twelve-module
 progression from Netmiko through Ansible.
 
 ## Project Goal
@@ -12,19 +12,20 @@ content (code + documentation + video lessons) published on GitHub and YouTube.
 
 ## Automation Tool Progression
 
-| Module | Protocol    | Tool          |
-|--------|-------------|---------------|
-| 01     | Introduction| N/A           |
-| 02     | EIGRP       | Netmiko       |
-| 03     | OSPF-1      | NAPALM        |
-| 04     | OSPF-2      | NAPALM        |
-| 05     | IPv6/IS-IS  | Nornir        |
-| 06     | IS-IS       | Nornir        |
-| 07     | BGP-1       | pyATS/Genie   |
-| 08     | BGP-2       | pyATS/Genie   |
-| 09     | BGP MPLS    | Ansible       |
-| 10     | MPLS-VPN    | Ansible       |
-| 11     | VPN/GRE     | Ansible       |
+| Module | Protocol         | Tool          |
+|--------|------------------|---------------|
+| 01     | Introduction     | N/A           |
+| 02     | EIGRP            | Netmiko       |
+| 03     | OSPF-1           | NAPALM        |
+| 04     | OSPF-2           | NAPALM        |
+| 05     | IPv6 EIGRP/OSPF  | Nornir        |
+| 06     | IPv6 IS-IS       | Nornir        |
+| 07     | IS-IS            | Nornir        |
+| 08     | BGP-1            | pyATS/Genie   |
+| 09     | BGP-2            | pyATS/Genie   |
+| 10     | BGP MPLS         | Ansible       |
+| 11     | MPLS-VPN         | Ansible       |
+| 12     | VPN/GRE          | Ansible       |
 
 ## Lab Environment
 
@@ -36,7 +37,7 @@ content (code + documentation + video lessons) published on GitHub and YouTube.
 ## Repository Structure
 ```
 NAMS26/
-├── ansible/          # Ansible roles and playbooks (Modules 09-11)
+├── ansible/          # Ansible roles and playbooks (Modules 10-12)
 ├── docs/             # Project-level documentation
 ├── inventory/        # Project-level inventory
 ├── modules/          # One directory per module
@@ -53,5 +54,5 @@ NAMS26/
 |--------|-------------|-------------|-------------|
 | 01     | Introduction| N/A         | In Progress |
 | 02     | EIGRP       | Netmiko     | Complete    |
-| 03-11  | See above   | See above   | Planned     |
+| 03-12  | See above   | See above   | Planned     |
 EOF

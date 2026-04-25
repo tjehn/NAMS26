@@ -54,7 +54,7 @@ YAML_FILE     = os.path.join(MODULE_DIR, "data",      "ospf_classic.yaml")
 TEMPLATE_DIR  = os.path.join(MODULE_DIR, "templates")
 TEMPLATE_FILE = "ospf_classic.j2"
 CONFIG_DIR    = os.path.join(MODULE_DIR, "configs")
-LOG_DIR       = os.path.join(PROJECT_ROOT, "logs")
+LOG_DIR       = os.path.join(MODULE_DIR, "logs")
 
 KNOWN_HOSTS_FILE = os.path.expanduser("~/.ssh/known_hosts")
 
@@ -178,13 +178,16 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
 
     driver = get_network_driver("ios")
 
-    # NAPALM optional_args
-    # dest_file_system : redirect dir space check to nvram: — IOL has no flash:
-    # inline_transfer  : send config over SSH session — IOL does not support SCP
     optional_args = {
         "ssh_config_file": None,
         "session_log":     session_log_path,
+        # IOL routers have no flash: filesystem. NAPALM checks available space on
+        # the destination filesystem before transferring config. Pointing it to
+        # nvram: prevents a "No such file or directory" error on every connect.
         "dest_file_system": "nvram:",
+        # NAPALM normally transfers config via SCP. IOL does not support SCP.
+        # inline_transfer=True sends the config directly over the SSH session
+        # instead — the only method that works on IOL. Must always be True here.
         "inline_transfer": True,
     }
 

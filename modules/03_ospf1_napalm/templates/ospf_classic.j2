@@ -31,9 +31,9 @@ interface {{ intf_name }}
 {% if intf.ospf_authentication is defined and intf.ospf_authentication.type | default('none') == 'md5' %} ip ospf authentication message-digest
  ip ospf message-digest-key {{ intf.ospf_authentication.key_id }} md5 {{ intf.ospf_authentication.key }}
 {% endif %}
-{% if intf.speed and intf.speed != "" %} speed {{ intf.speed }}
+{% if intf.speed and intf.speed != "" and 'Ethernet' not in intf_name %} speed {{ intf.speed }}
 {% endif %}
-{% if intf.duplex and intf.duplex != "" %} duplex {{ intf.duplex }}
+{% if intf.duplex and intf.duplex != "" and 'Ethernet' not in intf_name %} duplex {{ intf.duplex }}
 {% endif %}
 {% if intf.mtu and intf.mtu != "" %} mtu {{ intf.mtu }}
 {% endif %}

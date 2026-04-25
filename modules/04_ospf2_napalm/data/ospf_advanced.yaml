@@ -75,7 +75,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -91,7 +91,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -107,7 +107,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -123,7 +123,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -282,7 +282,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -298,7 +298,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -497,7 +497,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -513,7 +513,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -838,7 +838,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -854,7 +854,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1040,7 +1040,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1056,7 +1056,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1241,7 +1241,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1257,7 +1257,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1459,7 +1459,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1655,7 +1655,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -1835,7 +1835,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""
@@ -2081,7 +2081,7 @@ devices:
           key: ""
           key_id: ""
         encapsulation: ""
-        speed: "100"
+        speed: 100
         duplex: full
         mtu: ""
         bandwidth: ""

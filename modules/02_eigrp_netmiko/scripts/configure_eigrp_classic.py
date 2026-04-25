@@ -49,7 +49,7 @@ YAML_FILE     = os.path.join(MODULE_DIR, "data",      "eigrp_classic.yaml")
 TEMPLATE_DIR  = os.path.join(MODULE_DIR, "templates")
 TEMPLATE_FILE = "eigrp_classic.j2"
 CONFIG_DIR    = os.path.join(MODULE_DIR, "configs")
-LOG_DIR       = os.path.join(PROJECT_ROOT, "logs")
+LOG_DIR       = os.path.join(MODULE_DIR, "logs")
 
 
 # =============================================================================
@@ -157,6 +157,12 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
         "host":                dns_name,
         "username":            username,
         "password":            password,
+        # Multiplier applied to ALL of Netmiko's internal delay constants
+        # (post-login settling, inter-command pause, prompt-detection loops).
+        # Set higher here than in push_config.py (2.0) because this script
+        # sends lines individually via send_command(), which is more sensitive
+        # to timing than send_config_set() — each line needs its own prompt detection.
+        # Current: 4.0   Range: 1.0 (fastest, may miss prompts) – 5.0 (slow/remote hosts)
         "global_delay_factor": 4.0,
         "session_log":         session_log_path,
     }
@@ -173,6 +179,11 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
             print(f"  Sending configuration lines...")
             for line in config.splitlines():
                 if line.strip():
+                    # delay_factor multiplies Netmiko's per-send_command wait time
+                    # independently of global_delay_factor. The two stack multiplicatively:
+                    # effective wait = base_delay × global_delay_factor × delay_factor.
+                    # 5.0 provides extra headroom for slow IOL config-mode command processing.
+                    # Current: 5.0   Range: 1.0 (fast) – 10.0 (very slow or remote routers)
                     conn.send_command(line, expect_string=r"#", delay_factor=5.0)
 
             # Exit config mode and save

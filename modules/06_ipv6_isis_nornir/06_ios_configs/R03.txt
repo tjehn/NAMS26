@@ -1,0 +1,41 @@
+R3
+
+Interface loo0
+ ip router isis
+!
+Interface loo1
+ ip router isis
+
+ipv6 unicast-routing
+!
+interface Ethernet0/0
+ ip router isis
+!
+Interface E 0/1
+ ipv6 address 2000:1234:ABCD:03FF::3/64
+ ipv6 address fe80::3 link-local
+ no shut
+ ipv6 ospf 1 area 0
+ ip router isis
+
+
+ipv6 router ospf 1
+ router-id 3.3.3.3
+ default-information originate always
+!
+
+Interface Tunnel 1
+ tunnel Destination 200.1.1.1
+ tunnel Source 199.1.1.3
+ tunnel mode ipv6ip
+ ipv6 address 2000:1234:ABCD:01FE::3/64
+ ipv6 ospf 1 area 0
+
+
+
+
+
+
+
+
+

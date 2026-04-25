@@ -255,9 +255,9 @@ declarative model become the right choice.
 |--------|------------|---------------|------------------------------------------------|
 | 02     | EIGRP      | Netmiko       | Direct SSH, explicit command control           |
 | 03–04  | OSPF       | NAPALM        | Candidate config, diff before commit, rollback |
-| 05–06  | IPv6/IS-IS | Nornir        | Concurrent execution, inventory model          |
-| 07–08  | BGP        | pyATS/Genie   | Structured parsing, stateful testing           |
-| 09–11  | MPLS/VPN   | Ansible       | Declarative intent, idempotency at scale       |
+| 05–07  | IPv6/IS-IS | Nornir        | Concurrent execution, inventory model          |
+| 08–09  | BGP        | pyATS/Genie   | Structured parsing, stateful testing           |
+| 10–12  | MPLS/VPN   | Ansible       | Declarative intent, idempotency at scale       |
 
 NAPALM is not the wrong tool — it is the right tool for this stage of the learning
 progression. The diff-before-commit model is a meaningful step up from Module 02.

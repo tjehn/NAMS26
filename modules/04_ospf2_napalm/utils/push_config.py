@@ -121,6 +121,11 @@ def connect(device_name: str, dns_name: str, creds: dict):
         "host":                dns_name,
         "username":            creds.get("username", ""),
         "password":            creds.get("password", ""),
+        # Multiplier applied to ALL of Netmiko's internal delay constants
+        # (inter-command pause, post-login settling, prompt-detection loops).
+        # IOL routers can respond slowly — 2.0 doubles the default delays to
+        # reduce false "no prompt detected" failures without being excessively slow.
+        # Current: 2.0   Range: 1.0 (fastest, may miss slow prompts) – 5.0 (very slow hosts)
         "global_delay_factor": 2.0,
     }
     try:

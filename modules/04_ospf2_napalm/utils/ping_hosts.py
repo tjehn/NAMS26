@@ -40,9 +40,21 @@ BOLD   = "\033[1m"
 
 
 def ping(host: str, dns_name: str, count: int = 3) -> dict:
-    """Ping a single host by DNS name and return result dict."""
+    """Ping a single host by DNS name and return result dict.
+
+    Args:
+        host     : Display label (e.g. 'R1').
+        dns_name : Hostname to resolve and ping (e.g. 'r1.lab').
+        count    : Number of ICMP echo-request packets to send.
+                   Default: 3   Min: 1   Practical max: 10
+                   Higher counts improve loss-rate accuracy but slow the run.
+    """
     try:
         result = subprocess.run(
+            # -c count : number of echo requests to send (see count param above)
+            # -W 2     : wait up to 2 seconds for each individual reply before
+            #            giving up on that packet. Keep low for fast failure on
+            #            unreachable hosts. Current: 2 s   Range: 1 – 5 s
             ["ping", "-c", str(count), "-W", "2", dns_name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -89,6 +101,8 @@ def main():
         hosts_to_ping = HOSTS
 
     results = []
+    # One thread per host — all pings run in parallel. Total runtime equals
+    # the slowest single host (count × -W timeout) rather than the sum of all.
     with ThreadPoolExecutor(max_workers=len(hosts_to_ping)) as executor:
         futures = {
             executor.submit(ping, host, dns_name, args.count): host

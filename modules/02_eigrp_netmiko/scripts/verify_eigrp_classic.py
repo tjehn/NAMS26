@@ -79,7 +79,7 @@ MODULE_DIR    = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT  = os.path.dirname(MODULE_DIR)
 
 YAML_FILE     = os.path.join(MODULE_DIR, "data", "eigrp_classic.yaml")
-LOG_DIR       = os.path.join(os.path.dirname(MODULE_DIR), "logs")
+LOG_DIR       = os.path.join(MODULE_DIR, "logs")
 
 # =============================================================================
 # AVAILABLE CHECKS
@@ -216,6 +216,10 @@ def connect(device_name: str, dns_name: str, creds: dict, lf=None):
         "host":                dns_name,
         "username":            creds.get("username", ""),
         "password":            creds.get("password", ""),
+        # Multiplier applied to ALL of Netmiko's internal delay constants
+        # (post-login settling, inter-command pause, prompt-detection loops).
+        # 2.0 doubles the defaults — enough headroom for IOL without excessive waits.
+        # Current: 2.0   Range: 1.0 (fastest, may miss prompts) – 5.0 (slow/remote hosts)
         "global_delay_factor": 2.0,
     }
 

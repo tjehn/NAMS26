@@ -181,16 +181,21 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
 
     driver = get_network_driver("ios")
 
-    # NAPALM optional_args
-    # dest_file_system : redirect dir space check to nvram: — IOL has no flash:
-    # inline_transfer  : send config over SSH session — IOL does not support SCP
-    # enable_scp       : explicitly disable SCP — IOL raises MD5 errors if SCP
-    #                    path is attempted against nvram: on some image versions
     optional_args = {
         "ssh_config_file": None,
         "session_log":     session_log_path,
+        # IOL routers have no flash: filesystem. NAPALM checks available space on
+        # the destination filesystem before transferring config. Pointing it to
+        # nvram: prevents a "No such file or directory" error on every connect.
         "dest_file_system": "nvram:",
+        # NAPALM normally transfers config via SCP. IOL does not support SCP.
+        # inline_transfer=True sends the config directly over the SSH session
+        # instead — the only method that works on IOL. Must always be True here.
         "inline_transfer":  True,
+        # Belt-and-suspenders: IOL raises MD5 checksum errors when SCP is attempted
+        # against nvram: on some image versions. inline_transfer already prevents
+        # SCP, but enable_scp=False makes the intent explicit and guards against
+        # a future NAPALM version re-enabling SCP independently.
         "enable_scp":       False,
     }
 

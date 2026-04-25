@@ -5,15 +5,16 @@
 
 ## Project Overview
 
-NAMS26 is an 11-module network automation video curriculum taught over a Cisco IOL lab running in EVE-NG. Each module introduces a real-world automation tool against a progressively more complex network topology. The tool progression is:
+NAMS26 is a 12-module network automation video curriculum taught over a Cisco IOL lab running in EVE-NG. Each module introduces a real-world automation tool against a progressively more complex network topology. The tool progression is:
 
-| Modules | Tool       | Protocol(s)            |
-|---------|------------|------------------------|
-| 02      | Netmiko    | EIGRP                  |
-| 03–04   | NAPALM     | OSPF Classic / Advanced |
-| 05–06   | Nornir     | TBD                    |
-| 07–08   | pyATS/Genie| TBD                    |
-| 09–11   | Ansible    | TBD                    |
+| Modules | Tool       | Protocol(s)                        |
+|---------|------------|------------------------------------|
+| 02      | Netmiko    | EIGRP                              |
+| 03–04   | NAPALM     | OSPF Classic / Advanced            |
+| 05–07   | Nornir     | IPv6 EIGRP/OSPF, IPv6 IS-IS, IS-IS |
+| 08–09   | pyATS/Genie| BGP-1, BGP-2                       |
+| 10–12   | Ansible    | BGP MPLS, MPLS-VPN, VPN/GRE        |
+| 13      | Flask      | Change Control Web Interface + Utilities |
 
 Module 01 is an introduction (no lab scripts). Module 02 is the EIGRP/Netmiko baseline. The curriculum assumes a CCNP-level audience — routing protocol mechanics are not explained from scratch; the focus is on how Python drives the configuration and what each tool adds over the previous one.
 
@@ -193,8 +194,26 @@ All verify scripts produce per-device PASS / WARN / FAIL output with a worst-cas
 
 ---
 
-### Modules 05–11
+### Modules 05–12
 **Status: NOT STARTED**
+
+---
+
+### Module 13 — Change Control Web Interface / Utilities
+**Status: PLANNED — not yet designed**
+
+A capstone module that wraps the NAMS26 automation scripts in a
+real-world operational workflow. Candidate topics:
+
+- Flask-based change control web interface
+  - Form captures: change number, description, requester, target routers
+  - Executes the relevant module's configure script on submission
+  - Displays pass/fail result with captured output
+  - Writes a timestamped log entry
+- Other utilities and tips collected across Modules 02–12
+
+**Design rule:** This module must not influence the design of Modules 02–12.
+All scope additions belong here. Design begins after Module 12 is complete.
 
 ---
 

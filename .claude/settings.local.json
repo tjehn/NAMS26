@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(J:/CCIE EI Lab - Q1 2020/NAMS26_V03/venv/Scripts/pip list *)",
+      "Bash(pip list *)",
+      "Bash(pip install *)"
+    ]
+  }
+}

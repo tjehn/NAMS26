@@ -1,0 +1,96 @@
+{# =============================================================================
+   Module   : NAMS26 — Module 05
+   File     : modules/05_ipv6_eigrp_ospf_nornir/templates/ipv6_eigrp_ospf.j2
+   Purpose  : Jinja2 template for IPv6 EIGRP and OSPFv3 configuration.
+              Rendered per-device by configure_ipv6_eigrp_ospf.py.
+   Filters  : ipv4_addr — extracts host address from CIDR (e.g. 1.1.1.1/32 → 1.1.1.1)
+              ipv4_mask — extracts subnet mask from CIDR (e.g. 1.1.1.1/32 → 255.255.255.255)
+   Note     : Uses Environment(trim_blocks=True, lstrip_blocks=True).
+              ospf_area: 0 is integer 0 (falsy) — guard uses "is not none and != ''"
+              OOB interface (device.oob_interface) is skipped entirely.
+   Sections : 1. Global IPv6
+              2. Key Chains     (skipped if device.key_chains is null)
+              3. Interfaces     (OOB interface skipped)
+              4. EIGRPv6 Block  (skipped if device.eigrp is null)
+              5. OSPFv3 Block   (skipped if device.ospf is null)
+============================================================================= #}
+hostname {{ device.hostname }}
+!
+! =========================================
+! Global IPv6
+! =========================================
+ipv6 unicast-routing
+ipv6 cef
+!
+{% if device.key_chains %}
+! =========================================
+! Key Chains
+! =========================================
+{% for chain_name, chain in device.key_chains.items() %}
+key chain {{ chain_name }}
+ key {{ chain.key_id }}
+  key-string {{ chain.key_string }}
+!
+{% endfor %}
+{% endif %}
+! =========================================
+! Interfaces
+! =========================================
+{% for intf_name, intf in device.interfaces.items() %}
+{% if intf_name != device.oob_interface %}
+interface {{ intf_name }}
+{% if intf.description and intf.description != "" %} description {{ intf.description }}
+{% endif %}
+{% if intf.ipv4_address and intf.ipv4_address != "" %} ip address {{ intf.ipv4_address | ipv4_addr }} {{ intf.ipv4_address | ipv4_mask }}
+{% else %} no ip address
+{% endif %}
+{% if intf.ipv6_link_local and intf.ipv6_link_local != "" %} ipv6 address {{ intf.ipv6_link_local }} link-local
+{% endif %}
+{% if intf.ipv6_address and intf.ipv6_address != "" %} ipv6 address {{ intf.ipv6_address }}
+{% endif %}
+{% if device.ospf and intf.ospf_area is not none and intf.ospf_area != "" %} ipv6 ospf {{ device.ospf.process_id }} area {{ intf.ospf_area }}
+{% endif %}
+{% if intf.ospf_network_type and intf.ospf_network_type != "" %} ipv6 ospf network {{ intf.ospf_network_type }}
+{% endif %}
+{% if device.eigrp and intf.eigrp_as is not none and intf.eigrp_as != "" %} ipv6 eigrp {{ intf.eigrp_as }}
+{% endif %}
+{% if intf.speed and intf.speed != "" and 'Ethernet' not in intf_name %} speed {{ intf.speed }}
+{% endif %}
+{% if intf.duplex and intf.duplex != "" and 'Ethernet' not in intf_name %} duplex {{ intf.duplex }}
+{% endif %}
+{% if 'Serial' in intf_name %} serial restart-delay 0
+{% endif %}
+{% if intf.shutdown %} shutdown
+{% else %} no shutdown
+{% endif %}
+!
+{% endif %}
+{% endfor %}
+{% if device.eigrp %}
+! =========================================
+! EIGRPv6 Process
+! =========================================
+ipv6 router eigrp {{ device.eigrp.as_number }}
+ eigrp router-id {{ device.eigrp.router_id }}
+{% if device.eigrp.redistribute_ospf %} redistribute ospf {{ device.eigrp.redistribute_ospf.process }} metric {{ device.eigrp.redistribute_ospf.metric }}
+{% endif %}
+!
+{% endif %}
+{% if device.ospf %}
+! =========================================
+! OSPFv3 Process
+! =========================================
+ipv6 router ospf {{ device.ospf.process_id }}
+{% if device.ospf.router_id and device.ospf.router_id != "" %} router-id {{ device.ospf.router_id }}
+{% endif %}
+{% for area_type in device.ospf.area_types | default([]) %}
+{% if area_type.type == 'stub' and area_type.no_summary %} area {{ area_type.area }} stub no-summary
+{% elif area_type.type == 'stub' %} area {{ area_type.area }} stub
+{% elif area_type.type == 'nssa' and area_type.no_summary %} area {{ area_type.area }} nssa no-summary
+{% elif area_type.type == 'nssa' %} area {{ area_type.area }} nssa
+{% endif %}
+{% endfor %}
+{% if device.ospf.redistribute_eigrp %} redistribute eigrp {{ device.ospf.redistribute_eigrp.as_number }}
+{% endif %}
+!
+{% endif %}

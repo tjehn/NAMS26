@@ -1,0 +1,183 @@
+Current configuration : 2316 bytes
+!
+! Last configuration change at 06:00:18 UTC Fri Apr 24 2026
+!
+version 15.7
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R1
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+username netadmin privilege 15 password 0 admin
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+ ipv6 address FE80:10:1:1::1 link-local
+ ipv6 address FC00:10:1:1::1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf network point-to-point
+!
+interface Loopback1
+ no ip address
+ ipv6 address FE80:DB8:192:168:1::1 link-local
+ ipv6 address FC00:192:168:1::1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf network point-to-point
+!
+interface Loopback2
+ no ip address
+ ipv6 address FE80:10:11:11::1 link-local
+ ipv6 address FC00:10:11:11::1/64
+ ipv6 ospf 1 area 0
+ ipv6 ospf network point-to-point
+!
+interface Ethernet0/0
+ no ip address
+ duplex auto
+ ipv6 address FE80:192:168:123::1 link-local
+ ipv6 address FC00:192:168:123::1/64
+ ipv6 ospf 1 area 0
+!
+interface Ethernet0/1
+ no ip address
+ duplex auto
+ ipv6 address FE80:192:168:17::1 link-local
+ ipv6 address FC00:192:168:17::1/64
+ ipv6 eigrp 100
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/0
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/1
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/2
+ no ip address
+ shutdown
+ duplex auto
+!
+interface Ethernet1/3
+ description OOB Management
+ ip address 192.168.1.101 255.255.255.0
+ duplex auto
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!
+ipv6 router eigrp 100
+ eigrp router-id 1.1.1.1
+ redistribute ospf 1 metric 10000 100 255 1 1500
+!
+ipv6 router ospf 1
+ redistribute eigrp 100
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+ntp server 34.202.215.187
+ntp server 34.208.249.133
+ntp server pool.ntp.org
+!
+end

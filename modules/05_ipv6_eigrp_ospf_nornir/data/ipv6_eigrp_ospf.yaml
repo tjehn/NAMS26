@@ -1,0 +1,1371 @@
+---
+# =============================================================================
+# Module: modules/05_ipv6_eigrp_ospf_nornir
+# File:   data/ipv6_eigrp_ospf.yaml
+# Desc:   Device inventory and variable definitions for IPv6 EIGRP/OSPF lab.
+#         Pure IPv6 topology (no IPv4 routing). Two independent EIGRPv6 domains
+#         (AS 100 left, AS 111 right) connect to a central OSPFv3 domain (PID 1)
+#         via bidirectional redistribution at R1 and R6.
+#
+#         OSPFv3 areas:
+#           Area 0  — backbone (R1, R2, R3)
+#           Area 10 — totally stubby (R2 ABR, R4 ABR, R5, R9)
+#           Area 20 — NSSA (R3 ABR no-summary, R4 ABR, R6 ASBR)
+#
+#         Interface-level ospf_area and eigrp_as drive per-interface
+#         "ipv6 ospf <pid> area <area>" and "ipv6 eigrp <as>" commands.
+#         No OSPF network statements — area assignment is per-interface.
+# =============================================================================
+
+lab_name: ipv6_eigrp_ospf_lab
+ospf_process_id_default: 1
+
+default_credentials: &creds
+  username: netadmin
+  password: admin
+
+devices:
+
+  # ---------------------------------------------------------------------------
+  # R1 — Left ASBR | EIGRP 100 + OSPFv3 Area 0
+  # Redistributes bidirectionally between EIGRPv6 100 and OSPFv3.
+  # ---------------------------------------------------------------------------
+  R1:
+    hostname: R1
+    dns_name: r1.lab
+    oob_ip: 192.168.1.101/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ipv4_address: 1.1.1.1/32
+        ipv6_address: FC00:10:1:1::1/64
+        ipv6_link_local: FE80:10:1:1::1
+        ospf_area: 0
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:1::1/64
+        ipv6_link_local: "FE80:DB8:192:168:1::1"
+        ospf_area: 0
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback2:
+        description: "OSPF Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:11:11::1/64
+        ipv6_link_local: FE80:10:11:11::1
+        ospf_area: 0
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R1/R2/R3 LAN - OSPF Area 0"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:123::1/64
+        ipv6_link_local: FE80:192:168:123::1
+        ospf_area: 0
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: "R1 to R7 - EIGRPv6 100"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:17::1/64
+        ipv6_link_local: FE80:192:168:17::1
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 100
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.101/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp:
+      as_number: 100
+      router_id: "1.1.1.1"
+      redistribute_ospf:
+        process: 1
+        metric: "10000 100 255 1 1500"
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types: []
+      redistribute_eigrp:
+        as_number: 100
+        metric: "10000 100 255 1 1500"
+
+  # ---------------------------------------------------------------------------
+  # R2 — ABR | Area 0 / Area 10 (totally stubby) / Area 20
+  # Configures Area 10 as totally stubby (stub no-summary on ABR).
+  # Loopbacks participate in Area 20 (not the backbone).
+  # ---------------------------------------------------------------------------
+  R2:
+    hostname: R2
+    dns_name: r2.lab
+    oob_ip: 192.168.1.102/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ipv4_address: 2.2.2.2/24
+        ipv6_address: FC00:10:2:2::2/64
+        ipv6_link_local: FE80:10:2:2::2
+        ospf_area: 20
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:22:22::2/64
+        ipv6_link_local: FE80:10:22:22::2
+        ospf_area: 20
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R1/R2/R3 LAN - OSPF Area 0"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:123::2/64
+        ipv6_link_local: FE80:192:168:123::2
+        ospf_area: 0
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.102/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Serial2/0:
+        description: "R2 to R5 - OSPF Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:25::2/64
+        ipv6_link_local: FE80:192:168:25::2
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Serial2/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+    key_chains:
+      EXTRANET_A:
+        key_id: 1
+        key_string: Acct_1506_Keller
+    eigrp: ~
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types:
+        - area: 10
+          type: stub
+          no_summary: true
+      redistribute_eigrp: ~
+
+  # ---------------------------------------------------------------------------
+  # R3 — ABR | Area 0 / Area 20 (NSSA no-summary)
+  # Declares Area 20 as NSSA totally stubby from ABR perspective.
+  # Loopback1 participates in Area 20.
+  # ---------------------------------------------------------------------------
+  R3:
+    hostname: R3
+    dns_name: r3.lab
+    oob_ip: 192.168.1.103/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback"
+        ipv4_address: 3.3.3.3/32
+        ipv6_address: FC00:10:3:3::3/64
+        ipv6_link_local: FE80:10:3:3::3
+        ospf_area: 0
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback Area 20"
+        ipv4_address: ""
+        ipv6_address: FC00:10:33:33::3/64
+        ipv6_link_local: FE80:10:33:33::3
+        ospf_area: 20
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R1/R2/R3 LAN - OSPF Area 0"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:123::3/64
+        ipv6_link_local: FE80:192:168:123::3
+        ospf_area: 0
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: "R3 to R4 - OSPF Area 20"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:34::3/64
+        ipv6_link_local: FE80:192:168:34::3
+        ospf_area: 20
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.103/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp: ~
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types:
+        - area: 20
+          type: nssa
+          no_summary: true
+      redistribute_eigrp: ~
+
+  # ---------------------------------------------------------------------------
+  # R4 — ABR | Area 10 (loopbacks) / Area 20 (physical links)
+  # No IPv4 addresses — router-id must be set explicitly.
+  # Area 20 declared as NSSA (no no-summary — R4 is not the Type 7→5 translator).
+  # ---------------------------------------------------------------------------
+  R4:
+    hostname: R4
+    dns_name: r4.lab
+    oob_ip: 192.168.1.104/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:10:4:4::4/64
+        ipv6_link_local: FE80:10:4:4::4
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:10:44:44::4/64
+        ipv6_link_local: FE80:10:44:44::4
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R4 to R3 - OSPF Area 20"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:34::4/64
+        ipv6_link_local: FE80:192:168:34::4
+        ospf_area: 20
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: "R4 to R6 - OSPF Area 20"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:46::4/64
+        ipv6_link_local: FE80:192:168:46::4
+        ospf_area: 20
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.104/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Serial2/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp: ~
+    ospf:
+      process_id: 1
+      router_id: "4.4.4.4"
+      area_types:
+        - area: 20
+          type: nssa
+          no_summary: false
+      redistribute_eigrp: ~
+
+  # ---------------------------------------------------------------------------
+  # R5 — Stub router | OSPF Area 10
+  # Connects to R2 via Serial (Area 10) and to R9 via Ethernet (Area 10).
+  # Loopback1 has ospf_area "" — not assigned to any OSPF area in the lab.
+  # ---------------------------------------------------------------------------
+  R5:
+    hostname: R5
+    dns_name: r5.lab
+    oob_ip: 192.168.1.105/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback Area 10"
+        ipv4_address: 5.5.5.5/32
+        ipv6_address: FC00:10:5:5::5/64
+        ipv6_link_local: FE80:10:5:5::5
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback (not area-assigned)"
+        ipv4_address: ""
+        ipv6_address: FC00:10:55:55::5/64
+        ipv6_link_local: FE80:10:55:55::5
+        ospf_area: ""
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R5 to R9 - OSPF Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:59::5/64
+        ipv6_link_local: FE80:192:168:59::5
+        ospf_area: 10
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.105/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Serial2/0:
+        description: "R5 to R2 - OSPF Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:25::5/64
+        ipv6_link_local: FE80:192:168:25::5
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Serial2/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Serial2/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+    key_chains:
+      GENI_Corp:
+        key_id: 1
+        key_string: Acct_1506_Keller
+    eigrp: ~
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types:
+        - area: 10
+          type: stub
+          no_summary: false
+      redistribute_eigrp: ~
+
+  # ---------------------------------------------------------------------------
+  # R6 — Right ASBR | EIGRPv6 111 + OSPFv3 Area 20 (NSSA)
+  # Redistributes bidirectionally between EIGRPv6 111 and OSPFv3.
+  # ---------------------------------------------------------------------------
+  R6:
+    hostname: R6
+    dns_name: r6.lab
+    oob_ip: 192.168.1.106/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback Area 20"
+        ipv4_address: 6.6.6.6/32
+        ipv6_address: FC00:10:6:6::6/64
+        ipv6_link_local: FE80:10:6:6::6
+        ospf_area: 20
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "EIGRP 111 Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:66:66::6/64
+        ipv6_link_local: FE80:10:66:66::6
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 111
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R6 to R4 - OSPF Area 20"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:46::6/64
+        ipv6_link_local: FE80:192:168:46::6
+        ospf_area: 20
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: "R6 to R8 - EIGRPv6 111"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:68::6/64
+        ipv6_link_local: FE80:192:168:68::6
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 111
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.106/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp:
+      as_number: 111
+      router_id: "6.6.6.6"
+      redistribute_ospf:
+        process: 1
+        metric: "10000 100 255 1 1500"
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types:
+        - area: 20
+          type: nssa
+          no_summary: false
+      redistribute_eigrp:
+        as_number: 111
+        metric: "10000 100 255 1 1500"
+
+  # ---------------------------------------------------------------------------
+  # R7 — EIGRPv6 only | AS 100 (left domain)
+  # No OSPF participation.
+  # ---------------------------------------------------------------------------
+  R7:
+    hostname: R7
+    dns_name: r7.lab
+    oob_ip: 192.168.1.107/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "EIGRP 100 Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:7:7::7/64
+        ipv6_link_local: FE80:10:7:7::7
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 100
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "EIGRP 100 Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:77:77::7/64
+        ipv6_link_local: FE80:10:77:77::7
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 100
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R7 to R1 - EIGRPv6 100"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:17::7/64
+        ipv6_link_local: FE80:192:168:17::7
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 100
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.107/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp:
+      as_number: 100
+      router_id: "7.7.7.7"
+      redistribute_ospf: ~
+    ospf: ~
+
+  # ---------------------------------------------------------------------------
+  # R8 — EIGRPv6 only | AS 111 (right domain)
+  # No OSPF participation.
+  # ---------------------------------------------------------------------------
+  R8:
+    hostname: R8
+    dns_name: r8.lab
+    oob_ip: 192.168.1.108/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "EIGRP 111 Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:8:8::8/64
+        ipv6_link_local: FE80:10:8:8::8
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 111
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "EIGRP 111 Loopback"
+        ipv4_address: ""
+        ipv6_address: FC00:10:88:88::88/64
+        ipv6_link_local: FE80:10:88:88::88
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 111
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R8 to R6 - EIGRPv6 111"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:68::8/64
+        ipv6_link_local: FE80:192:168:68::8
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: 111
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.108/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp:
+      as_number: 111
+      router_id: "8.8.8.8"
+      redistribute_ospf: ~
+    ospf: ~
+
+  # ---------------------------------------------------------------------------
+  # R9 — Stub router | OSPF Area 10
+  # Connects to R5 via Ethernet (Area 10).
+  # ---------------------------------------------------------------------------
+  R9:
+    hostname: R9
+    dns_name: r9.lab
+    oob_ip: 192.168.1.109/24
+    oob_interface: Ethernet1/3
+    credentials: *creds
+    interfaces:
+      Loopback0:
+        description: "Router ID / OSPF Loopback Area 10"
+        ipv4_address: 9.9.9.9/32
+        ipv6_address: FC00:10:9:9::9/64
+        ipv6_link_local: FE80:10:9:9::9
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Loopback1:
+        description: "OSPF Loopback Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:10:99:99::99/64
+        ipv6_link_local: FE80:10:99:99::99
+        ospf_area: 10
+        ospf_network_type: point-to-point
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+      Ethernet0/0:
+        description: "R9 to R5 - OSPF Area 10"
+        ipv4_address: ""
+        ipv6_address: FC00:192:168:59::9/64
+        ipv6_link_local: FE80:192:168:59::9
+        ospf_area: 10
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: 100
+        duplex: full
+      Ethernet0/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet0/3:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/0:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/1:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/2:
+        description: UNUSED
+        ipv4_address: ""
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: true
+        speed: ""
+        duplex: ""
+      Ethernet1/3:
+        description: "OOB Management"
+        ipv4_address: 192.168.1.109/24
+        ipv6_address: ""
+        ipv6_link_local: ""
+        ospf_area: ""
+        ospf_network_type: ""
+        eigrp_as: ""
+        shutdown: false
+        speed: ""
+        duplex: ""
+    key_chains: ~
+    eigrp: ~
+    ospf:
+      process_id: 1
+      router_id: ""
+      area_types:
+        - area: 10
+          type: stub
+          no_summary: false
+      redistribute_eigrp: ~

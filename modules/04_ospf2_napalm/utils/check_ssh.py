@@ -81,6 +81,9 @@ def check_ssh(host: str, dns_name: str, ssh_config: str) -> dict:
         "host":            dns_name,
         "username":        USERNAME,
         "password":        PASSWORD,
+        # TCP connection timeout in seconds. If the host does not respond to the
+        # SSH TCP handshake within this window, Netmiko raises NetmikoTimeoutException.
+        # Current: 10 s   Practical range: 5 – 30 s (increase for slow/remote hosts)
         "conn_timeout":    10,
         "ssh_config_file": ssh_config,
     }
@@ -156,6 +159,11 @@ def main():
 
     try:
         results = []
+        # max_workers = number of hosts — launches one thread per host so all
+        # SSH checks run in parallel. Total wall-clock time equals the slowest
+        # single host rather than the sum of all host connection times.
+        # as_completed() yields futures as they finish (arrival order, not
+        # submission order) — results are sorted by hostname before display.
         with ThreadPoolExecutor(max_workers=len(hosts_to_check)) as executor:
             futures = {
                 executor.submit(check_ssh, host, dns_name, ssh_config): host
