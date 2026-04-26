@@ -244,8 +244,41 @@ for detecting when that configuration has drifted.
 
 ### What NAPALM's Merge Model Can and Cannot Do
 
-The restore step demonstrated the merge candidate's strength: precision. One line
-changed. Nothing else was touched. The diff confirmed it before the commit.
+The restore step demonstrated the merge candidate's strength: precision. The configure
+script produced the following diff on R1 before committing:
+
+```
+=== DIFF DETECTED — R1 — configure_ospf_advanced ===
++router ospf 1
++ redistribute eigrp 100 metric-type 1 subnets
+=====================================================
+```
+
+> **What the diff means:** The `+` prefix indicates lines that NAPALM will add.
+> NAPALM is showing exactly one statement — `redistribute eigrp 100` — that is
+> present in the YAML source of truth but absent from R1's running configuration.
+> Nothing else changed. No other lines were touched.
+>
+> **Why the troubleshooter missed it:** The troubleshooter checks operational state
+> — is the protocol running, are the neighbors up, is the process configured. It
+> confirmed all of those things. It did not check whether the policy connecting
+> the two protocols — the `redistribute` statement — was present. That is by design.
+>
+> **Why the verify script caught it:** The verify script compares live state against
+> the YAML source of truth. The `redistribution` check confirmed that `show ip route
+> ospf` on backbone routers no longer showed R7 and R8's prefixes as `O E1`. The
+> expected prefixes were absent. That is a FAIL regardless of what the protocol
+> health checks showed.
+>
+> **The log as a production audit trail:** Every verify run writes a timestamped
+> log to `modules/04_ospf2_napalm/logs/`. The FAIL entry — showing exactly which
+> router, which check, and which prefixes were missing — is preserved as a record.
+> In a production environment this log is the evidence: when did the drift occur,
+> what was missing, and when was it corrected. The configure script run that
+> restored the state produces a similar log showing the diff and the timestamp.
+> Together these form a change audit trail from a YAML source of truth.
+
+One line changed. Nothing else was touched. The diff confirmed it before the commit.
 
 It also has a limit that is worth stating explicitly. If R1 had a *stray*
 redistribution statement — one that should not be there — the merge candidate would

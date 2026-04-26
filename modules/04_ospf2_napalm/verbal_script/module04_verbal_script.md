@@ -667,6 +667,30 @@ NAPALM loads the candidate, compares it to running config, shows the diff — on
 the missing redistribute statement. Commits. Saves. Verify confirms all checks clean
 across all five checks on R1.
 
+> **Instructor talking point — when the diff appears on screen:**
+> "Look at the diff output before the commit. One line. That's it. NAPALM computed
+> the difference between what the YAML says R1 should have and what R1 actually has,
+> and the result is exactly one line: `redistribute eigrp 100 metric-type 1 subnets`.
+>
+> Before a single character was applied to the router, we saw exactly what was
+> going to change. We confirmed it is what we expected. Then we committed.
+>
+> In Module 02, Netmiko pushed lines without preview. You couldn't see what changed
+> until you went back and checked the running config manually. Here, the diff is
+> the confirmation step. You don't commit until you've reviewed it.
+>
+> That matters even more in production. When you're touching a router at 2am during
+> a maintenance window, 'one line' is a confidence signal. If the diff shows thirty
+> lines you didn't expect, you abort and investigate instead of committing."
+>
+> **On the session log as audit trail:**
+> "This entire session — the drift, the verify FAIL, the diff, the commit — is
+> captured in a timestamped log file in `modules/04_ospf2_napalm/logs/`. The FAIL
+> entry shows which router, which check, and exactly what was missing. The configure
+> run shows the diff and the timestamp of the restore. That's your audit trail from
+> a YAML source of truth: when the drift was detected, what diverged, and when it
+> was corrected."
+
 ---
 
 ### Part 5 — What NAPALM's Diff Showed You

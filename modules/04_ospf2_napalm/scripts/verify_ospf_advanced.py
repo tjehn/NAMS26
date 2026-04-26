@@ -157,6 +157,28 @@ def emit_raw(text: str, lf=None) -> None:
         lf.write(f"\n{text}\n\n")
 
 
+def emit_drift(device_name: str, detail: str, lf=None) -> None:
+    """Log a drift detection block with a clear delimiter to the session log.
+
+    Format:
+        === DRIFT DETECTED — <hostname> — <timestamp> ===
+        <detail>
+        =================================================
+    """
+    timestamp = datetime.now().strftime("%Y%m%d %H:%M:%S")
+    bar = "=" * 51
+    header = f"=== DRIFT DETECTED — {device_name} — {timestamp} ==="
+    lines = [
+        f"\n{RED}{header}{RESET}",
+        f"{detail}",
+        f"{RED}{bar}{RESET}\n",
+    ]
+    for line in lines:
+        print(line)
+        if lf:
+            lf.write(_strip_ansi(line) + "\n")
+
+
 # =============================================================================
 # LOGGING SETUP
 # =============================================================================
@@ -944,10 +966,17 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
                 f"— OSPF → EIGRP redistribution present"
             ), lf)
         else:
+            drift_detail = (
+                f"  Router   : {device_name}\n"
+                f"  Check    : redistribution\n"
+                f"  Finding  : 'redistribute ospf' absent from EIGRP AS {as_number} config\n"
+                f"  Impact   : OSPF routes are not being redistributed into EIGRP"
+            )
             emit(failed(
                 f"EIGRP AS {as_number}: 'redistribute ospf' not found in EIGRP config "
                 f"— OSPF → EIGRP redistribution missing"
             ), lf)
+            emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
         # OSPF config — confirm 'redistribute eigrp' present in OSPF process
@@ -962,10 +991,17 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
                 f"— EIGRP → OSPF redistribution present"
             ), lf)
         else:
+            drift_detail = (
+                f"  Router   : {device_name}\n"
+                f"  Check    : redistribution\n"
+                f"  Finding  : 'redistribute eigrp' absent from OSPF config\n"
+                f"  Impact   : EIGRP routes are not being redistributed into OSPF domain"
+            )
             emit(failed(
                 f"OSPF: 'redistribute eigrp' not found in OSPF config "
                 f"— EIGRP → OSPF redistribution missing"
             ), lf)
+            emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
     # ------------------------------------------------------------------
@@ -983,10 +1019,17 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
                 f"— redistributed OSPF routes received from ASBR"
             ), lf)
         else:
+            drift_detail = (
+                f"  Router   : {device_name}\n"
+                f"  Check    : redistribution\n"
+                f"  Finding  : no D EX routes in EIGRP table\n"
+                f"  Impact   : OSPF redistribution into EIGRP is not propagating to this router"
+            )
             emit(failed(
                 f"No D EX routes found "
                 f"— OSPF redistribution into EIGRP may not be working"
             ), lf)
+            emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
     # ------------------------------------------------------------------
@@ -1005,10 +1048,17 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
                 f"— redistribution visible from this router"
             ), lf)
         else:
+            drift_detail = (
+                f"  Router   : {device_name}\n"
+                f"  Check    : redistribution\n"
+                f"  Finding  : no OSPF external routes (E1/E2/N1/N2) in routing table\n"
+                f"  Impact   : EIGRP → OSPF redistribution is not visible at this router"
+            )
             emit(failed(
                 f"No OSPF external routes (E1/E2/N1/N2) found "
                 f"— redistribution may not be propagating correctly"
             ), lf)
+            emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
     return worst
