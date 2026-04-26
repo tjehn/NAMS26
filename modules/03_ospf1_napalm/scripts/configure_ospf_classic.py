@@ -181,6 +181,11 @@ def apply_config(device_name: str, device_data: dict, config: str) -> None:
     optional_args = {
         "ssh_config_file": None,
         "session_log":     session_log_path,
+        # global_delay_factor is a Netmiko parameter forwarded through NAPALM's
+        # optional_args to the underlying SSH connection. Doubles all internal
+        # Netmiko timing constants — needed because IOL routers respond slowly.
+        # Current: 2.0   Range: 1.0 (fastest, may miss prompts) – 5.0 (slow hosts)
+        "global_delay_factor": 2.0,
         # IOL routers have no flash: filesystem. NAPALM checks available space on
         # the destination filesystem before transferring config. Pointing it to
         # nvram: prevents a "No such file or directory" error on every connect.
