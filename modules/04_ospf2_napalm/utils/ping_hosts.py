@@ -14,6 +14,8 @@ Usage:
 
 import subprocess
 import argparse
+import platform
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ─── Lab Host Inventory (DNS names — resolved via 192.168.1.12) ───────────────
@@ -50,21 +52,30 @@ def ping(host: str, dns_name: str, count: int = 3) -> dict:
                    Higher counts improve loss-rate accuracy but slow the run.
     """
     try:
-        result = subprocess.run(
+        if platform.system() == "Windows":
+            cmd = ["ping", "-n", str(count), "-w", "2000", dns_name]
+        else:
             # -c count : number of echo requests to send (see count param above)
             # -W 2     : wait up to 2 seconds for each individual reply before
             #            giving up on that packet. Keep low for fast failure on
             #            unreachable hosts. Current: 2 s   Range: 1 – 5 s
-            ["ping", "-c", str(count), "-W", "2", dns_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+            cmd = ["ping", "-c", str(count), "-W", "2", dns_name]
+
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         reachable = result.returncode == 0
 
-        # Parse packet loss from output
-        output    = result.stdout.decode()
-        loss_line = [l for l in output.splitlines() if "packet loss" in l]
-        loss      = loss_line[0].split(",")[2].strip() if loss_line else "unknown"
+        output = result.stdout.decode(errors="replace")
+        if platform.system() == "Windows":
+            # Windows output: "    Packets: Sent = 3, Received = 3, Lost = 0 (0% loss),"
+            loss_line = [l for l in output.splitlines() if "Loss" in l]
+            if loss_line:
+                m = re.search(r'\((\d+% loss)\)', loss_line[0], re.IGNORECASE)
+                loss = m.group(1) if m else "unknown"
+            else:
+                loss = "unknown"
+        else:
+            loss_line = [l for l in output.splitlines() if "packet loss" in l]
+            loss      = loss_line[0].split(",")[2].strip() if loss_line else "unknown"
 
         return {"host": host, "dns_name": dns_name, "reachable": reachable, "loss": loss}
 

@@ -10,6 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 J:\CCIE EI Lab - Q1 2020\NAMS26_V03
 (also accessible as \\nas01\SynologySync1\CCIE EI Lab - Q1 2020\NAMS26_V03)
 
+## Project-Level Documents
+
+| File | Audience | Purpose |
+|------|----------|---------|
+| `CLAUDE.md` | Claude Code | Coding standards, architecture, and operational guidance for the AI assistant |
+| `APPENDIX.md` | Students | Reference technology notes and code snippets — supplementary to the module READMEs |
+
 
 ## Running Scripts
 
@@ -165,7 +172,7 @@ Every module's `utils/` must contain these five files (copy from the previous mo
 | `init_ssh.py` | Lab initialization — drives the interactive SSH first-connection flow using pexpect, accepts host key fingerprints, and populates `~/.ssh/known_hosts`. Run after every EVE-NG lab reset. | Yes |
 | `check_ssh.py` | Troubleshooting — verifies SSH connectivity against existing `~/.ssh/known_hosts` entries using Netmiko. Used when diagnosing lab connectivity issues, not as part of the reset sequence. | No |
 | `clear_known_hosts.sh` | Removes lab router entries from `~/.ssh/known_hosts` before a wipe/restart | Yes |
-| `ping_hosts.py` | ICMP reachability check against all devices in the module YAML | Yes |
+| `ping_hosts.py` | ICMP reachability check against all devices in the module YAML. Must use `platform.system()` branching — Windows `ping.exe` uses `-n`/`-w` flags and different output format. See Addendum. | Yes |
 | `push_config.py` | Standalone config push utility (bypasses the full configure script) | No |
 
 **`init_ssh.py` vs `check_ssh.py`:** These are distinct tools with different purposes.
@@ -252,6 +259,7 @@ devices:
 | 05–07 | Nornir | Task-based, parallel |
 | 08–09 | pyATS/Genie | Structured output parsing |
 | 10–12 | Ansible | Roles in `ansible/roles/` |
+| 13 | TBD | Advanced Techniques & Practitioner Notes — draft/ideas capture; see section below |
 
 ### NAPALM / Cisco IOL Compatibility — REQUIRED STANDARD (Modules 03+)
 
@@ -327,6 +335,9 @@ Adapt `init_ssh.py` and `ping_hosts.py` for the new module's YAML filename and t
 Update the module number in headers and the "Ready to run" message at the bottom of `init_ssh.py`.
 Remove or replace `module04_ospf_topology_map.py` as appropriate.
 
+`ping_hosts.py` must use `platform.system() == "Windows"` branching in the `ping()` function.
+Do not copy the raw `-c`/`-W` Linux flags into a new module without this guard — see Addendum for the full pattern.
+
 ### Step 3 — Create `docs/` standard files
 
 All three are required before the module is considered complete:
@@ -347,3 +358,38 @@ The script must:
 
 - Diagrams: `diagrams/moduleNN_topology_<protocol>.drawio` + `.svg`
 - Verbal script: `verbal_script/moduleNN_verbal_script_final.md` (only rename to `_final` when complete)
+
+## Module 13 — Advanced Techniques & Practitioner Notes
+
+**Status: Draft / Ideas Capture.** Module 13 is a holding area for techniques, patterns, and
+lab ideas that emerged during Modules 02–12 but did not belong in any single module. It may
+crystallize into one or more full lab modules, or remain as a standalone reference chapter.
+
+There is no fixed tool or topology for Module 13 yet. Topics are queued here as they are
+identified — each entry should note where it came up and why it was deferred rather than
+absorbed into an earlier module.
+
+### Draft Topics
+
+- [ ] **Router Descriptions Script** — noted during Module 05 verbal script review (2026-04-26)
+
+---
+
+## Addendum — Discovered Quirks and Fixes
+
+Issues found during development that are not obvious from the code or the module design.
+Add new entries here as they are encountered.
+
+### `ping_hosts.py` — Windows ping compatibility (discovered Module 05, 2026-04-25)
+
+The original `ping_hosts.py` used Linux ping flags (`-c count`, `-W timeout_seconds`).
+On Windows, `ping.exe` uses different flags (`-n count`, `-w timeout_milliseconds`) and
+produces different output — no "packet loss" substring, so loss always parsed as "unknown"
+and return code was non-zero for all hosts regardless of actual reachability.
+
+**Fix applied to modules 03, 04, 05:** use `platform.system() == "Windows"` to branch between
+`ping -n 3 -w 2000` (Windows) and `ping -c 3 -W 2` (Linux/macOS). Packet loss parsing also
+branches: Windows looks for `"Loss"` in the line and extracts the `(N% loss)` group via regex;
+Linux/macOS parses the third comma-separated field of the "packet loss" line.
+
+Apply this same platform-aware pattern to `ping_hosts.py` in every new module.
