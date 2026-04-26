@@ -1,58 +1,76 @@
 # NAMS26 — Network Automation Management Station 2026
 
-A professional-grade network automation lab and curriculum showcasing Python
-scripting, network protocols, and automation tools across a twelve-module
-progression from Netmiko through Ansible.
+A professional-grade network automation lab and curriculum for CCNP-level engineers.
+Twelve modules progress from Netmiko through NAPALM, Nornir, pyATS/Genie, and Ansible,
+with each module deploying live Cisco IOL routers in EVE-NG using Python automation scripts.
 
-## Project Goal
+> *This curriculum was developed with the assistance of Claude (Anthropic) as an AI development partner.*
 
-Build and demonstrate network automation expertise through hands-on lab work
-with live Cisco IOS routers in EVE-NG, producing high-quality instructional
-content (code + documentation + video lessons) published on GitHub and YouTube.
+## Module Progression
 
-## Automation Tool Progression
+| Module | Protocol / Topic      | Tool          | Status      |
+|--------|-----------------------|---------------|-------------|
+| 01     | Introduction          | N/A           | In Progress |
+| 02     | EIGRP Classic         | Netmiko       | Complete    |
+| 03     | OSPF Classic          | NAPALM        | Complete    |
+| 04     | OSPF Advanced         | NAPALM        | Complete    |
+| 05     | IPv6 EIGRP + OSPFv3   | Nornir        | In Progress |
+| 06     | IPv6 IS-IS            | Nornir        | Planned     |
+| 07     | IS-IS                 | Nornir        | Planned     |
+| 08     | BGP-1                 | pyATS/Genie   | Planned     |
+| 09     | BGP-2                 | pyATS/Genie   | Planned     |
+| 10     | BGP MPLS              | Ansible       | Planned     |
+| 11     | MPLS-VPN              | Ansible       | Planned     |
+| 12     | VPN/GRE               | Ansible       | Planned     |
 
-| Module | Protocol         | Tool          |
-|--------|------------------|---------------|
-| 01     | Introduction     | N/A           |
-| 02     | EIGRP            | Netmiko       |
-| 03     | OSPF-1           | NAPALM        |
-| 04     | OSPF-2           | NAPALM        |
-| 05     | IPv6 EIGRP/OSPF  | Nornir        |
-| 06     | IPv6 IS-IS       | Nornir        |
-| 07     | IS-IS            | Nornir        |
-| 08     | BGP-1            | pyATS/Genie   |
-| 09     | BGP-2            | pyATS/Genie   |
-| 10     | BGP MPLS         | Ansible       |
-| 11     | MPLS-VPN         | Ansible       |
-| 12     | VPN/GRE          | Ansible       |
+## Prerequisites
 
-## Lab Environment
+- **Python:** 3.10+
+- **Lab:** EVE-NG Professional with Cisco IOL L3 images
+- **Packages:** `netmiko`, `napalm`, `nornir`, `nornir-netmiko`, `nornir-utils`, `pyats[full]`, `ansible`
+- **Knowledge:** CCNP-level routing and switching; basic Python scripting
 
-- **NAMS:** Dell T7610 (64GB RAM) — VMware Workstation → Kali Linux
-- **Emulation:** Dell T7610 (128GB RAM) — VMware ESXi → EVE-NG Professional
-- **Devices:** Cisco IOL L3/L2 images
-- **Storage:** Synology NAS — Gitea (dev) → GitHub (production)
+## How to Use This Repository
+
+Each module is self-contained under `modules/NN_name_tool/`. The workflow for every module is:
+
+```bash
+# 1. Lab reset (after every EVE-NG Wipe+Start)
+bash modules/NN_name_tool/utils/clear_known_hosts.sh
+python modules/NN_name_tool/utils/init_ssh.py
+python modules/NN_name_tool/utils/ping_hosts.py
+
+# 2. Dry-run — render configs locally, no SSH connection
+python modules/NN_name_tool/scripts/configure_*.py --dry-run
+
+# 3. Deploy to all routers
+python modules/NN_name_tool/scripts/configure_*.py
+
+# 4. Verify operational state
+python modules/NN_name_tool/scripts/verify_*.py
+```
+
+See each module's `README.md` for module-specific instructions and expected output.
 
 ## Repository Structure
+
 ```
 NAMS26/
-├── ansible/          # Ansible roles and playbooks (Modules 10-12)
-├── docs/             # Project-level documentation
-├── inventory/        # Project-level inventory
-├── modules/          # One directory per module
-│   ├── 01_introduction/
+├── docs/                 # Project-level documentation
+├── modules/              # One directory per module
 │   ├── 02_eigrp_netmiko/
+│   ├── 03_ospf1_napalm/
+│   ├── 04_ospf2_napalm/
+│   ├── 05_ipv6_eigrp_ospf_nornir/
 │   └── ...
-├── utils/            # Project-level shared utilities
+├── ansible/              # Ansible roles and playbooks (Modules 10-12)
+├── APPENDIX.md           # Student reference — technology notes and snippets
 └── requirements.txt
 ```
 
-## Status
+## Lab Environment
 
-| Module | Topic       | Tool        | Status      |
-|--------|-------------|-------------|-------------|
-| 01     | Introduction| N/A         | In Progress |
-| 02     | EIGRP       | Netmiko     | Complete    |
-| 03-12  | See above   | See above   | Planned     |
-EOF
+- **NAMS Workstation:** Dell T7610 (64 GB RAM) — VMware Workstation → Kali Linux
+- **Emulation Host:** Dell T7610 (128 GB RAM) — VMware ESXi → EVE-NG Professional
+- **Devices:** Cisco IOL L3 images
+- **Storage / Git:** Synology NAS → Gitea (dev) → GitHub (production)

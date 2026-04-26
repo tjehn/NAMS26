@@ -16,6 +16,8 @@ J:\CCIE EI Lab - Q1 2020\NAMS26_V03
 |------|----------|---------|
 | `CLAUDE.md` | Claude Code | Coding standards, architecture, and operational guidance for the AI assistant |
 | `APPENDIX.md` | Students | Reference technology notes and code snippets — supplementary to the module READMEs |
+| `docs/publication_sop.md` | Instructor | Internal pre-production checklist — never published to GitHub |
+| `docs/eve-ng_lab_reset_sop.md` | Instructor | Lab reset procedure — applies to all modules |
 
 
 ## Running Scripts
@@ -150,6 +152,18 @@ can write to it on a fresh clone without a `mkdir` guard. Required for: `configs
 - **`docs/` standard files:** all three (`eve-ng_lab_reset_sop.md`, `moduleNN_planning.md`,
   `moduleNN_closing_demo.md`) are required for every completed module.
 
+### `configs/` Directory Standard
+
+- Rendered config files are date-stamped: format `YYMMDD_HOSTNAME.cfg` (preferred) or `HOSTNAME_YYMMDD.cfg`
+- Date-stamped files are retained during development as an audit trail
+- Pre-publication manual check: confirm only one clean set of configs exists before final GitHub push (human review task — not automated)
+- `configs/` is git-ignored — files are written by `--dry-run` and are never committed
+
+### Date Format Standard
+
+All dates in log file names and session-related files use YYMMDD format.
+Example: `260426_session_status.md`, `260426_R1_session.log`
+
 ### Verbal Script Log Path Standard
 
 Verbal scripts must reference the **module-specific** log path. Never use generic references
@@ -261,6 +275,52 @@ devices:
 | 10–12 | Ansible | Roles in `ansible/roles/` |
 | 13 | TBD | Advanced Techniques & Practitioner Notes — draft/ideas capture; see section below |
 
+### Protocol Configuration Mode Standard
+
+- **Modules 02–05:** Classic EIGRP and OSPF configuration mode
+- **Module 06 onward:** Named Mode exclusively (EIGRP Named Mode, OSPFv3 Named Mode where applicable)
+- All new modules from 06 forward must use Named Mode
+- Do not mix classic and named mode within a single module
+
+### EIGRP Redistribution Metric Standard
+
+All EIGRP redistribution statements must use the following metric:
+
+```
+metric: "10000 100 255 1 1500"
+```
+
+This applies to all modules containing EIGRP redistribution. Verify this value is consistent
+in all YAML files for Modules 02–05.
+
+### Module 04 Standard
+
+Module 04 (`04_ospf2_napalm`) is the reference standard for all project documentation,
+demonstration plans, diagrams, config files, and templates. Exceptions are permitted only
+for technology-specific requirements (e.g. IPv6 syntax, Nornir inventory structure).
+
+When adding a new module or normalizing an existing one, compare against Module 04
+deliverables first.
+
+### README.md Standard
+
+**Project-level `README.md`** must contain:
+- What NAMS26 is (one paragraph)
+- Target audience (CCNP-level, Python automation focus)
+- Module progression table (tool per module, status)
+- How to use the repository
+- Prerequisites (Python version, EVE-NG, Cisco IOL)
+- AI acknowledgment line (see below)
+
+**Module-level `README.md`** must contain:
+- What this module covers (one paragraph)
+- Prerequisites — what the student should know coming in
+- Directory structure — what each folder contains
+- How to run the scripts — the three CLI commands
+- What to expect — what success looks like
+
+> Module 04 README is the template. All subsequent modules follow it exactly.
+
 ### NAPALM / Cisco IOL Compatibility — REQUIRED STANDARD (Modules 03+)
 
 Cisco IOL routers have no `flash:` filesystem and do not support SCP. Every NAPALM
@@ -311,7 +371,11 @@ optional_args = {
 
 After every EVE-NG reboot the sequence is: **Stop → Wipe → Start → RSA keys → pre-flight → deploy**.
 Skipping the Wipe step leaves stale NVRAM config (passive interfaces, test faults) that causes
-false FAILs in verify and troubleshoot scripts. See `modules/03_ospf1_napalm/docs/eve-ng_lab_reset_sop.md`.
+false FAILs in verify and troubleshoot scripts. See `docs/eve-ng_lab_reset_sop.md`.
+
+**Instructor Procedure Note:**
+The EVE-NG lab reset sequence is an instructor preparation procedure. It is not referenced
+in any student-facing module instructions or docs. It belongs in the instructor SOP only.
 
 ## Adding a New Module
 
