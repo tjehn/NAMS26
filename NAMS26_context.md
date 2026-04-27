@@ -7,14 +7,14 @@
 
 NAMS26 is a 12-module network automation video curriculum taught over a Cisco IOL lab running in EVE-NG. Each module introduces a real-world automation tool against a progressively more complex network topology. The tool progression is:
 
-| Modules | Tool       | Protocol(s)                        |
-|---------|------------|------------------------------------|
-| 02      | Netmiko    | EIGRP                              |
-| 03–04   | NAPALM     | OSPF Classic / Advanced            |
-| 05–07   | Nornir     | IPv6 EIGRP/OSPF, IPv6 IS-IS, IS-IS |
-| 08–09   | pyATS/Genie| BGP-1, BGP-2                       |
-| 10–12   | Ansible    | BGP MPLS, MPLS-VPN, VPN/GRE        |
-| 13      | Flask      | Change Control Web Interface + Utilities |
+| Modules | Tool               | Protocol(s)                              |
+|---------|--------------------|------------------------------------------|
+| 02      | Netmiko            | EIGRP                                    |
+| 03–04   | NAPALM             | OSPF Classic / Advanced                  |
+| 05–06   | Nornir             | IPv6 EIGRP + OSPFv3 / IS-IS              |
+| 07–09   | Ansible            | BGP / Route Policy                       |
+| 10–12   | Ansible + pyATS/Genie | BGP+MPLS / MPLS VPN / VPN+GRE        |
+| 13      | Flask + Mixed      | Multi-site Capstone                      |
 
 Module 01 is an introduction (no lab scripts). Module 02 is the EIGRP/Netmiko baseline. The curriculum assumes a CCNP-level audience — routing protocol mechanics are not explained from scratch; the focus is on how Python drives the configuration and what each tool adds over the previous one.
 
@@ -194,26 +194,101 @@ All verify scripts produce per-device PASS / WARN / FAIL output with a worst-cas
 
 ---
 
-### Modules 05–12
-**Status: NOT STARTED**
+### Module 05 — IPv6 EIGRP + OSPFv3 / Nornir
+**Status: IN PROGRESS**
+
+- EIGRPv6 and OSPFv3 Named Mode on 11-router topology
+- Nornir task-based parallel deployment
+- Tool: Nornir
 
 ---
 
-### Module 13 — Change Control Web Interface / Utilities
+### Module 06 — IS-IS / Nornir
+**Status: NOT STARTED**
+
+- IS-IS Named Mode (IPv4 primary topology)
+- One IPv6 zone included to reinforce IPv6 concepts from Module 05
+- Nornir deployment (same pattern as Module 05)
+- Tool: Nornir
+
+---
+
+### Module 07 — BGP Part 1 / Ansible
+**Status: NOT STARTED**
+
+- BGP fundamentals — eBGP, iBGP, peering, path selection
+- Ansible introduction — playbooks, inventory, idempotent configuration
+- NOTE: Module 07 carries both the BGP lesson AND the Ansible introduction.
+  The verbal script and planning doc must allocate appropriate time to both.
+  The Ansible introduction section may require more time than the BGP content
+  in the early part of the lesson.
+- Tool: Ansible
+
+---
+
+### Module 08 — BGP Part 2 / Ansible
+**Status: NOT STARTED**
+
+- BGP advanced — route reflection, confederations, communities, policy
+- Ansible deepening — roles, templates, vault
+- Tool: Ansible
+
+---
+
+### Module 09 — Route Policy / Ansible
+**Status: NOT STARTED**
+
+- Dedicated route policy and filtering module
+- Topics: route maps (match and set clauses), prefix lists, distribute lists,
+  administrative distance manipulation, conditional redistribution
+- Topology: OSPF core with BGP and EIGRP connections — redistribution boundaries
+  at every seam force students to think about policy at each protocol transition
+- Detailed topology TBD during module planning
+- NOTE: This module addresses a known weak point for engineers.
+  It is a curriculum differentiator — give it the depth it deserves.
+- Tool: Ansible
+
+---
+
+### Modules 10–12 — Ansible + pyATS/Genie (Two-Act Structure)
+**Status: NOT STARTED**
+
+Each module follows a two-act structure:
+  Act 1 — Ansible: Teach and deploy a Cisco enterprise technology via Ansible playbooks
+  Act 2 — pyATS/Genie: Verify the network that Ansible just built using structured
+          parsing and test cases
+
+Module 10 — BGP + MPLS: pyATS/Genie introduction
+Module 11 — MPLS VPN: pyATS/Genie deepening
+Module 12 — VPN / GRE: pyATS/Genie advanced
+
+The pyATS/Genie progression across three modules gives students:
+- Module 10: testbed, basic parsers, first test cases
+- Module 11: structured assertions, feature objects, test reporting
+- Module 12: advanced patterns, multi-device test suites
+
+The Cisco technology is not subordinate to the tool — it is the foundation
+that makes the verification meaningful. Students must understand correct
+MPLS VPN / GRE state in order to write meaningful pyATS test cases.
+
+Detailed pyATS/Genie design to be crafted with Claude.ai when Modules 10–12
+planning begins.
+
+---
+
+### Module 13 — Multi-site Enterprise Capstone
 **Status: PLANNED — not yet designed**
 
-A capstone module that wraps the NAMS26 automation scripts in a
-real-world operational workflow. Candidate topics:
-
+Confirmed components:
 - Flask-based change control web interface
-  - Form captures: change number, description, requester, target routers
-  - Executes the relevant module's configure script on submission
-  - Displays pass/fail result with captured output
-  - Writes a timestamped log entry
-- Other utilities and tips collected across Modules 02–12
+- pyATS/Genie verification task (callback to Modules 10–12)
+- Multi-site enterprise topology — all tools, all technologies
+- Ansible for configuration deployment
+- Nornir for targeted operational tasks (TBD)
 
 **Design rule:** This module must not influence the design of Modules 02–12.
-All scope additions belong here. Design begins after Module 12 is complete.
+Design begins after Module 12 is complete.
+Detailed design to be crafted with Claude.ai.
 
 ---
 

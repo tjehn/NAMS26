@@ -266,19 +266,25 @@ devices:
 
 ### Tool-per-Module
 
-| Modules | Tool | Connection Method |
-|---------|------|-------------------|
-| 02 | Netmiko | SSH, direct `send_config_set` |
-| 03–04 | NAPALM | `merge_candidate` + `commit_config`; requires `inline_transfer: True` for Cisco IOL |
-| 05–07 | Nornir | Task-based, parallel |
-| 08–09 | pyATS/Genie | Structured output parsing |
-| 10–12 | Ansible | Roles in `ansible/roles/` |
-| 13 | TBD | Advanced Techniques & Practitioner Notes — draft/ideas capture; see section below |
+| Module | Name | Technology | Tool | Structure |
+|--------|------|-----------|------|-----------|
+| 02 | EIGRP Classic | EIGRP | Netmiko | Single act — COMPLETE |
+| 03 | OSPF Classic | OSPF | NAPALM | Single act — COMPLETE |
+| 04 | OSPF Advanced | OSPF Advanced | NAPALM | Single act — COMPLETE |
+| 05 | IPv6 EIGRP + OSPFv3 | IPv6 EIGRP + OSPFv3 | Nornir | Single act — IN PROGRESS |
+| 06 | IS-IS | IS-IS (IPv4 + IPv6 zone) | Nornir | Single act — NOT STARTED |
+| 07 | BGP Part 1 | BGP | Ansible | Single act — NOT STARTED |
+| 08 | BGP Part 2 | BGP Advanced | Ansible | Single act — NOT STARTED |
+| 09 | Route Policy | Route Maps, Prefix Lists, AD, Redistribution | Ansible | Single act — NOT STARTED |
+| 10 | BGP + MPLS | BGP + MPLS | Ansible + pyATS/Genie | Two acts — NOT STARTED |
+| 11 | MPLS VPN | MPLS VPN | Ansible + pyATS/Genie | Two acts — NOT STARTED |
+| 12 | VPN / GRE | VPN / GRE | Ansible + pyATS/Genie | Two acts — NOT STARTED |
+| 13 | Capstone | Multi-site Enterprise | Flask + Mixed | Capstone — PLANNED |
 
 ### Protocol Configuration Mode Standard
 
-- **Modules 02–05:** Classic EIGRP and OSPF configuration mode
-- **Module 06 onward:** Named Mode exclusively (EIGRP Named Mode, OSPFv3 Named Mode where applicable)
+- **Modules 02–05:** Classic configuration mode
+- **Module 06 onward:** Named Mode exclusively (IS-IS Named Mode, EIGRP Named Mode, OSPF Named Mode where applicable)
 - All new modules from 06 forward must use Named Mode
 - Do not mix classic and named mode within a single module
 
@@ -301,6 +307,24 @@ for technology-specific requirements (e.g. IPv6 syntax, Nornir inventory structu
 
 When adding a new module or normalizing an existing one, compare against Module 04
 deliverables first.
+
+### Two-Act Module Structure (Modules 10–12)
+
+Each module follows a two-act structure:
+  Act 1 — Ansible deploys the Cisco technology
+  Act 2 — pyATS/Genie verifies what Ansible built
+
+The verbal script must clearly delineate the two acts.
+The Cisco technology is the foundation — it must not be lost in the tool lesson.
+The planning doc must address both acts with equal depth.
+
+### Module 09 — Route Policy Standard
+
+Module 09 is a dedicated route policy and filtering module.
+Topology must include OSPF, BGP, and EIGRP redistribution boundaries.
+Topics must include: route maps, prefix lists, distribute lists,
+administrative distance manipulation, conditional redistribution.
+This is a curriculum differentiator — depth over breadth.
 
 ### README.md Standard
 
