@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-File     : utils/ospf_topology_map.py
+File     : utils/module03_ospf_topology_map.py
 Purpose  : Connect to a single Cisco IOS router via NAPALM, retrieve the
            full OSPF Link State Database, parse all LSA types, and render
            a text-format topology map.
@@ -87,17 +87,17 @@ CLI Commands Issued:
         Used to annotate the area tree and populate the adjacency table.
 
 Usage:
-    python ospf_topology_map.py --router <IP or DNS>
+    python module03_ospf_topology_map.py --router <IP or DNS>
 
     # Optional: filter output to a specific area
-    python ospf_topology_map.py --router r1.lab --area 0
+    python module03_ospf_topology_map.py --router r1.lab --area 0
 
     # Credentials are prompted interactively — password input is hidden
 
 Examples:
-    python utils/ospf_topology_map.py --router r1.lab
-    python utils/ospf_topology_map.py --router 192.168.1.101
-    python utils/ospf_topology_map.py --router r8.lab --area 10
+    python utils/module03_ospf_topology_map.py --router r1.lab
+    python utils/module03_ospf_topology_map.py --router 192.168.1.101
+    python utils/module03_ospf_topology_map.py --router r8.lab --area 10
 
 Pre-flight requirement:
     Run utils/clear_known_hosts.sh and utils/check_ssh.py before executing
@@ -1071,11 +1071,11 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python ospf_topology_map.py --router r1.lab\n"
-            "  python ospf_topology_map.py --router r1.lab --map\n"
-            "  python ospf_topology_map.py --router 192.168.1.101\n"
-            "  python ospf_topology_map.py --router r8.lab --area 10\n"
-            "  python ospf_topology_map.py --router r8.lab --map --area 10\n"
+            "  python module03_ospf_topology_map.py --router r1.lab\n"
+            "  python module03_ospf_topology_map.py --router r1.lab --map\n"
+            "  python module03_ospf_topology_map.py --router 192.168.1.101\n"
+            "  python module03_ospf_topology_map.py --router r8.lab --area 10\n"
+            "  python module03_ospf_topology_map.py --router r8.lab --map --area 10\n"
         ),
     )
     parser.add_argument("--router", required=True, help="Router IP address or DNS name to connect to")

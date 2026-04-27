@@ -48,7 +48,8 @@ from napalm.base.exceptions import (
 # =============================================================================
 SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
 MODULE_DIR    = os.path.dirname(SCRIPT_DIR)                       # 03_ospf1_napalm/
-PROJECT_ROOT  = os.path.dirname(MODULE_DIR)                       # NAMS26/
+MODULES_DIR   = os.path.dirname(MODULE_DIR)                       # modules/
+PROJECT_ROOT  = os.path.dirname(MODULES_DIR)                      # NAMS26/
 
 YAML_FILE     = os.path.join(MODULE_DIR, "data",      "ospf_classic.yaml")
 TEMPLATE_DIR  = os.path.join(MODULE_DIR, "templates")

@@ -19,9 +19,9 @@ interface {{ intf_name }}
 {% endif %}
 {% if intf.ip and intf.ip != "" and '/' in intf.ip %} ip address {{ intf.ip.split('/')[0] }} {{ intf.ip.split('/')[1] | cidr_to_netmask }}
 {% endif %}
-{% if intf.speed and intf.speed != "" and 'Ethernet' not in intf_name %} speed {{ intf.speed }}
+{% if intf.speed and intf.speed != "" %} speed {{ intf.speed }}
 {% endif %}
-{% if intf.duplex and intf.duplex != "" and 'Ethernet' not in intf_name %} duplex {{ intf.duplex }}
+{% if intf.duplex and intf.duplex != "" %} duplex {{ intf.duplex }}
 {% endif %}
 {% if intf.mtu and intf.mtu != "" %} mtu {{ intf.mtu }}
 {% endif %}

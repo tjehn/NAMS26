@@ -76,7 +76,8 @@ desktop.ini
 
 # Module operational logs (generated output — not source)
 modules/logs/
-logs/
+modules/*/logs/*
+!modules/*/logs/.gitkeep
 
 # Module rendered configs (generated output — not source)
 modules/*/configs/*.cfg

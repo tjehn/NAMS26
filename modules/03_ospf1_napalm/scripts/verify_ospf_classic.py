@@ -90,7 +90,8 @@ from napalm.base.exceptions import ConnectionException
 # =============================================================================
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
 MODULE_DIR   = os.path.dirname(SCRIPT_DIR)
-PROJECT_ROOT = os.path.dirname(MODULE_DIR)
+MODULES_DIR  = os.path.dirname(MODULE_DIR)
+PROJECT_ROOT = os.path.dirname(MODULES_DIR)
 
 YAML_FILE    = os.path.join(MODULE_DIR, "data", "ospf_classic.yaml")
 LOG_DIR      = os.path.join(MODULE_DIR, "logs")
