@@ -1,9 +1,9 @@
 # NAMS26 — Project Status Report
 
 **Created:** 2026-04-26
-**Updated:** 2026-04-27
+**Updated:** 2026-04-27 (b)
 **Scope:** All modules (01–12) and project-level deliverables
-**Basis:** File-system audit + session notes `260426_session_status.md` / `260426b_session_status.md`; normalization pass `260427`
+**Basis:** File-system audit + session notes `260426_session_status.md` / `260426b_session_status.md`; normalization pass `260427`; verify + troubleshoot scripts implemented `260427b`
 
 ---
 
@@ -15,7 +15,7 @@
 | 02 | EIGRP Classic | Netmiko | **Complete** |
 | 03 | OSPF Classic | NAPALM | **Complete** |
 | 04 | OSPF Advanced | NAPALM | **Complete** — verbal script awaiting `_final` rename |
-| 05 | IPv6 EIGRP + OSPFv3 | Nornir | **In Progress** — configure + YAML + docs done; verify/troubleshoot stubs; untested against live lab |
+| 05 | IPv6 EIGRP + OSPFv3 | Nornir | **In Progress** — full script set done; closing_demo placeholder; untested against live lab |
 | 06 | IPv6 IS-IS | Nornir | **Not Started** — ios_configs only; no scaffold |
 | 07 | IS-IS | Nornir | **Not Started** — README + empty utils only; ios_configs dir misnamed |
 | 08 | BGP (Part 1) | pyATS/Genie | **Not Started** — README + empty utils only; ios_configs dir misnamed |
@@ -43,8 +43,8 @@
 | `logs/.gitkeep` | OK | OK | OK | OK | missing | missing |
 | `README.md` | OK | OK | OK | OK | stub | stub |
 | `scripts/configure_*.py` | OK | OK | OK | OK | missing | missing |
-| `scripts/verify_*.py` | OK | OK | OK | **stub** | missing | missing |
-| `scripts/troubleshoot_*.py` | OK | OK | OK | **stub** | missing | missing |
+| `scripts/verify_*.py` | OK | OK | OK | OK | missing | missing |
+| `scripts/troubleshoot_*.py` | OK | OK | OK | OK | missing | missing |
 | `templates/*.j2` | OK | OK | OK | OK | missing | missing |
 | `utils/` (all 5 scripts) | OK | OK | OK | OK | empty | empty |
 | `verbal_script/moduleNN_verbal_script_final.md` | OK | OK | **draft** | **draft** | missing | missing |
@@ -112,6 +112,8 @@
 - README rewritten to standard
 - `logs/.gitkeep` — now tracked in git (was previously masked by broad `logs/` gitignore rule)
 - `configs/` cleaned — rendered configs deleted; `.gitkeep` retained
+- `scripts/verify_ipv6_eigrp_ospf.py` — fully implemented (260427b): 4 checks: neighbors (EIGRPv6 peer + OSPFv3 FULL), routes (per-role: EIGRP-only/OSPF-stub/OSPF-non-stub/ASBR), redistribution (config check for ASBRs; D EX for EIGRP-only; OE2/ON2 for OSPF-non-stub; INFO for stub area), areas (stub/NSSA confirmed in live OSPFv3 process)
+- `scripts/troubleshoot_ipv6_eigrp_ospf.py` — fully implemented (260427b): 3 checks: neighbors (detail), process (EIGRP AS + OSPF PID/router-id), routes (route table + border-routers); `--demo-failure` mode: 4 scenarios (missing-redistribute, wrong-area-type, missing-ospf-area, missing-eigrp-iface) with in-memory Jinja2 diff
 
 ---
 
@@ -121,10 +123,10 @@
 
 | # | Item | Notes |
 |---|------|-------|
-| 1 | `scripts/verify_ipv6_eigrp_ospf.py` — implement | Currently a stub; must match Module 04 verify pattern |
-| 2 | `scripts/troubleshoot_ipv6_eigrp_ospf.py` — implement | Currently a stub |
+| ~~1~~ | ~~`scripts/verify_ipv6_eigrp_ospf.py` — implement~~ | **Done 260427b** |
+| ~~2~~ | ~~`scripts/troubleshoot_ipv6_eigrp_ospf.py` — implement~~ | **Done 260427b** |
 | 3 | `docs/module05_closing_demo.md` — complete | Current content is placeholder; needs fault injection output from live lab |
-| 4 | Live lab test — configure script end-to-end | EVE-NG reset required; untested |
+| 4 | Live lab test — all three scripts end-to-end | EVE-NG reset required; untested |
 | 5 | Confirm R4 dual-ABR role (Area 10 ↔ 20) | Based on YAML header comment only; verify against running lab |
 | 6 | Rename to `module05_verbal_script_final.md` | After live lab validation |
 
@@ -165,7 +167,7 @@ Issues that don't block current work but warrant attention:
 
 **Branch:** `main` — up to date with `origin` (Gitea).
 
-**Current HEAD:** `29a10ac` — Normalize modules 02-05: bug fix, structure, path resolution, housekeeping
+**Current HEAD:** `c51129a` — docs: CLAUDE.md — Module 13 merge vs replace change control form — elective
 
 **Uncommitted (internal artifacts — do not commit):**
 - `260426_cos_instructions.md`, `260426b_session_status.md`, `260426_session_status.md`
