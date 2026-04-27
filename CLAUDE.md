@@ -444,6 +444,30 @@ absorbed into an earlier module.
   - Makes the merge vs replace distinction tangible and interactive rather than purely conceptual; operator consciously chooses the execution model before pushing — consistent with how mature network automation platforms work
   - Elective — include if time and scope permit during Module 13 design
 
+- [ ] **[ELECTIVE] Dynamic EIGRP Redistribution Metric Derivation** — noted during Module 05 verify/troubleshoot implementation (2026-04-27)
+  - When an EIGRP redistribution statement is required, the script should parse `show interface <intf>` output on the ASBR and derive the five metric components dynamically rather than using the hardcoded standard value `"10000 100 255 1 1500"`
+  - Metric components and how to derive them from `show interface` output:
+    - **Bandwidth:**   `BW XXXXX Kbit/sec` — use value as-is in Kbps
+    - **Delay:**       `DLY XXXXX usec` — divide by 10 (`show interface` reports in microseconds; EIGRP metric requires tens of microseconds). Example: DLY 1000 usec → 100
+    - **Reliability:** `reliability 255/255` — extract numerator (255)
+    - **Load:**        `txload 1/255` — extract numerator (1)
+    - **MTU:**         `MTU 1500 bytes` — extract value (1500)
+  - Example `show interface` output and derived metric:
+    ```
+    Ethernet0/1 is up, line protocol is up
+      MTU 1500 bytes, BW 10000 Kbit/sec, DLY 1000 usec,
+         reliability 255/255, txload 1/255, rxload 1/255
+    → redistribute ospf 1 metric 10000 100 255 1 1500
+    ```
+  - Implementation notes:
+    - Use Netmiko, NAPALM, or Nornir (whichever is the module tool) to run `show interface <intf>` on the ASBR
+    - Parse the BW/DLY/reliability/load/MTU fields via regex or ntc-templates
+    - Divide DLY by 10 before inserting into the metric statement
+    - Applies to both IPv4 EIGRP and EIGRPv6 redistribution
+    - The interface to query is the one facing the EIGRP domain (e.g. link toward R7/R8 on R1, toward R8 on R6)
+    - Prerequisite: student must be familiar with `show interface` parsing via pyATS/Genie or ntc-templates (Modules 08–09)
+  - Elective — include if time and scope permit during Module 13 design
+
 ---
 
 ## Addendum — Discovered Quirks and Fixes
