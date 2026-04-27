@@ -437,6 +437,13 @@ absorbed into an earlier module.
 
 - [ ] **Router Descriptions Script** — noted during Module 05 verbal script review (2026-04-26)
 
+- [ ] **[ELECTIVE] Change Control Form — Merge vs Replace Execution Model** — noted during Module 05 verbal script development (2026-04-27)
+  - GUI change control form with an Execution Model selector (radio button or dropdown): **Merge** and **Replace**
+  - Merge maps to `load_merge_candidate` (NAPALM) or `netmiko_send_config` (Nornir) — additive, safe for incremental changes
+  - Replace maps to `load_replace_candidate` (NAPALM) — enforces complete intended state, removes stale config
+  - Makes the merge vs replace distinction tangible and interactive rather than purely conceptual; operator consciously chooses the execution model before pushing — consistent with how mature network automation platforms work
+  - Elective — include if time and scope permit during Module 13 design
+
 ---
 
 ## Addendum — Discovered Quirks and Fixes
