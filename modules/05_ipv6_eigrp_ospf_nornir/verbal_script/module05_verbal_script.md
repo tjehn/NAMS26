@@ -10,8 +10,8 @@
 > - References describe what's on screen; instructor does not read code verbatim
 > - Tone: conversational, technically precise, CCNP-level audience assumed
 > - `[SCREEN]` cues indicate what should be visible on screen at that moment
-> - Pre-flight and lab reset procedures are documented in `docs/eve-ng_lab_reset_sop.md`
->   — reference that document for operational steps, do not repeat them here
+> - The full lab reset procedure is documented in the project-level `docs/eve-ng_lab_reset_sop.md`
+>   — this is an instructor preparation procedure and is not referenced in student-facing materials
 
 ---
 
@@ -999,7 +999,7 @@ scheduled downtime and one you cannot.
 
 Nornir also adds an inventory model. The YAML in this module is still a flat device
 file — not a database, not a hierarchy, not role-aware — but it flows through Nornir's
-inventory abstraction. As you move toward larger tooling (Ansible in Modules 10 through
+inventory abstraction. As you move toward larger tooling (Ansible in Modules 07 through
 12, infrastructure-as-code patterns beyond that), this inventory concept becomes the
 organizing principle for everything.
 
@@ -1018,12 +1018,12 @@ task plugin, not a different orchestration framework.
 Nornir does not add structured data parsing. The troubleshoot and verify scripts in
 this module send show commands and receive raw CLI output — the same strings you'd see
 at the terminal. Parsing that output for specific values requires regex, string
-matching, or external parsers. In Modules 8 and 9, pyATS and Genie replace that
+matching, or external parsers. In Modules 10 through 12, pyATS and Genie replace that
 pattern with structured getters that return Python dictionaries — no regex required.
 
 Nornir does not add declarative intent. The configure script knows what it wants to
 push, but it has no model of what the network should look like and no ability to
-reconcile live state against that model. Ansible in Modules 10 through 12 addresses
+reconcile live state against that model. Ansible in Modules 07 through 12 addresses
 that gap — idempotent plays, role-based configuration management, intent-based
 enforcement.
 
@@ -1031,9 +1031,9 @@ enforcement.
 |--------|-----------------|---------------|------------------------------------------------|
 | 02     | EIGRP           | Netmiko       | Direct SSH, explicit command control            |
 | 03–04  | OSPF            | NAPALM        | Candidate config, diff before commit            |
-| 05–07  | IPv6 / mixed    | Nornir        | Parallel task dispatch, inventory abstraction   |
-| 08–09  | TBD             | pyATS/Genie   | Structured parsing, stateful testing            |
-| 10–12  | TBD             | Ansible       | Declarative intent, idempotency at scale        |
+| 05–06  | IPv6 / mixed    | Nornir        | Parallel task dispatch, inventory abstraction   |
+| 10–12  | TBD             | pyATS/Genie   | Structured parsing, stateful testing            |
+| 07–12  | TBD             | Ansible       | Declarative intent, idempotency at scale        |
 
 Nornir is the right tool for this stage of the progression because it keeps the task
 structure visible — you write a Python function, you see what it does per host, you
@@ -1116,7 +1116,9 @@ different tools.
 
 ---
 
-The full lab reset procedure is documented in `docs/eve-ng_lab_reset_sop.md`.
+The full lab reset procedure is documented in the project-level
+docs/eve-ng_lab_reset_sop.md — this is an instructor preparation procedure
+and is not referenced in student-facing materials.
 
 Module 6 continues on the Nornir platform with a different protocol stack. Module 8
 introduces pyATS and Genie — the abstraction level goes up another step. Show commands
@@ -1125,13 +1127,20 @@ testing replaces string matching. See you there.
 
 ---
 
-| Module | Protocol        | Tool          | What It Adds                                   |
-|--------|-----------------|---------------|------------------------------------------------|
-| 02     | EIGRP           | Netmiko       | Direct SSH, explicit command control            |
-| 03–04  | OSPF            | NAPALM        | Candidate config, diff before commit            |
-| 05–07  | IPv6 / mixed    | Nornir        | Parallel task dispatch, inventory abstraction   |
-| 08–09  | TBD             | pyATS/Genie   | Structured parsing, stateful testing            |
-| 10–12  | TBD             | Ansible       | Declarative intent, idempotency at scale        |
+| Module | Technology | Tool |
+|--------|-----------|------|
+| 02 | EIGRP | Netmiko |
+| 03 | OSPF Classic | NAPALM |
+| 04 | OSPF Advanced | NAPALM |
+| 05 | IPv6 EIGRP + OSPFv3 | Nornir |
+| 06 | IS-IS | Nornir |
+| 07 | BGP Part 1 | Ansible |
+| 08 | BGP Part 2 | Ansible |
+| 09 | Route Policy | Ansible |
+| 10 | BGP + MPLS | Ansible + pyATS/Genie |
+| 11 | MPLS VPN | Ansible + pyATS/Genie |
+| 12 | VPN / GRE | Ansible + pyATS/Genie |
+| 13 | Capstone | Flask + Mixed |
 
 ---
 
