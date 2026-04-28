@@ -317,10 +317,10 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
     if role == "EIGRP_ONLY":
         # IOL displays EIGRPv6 external routes as 'EX' (not 'D EX' as in IPv4 EIGRP).
         d_ex = [l for l in output.splitlines()
-                if re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
+                if re.match(r'^\s*(D\s+EX|EX)\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         d    = [l for l in output.splitlines()
-                if re.match(r'^\s*D\s+', l, re.IGNORECASE)
-                and not re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
+                if re.match(r'^\s*D\s+[0-9A-Fa-f:]', l, re.IGNORECASE)
+                and not re.match(r'^\s*(D\s+EX|EX)\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
 
         if d_ex:
             emit(passed(
@@ -356,7 +356,7 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
             worst = _worst(worst, "FAIL")
 
         ext = [l for l in output.splitlines()
-               if re.match(r'^\s*O(E[12]|N[12])\s+', l, re.IGNORECASE)]
+               if re.match(r'^\s*O(E[12]|N[12])\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         if ext:
             emit(warned(
                 f"{len(ext)} OE/ON external route(s) in stub area — "
@@ -368,7 +368,7 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
 
     elif role == "OSPF_ONLY":
         ospf_routes = [l for l in output.splitlines()
-                       if re.match(r'^\s*O[^B]?', l)]
+                       if re.match(r'^\s*O[^B]?\s+[0-9A-Fa-f:]', l)]
         if ospf_routes:
             emit(passed(f"OSPFv3: {len(ospf_routes)} OSPFv3 route(s) present in table"), lf)
         else:
@@ -380,9 +380,9 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
 
     elif role == "ASBR":
         d_routes = [l for l in output.splitlines()
-                    if re.match(r'^\s*D(\s+EX)?\s+', l, re.IGNORECASE)]
+                    if re.match(r'^\s*D(\s+EX)?\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         o_routes = [l for l in output.splitlines()
-                    if re.match(r'^\s*O[^B]?', l)]
+                    if re.match(r'^\s*O[^B]?\s+[0-9A-Fa-f:]', l)]
 
         if d_routes:
             emit(passed(f"EIGRPv6: {len(d_routes)} EIGRP route(s) in table"), lf)
@@ -472,7 +472,7 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
 
         # IOL displays EIGRPv6 external routes as 'EX' (not 'D EX' as in IPv4 EIGRP).
         d_ex = [l for l in eigrp_output.splitlines()
-                if re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
+                if re.match(r'^\s*(D\s+EX|EX)\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         if d_ex:
             emit(passed(
                 f"{len(d_ex)} EX route(s) in EIGRPv6 table — "
@@ -506,7 +506,7 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
         emit_raw(ospf_output, lf)
 
         ext = [l for l in ospf_output.splitlines()
-               if re.match(r'^\s*O(E[12]|N[12])\s+', l, re.IGNORECASE)]
+               if re.match(r'^\s*O(E[12]|N[12])\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         if ext:
             emit(passed(
                 f"{len(ext)} OSPFv3 external route(s) (OE2/ON2) present — "
