@@ -794,6 +794,38 @@ this check will catch it.
 
 ---
 
+**Output annotations.**
+
+Each check reports one of four annotations:
+
+| Annotation | Meaning |
+|------------|---------|
+| `[PASS]` | Check ran and the router matches expected state |
+| `[FAIL]` | Check ran and found a deviation from expected state |
+| `[WARN]` | Check ran and found an anomaly that may not be a fault |
+| `[INFO]` | Check was skipped — not applicable to this router |
+
+`[INFO]` is a deliberate skip, not a failure. The following table shows which routers produce INFO, on which check, and why:
+
+| Router | Check | Reason |
+|--------|-------|--------|
+| R1 | `areas` | Backbone-only router — no stub or NSSA declarations to verify |
+| R5 | `redistribution` | Stub area leaf — does not redistribute; state validated by `routes` check |
+| R7 | `areas` | EIGRP-only — no OSPFv3 process; area type check not applicable |
+| R8 | `areas` | EIGRP-only — no OSPFv3 process; area type check not applicable |
+| R9 | `redistribution` | Stub area leaf — does not redistribute; state validated by `routes` check |
+
+> **Instructor talking point:** When students see `[INFO]` in the output, their first
+> instinct is to ask whether something is wrong. Use the table above to anchor the
+> answer in topology design: R7 and R8 run no OSPFv3, so the OSPFv3 area check has
+> nothing to verify. R5 and R9 are stub leaves — they don't redistribute, and their
+> correctness is already proven by the `routes` check confirming `OI ::/0` is present
+> and no external routes leaked in. `[INFO]` means the script made a deliberate
+> decision not to run a check that doesn't apply — not that the router is in a
+> questionable state.
+
+---
+
 **Running a targeted check.**
 
 During the closing demo you'll run the `redistribution` check specifically to surface
