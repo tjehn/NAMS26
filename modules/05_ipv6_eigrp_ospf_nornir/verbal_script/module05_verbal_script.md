@@ -805,6 +805,28 @@ Each check reports one of four annotations:
 | `[WARN]` | Check ran and found an anomaly that may not be a fault |
 | `[INFO]` | Check was skipped — not applicable to this router |
 
+`[SCREEN: Verification Summary — clean run]`
+
+```
+============================================================
+  Verification Summary
+============================================================
+  Device    neighbors       routes          redistribution  areas
+  ────────────────────────────────────────────────────────────────────────
+  R1        PASS            PASS            PASS            INFO
+  R2        PASS            PASS            PASS            PASS
+  R3        PASS            PASS            PASS            PASS
+  R4        PASS            PASS            PASS            PASS
+  R5        PASS            PASS            INFO            PASS
+  R6        PASS            PASS            PASS            PASS
+  R7        PASS            PASS            PASS            INFO
+  R8        PASS            PASS            PASS            INFO
+  R9        PASS            PASS            INFO            PASS
+  ────────────────────────────────────────────────────────────────────────
+  Totals    PASS:9          PASS:9          PASS:7  INFO:2  PASS:6  INFO:3
+============================================================
+```
+
 `[INFO]` is a deliberate skip, not a failure. The following table shows which routers produce INFO, on which check, and why:
 
 | Router | Check | Reason |
