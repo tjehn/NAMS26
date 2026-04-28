@@ -364,7 +364,7 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
             ), lf)
             worst = _worst(worst, "WARN")
         else:
-            emit(info("No OE2/ON2 routes — correct for stub/totally-stubby area"), lf)
+            emit(passed("No OE2/ON2 routes — correct for stub/totally-stubby area"), lf)
 
     elif role == "OSPF_ONLY":
         ospf_routes = [l for l in output.splitlines()
@@ -492,7 +492,7 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
             emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
-    elif _is_stub_area(device_data):
+    elif _is_stub_area(device_data) and not _is_backbone_connected(device_data):
         emit(info(
             f"{device_name} is in a stub/totally-stubby area — "
             "external OSPFv3 routes are filtered by design. "
