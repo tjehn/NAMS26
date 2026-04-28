@@ -501,7 +501,7 @@ for device_name in target_routers:
 
     config = generate_config(template, device_data)
 
-    config_path = os.path.join(CONFIG_DIR, f"{device_name}_eigrp_classic.cfg")
+    config_path = os.path.join(CONFIG_DIR, f"{run_date}_{device_name}_eigrp_classic.cfg")
     with open(config_path, "w") as fh:
         fh.write(config)
     print(f"  Config written : {config_path}")
@@ -514,7 +514,7 @@ for device_name in target_routers:
 
 `generate_config()` is intentionally minimal — it just calls
 `template.render(device_data)`. The template does the work. The rendered output is
-written to `configs/` as `R1_eigrp_classic.cfg`, `R2_eigrp_classic.cfg`, and so on.
+written to `configs/` as `260428_143022_R1_eigrp_classic.cfg`, `260428_143022_R2_eigrp_classic.cfg`, and so on.
 These files persist after the run — they're your record of exactly what was pushed
 to each device, and they're what you review during a dry-run.
 

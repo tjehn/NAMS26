@@ -154,7 +154,7 @@ can write to it on a fresh clone without a `mkdir` guard. Required for: `configs
 
 ### `configs/` Directory Standard
 
-- Rendered config files are date-stamped: format `YYMMDD_HOSTNAME.cfg` (preferred) or `HOSTNAME_YYMMDD.cfg`
+- Rendered config files are datetime-stamped: format `YYMMDD_HHMMSS_HOSTNAME_module.cfg` (e.g. `260428_143022_R1_eigrp_classic.cfg`)
 - Date-stamped files are retained during development as an audit trail
 - Pre-publication manual check: confirm only one clean set of configs exists before final GitHub push (human review task — not automated)
 - `configs/` is git-ignored — files are written by `--dry-run` and are never committed
