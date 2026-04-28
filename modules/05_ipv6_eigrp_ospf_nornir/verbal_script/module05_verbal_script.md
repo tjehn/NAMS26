@@ -654,12 +654,12 @@ as `**kwargs` on every thread. Each host gets the same shared objects. The retur
 **Inside `configure_task()` — what each thread actually does.**
 
 ```python
-def configure_task(task: Task, template_env: Environment, config_dir: str, dry_run: bool) -> Result:
+def configure_task(task: Task, template_env: Environment, config_dir: str, dry_run: bool, timestamp: str) -> Result:
     dev = dict(task.host.data)
     template = template_env.get_template(TEMPLATE_FILE)
     rendered = template.render(device=dev)
 
-    config_path = os.path.join(config_dir, f"{task.host.name}_ipv6_eigrp_ospf.cfg")
+    config_path = os.path.join(config_dir, f"{timestamp}_{task.host.name}_ipv6_eigrp_ospf.cfg")
     with open(config_path, "w") as fh:
         fh.write(rendered)
 
