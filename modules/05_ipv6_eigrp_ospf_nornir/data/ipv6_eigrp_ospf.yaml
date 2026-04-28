@@ -1363,7 +1363,7 @@ devices:
     eigrp: ~
     ospf:
       process_id: 1
-      router_id: ""
+      router_id: "9.9.9.9"
       area_types:
         - area: 10
           type: stub
