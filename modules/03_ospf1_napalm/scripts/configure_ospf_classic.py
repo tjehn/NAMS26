@@ -373,6 +373,7 @@ def main() -> None:
     # Ensure configs output directory exists
     # -------------------------------------------------------------------------
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    run_date = datetime.now().strftime("%y%m%d_%H%M%S")
 
     # -------------------------------------------------------------------------
     # Process each target router
@@ -390,7 +391,7 @@ def main() -> None:
         config = generate_config(template, device_data)
 
         # Write rendered config to configs/ directory
-        config_path = os.path.join(CONFIG_DIR, f"{device_name}_ospf_classic.cfg")
+        config_path = os.path.join(CONFIG_DIR, f"{run_date}_{device_name}_ospf_classic.cfg")
         with open(config_path, "w") as fh:
             fh.write(config)
         info(f"Config written : {config_path}")

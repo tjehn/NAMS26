@@ -26,6 +26,7 @@ import sys
 import tempfile
 import yaml
 import argparse
+from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from nornir import InitNornir
 from nornir.core.task import Task, Result
@@ -135,13 +136,14 @@ def configure_task(
     template_env: Environment,
     config_dir: str,
     dry_run: bool,
+    timestamp: str,
 ) -> Result:
     """Render Jinja2 config per host and push via Netmiko (or write only for --dry-run)."""
     dev = dict(task.host.data)
     template = template_env.get_template(TEMPLATE_FILE)
     rendered = template.render(device=dev)
 
-    config_path = os.path.join(config_dir, f"{task.host.name}_ipv6_eigrp_ospf.cfg")
+    config_path = os.path.join(config_dir, f"{timestamp}_{task.host.name}_ipv6_eigrp_ospf.cfg")
     with open(config_path, "w") as fh:
         fh.write(rendered)
 
@@ -330,6 +332,7 @@ def main() -> None:
             template_env=template_env,
             config_dir=CONFIG_DIR,
             dry_run=args.dry_run,
+            timestamp=datetime.now().strftime("%y%m%d_%H%M%S"),
         )
 
         # print_result() walks the AggregatedResult tree and prints each host's
