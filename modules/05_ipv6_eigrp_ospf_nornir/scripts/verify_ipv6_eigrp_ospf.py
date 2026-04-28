@@ -217,6 +217,15 @@ def _is_stub_area(device_data: dict) -> bool:
     return any(at.get("type") == "stub" for at in (ospf.get("area_types") or []))
 
 
+def _is_backbone_connected(device_data: dict) -> bool:
+    """Return True if any interface is assigned to Area 0 (device is an ABR)."""
+    interfaces = device_data.get("interfaces") or {}
+    return any(
+        str(iface.get("ospf_area", "")).strip() == "0"
+        for iface in interfaces.values()
+    )
+
+
 # =============================================================================
 # VERIFICATION CHECKS
 # =============================================================================
@@ -289,9 +298,9 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
 
     EIGRP-only (R7, R8):
         D EX entries required — proves OSPFv3 routes are redistributed into EIGRPv6.
-    OSPF stub area (R5, R9 — Area 10 totally stubby):
+    OSPF stub leaf (R5, R9 — Area 10 totally stubby, no backbone interface):
         OI ::/0 default route required. No individual OE2/ON2 expected (by design).
-    OSPF non-stub (R2, R3, R4):
+    OSPF ABR / non-stub (R2, R3, R4 — backbone-connected):
         At least some OSPFv3 routes required in table.
     ASBRs (R1, R6):
         Both EIGRPv6 and OSPFv3 routes expected.
@@ -306,20 +315,21 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
     emit_raw(output, lf)
 
     if role == "EIGRP_ONLY":
+        # IOL displays EIGRPv6 external routes as 'EX' (not 'D EX' as in IPv4 EIGRP).
         d_ex = [l for l in output.splitlines()
-                if re.match(r'^\s*D\s+EX\s+', l, re.IGNORECASE)]
+                if re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
         d    = [l for l in output.splitlines()
                 if re.match(r'^\s*D\s+', l, re.IGNORECASE)
-                and not re.match(r'^\s*D\s+EX\s+', l, re.IGNORECASE)]
+                and not re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
 
         if d_ex:
             emit(passed(
-                f"EIGRPv6: {len(d_ex)} D EX route(s) — "
+                f"EIGRPv6: {len(d_ex)} EX route(s) — "
                 "OSPFv3 redistributed into EIGRPv6 confirmed"
             ), lf)
         elif d:
             emit(warned(
-                f"EIGRPv6: {len(d)} D route(s) present but no D EX — "
+                f"EIGRPv6: {len(d)} D route(s) present but no EX — "
                 "OSPFv3 → EIGRPv6 redistribution may not be working"
             ), lf)
             worst = _worst(worst, "WARN")
@@ -330,17 +340,18 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
             ), lf)
             worst = _worst(worst, "FAIL")
 
-    elif role == "OSPF_ONLY" and _is_stub_area(device_data):
+    elif role == "OSPF_ONLY" and _is_stub_area(device_data) and not _is_backbone_connected(device_data):
+        # Stub area leaf (R5, R9) — expects OI ::/0 default from ABR; no external routes.
         oi_default = bool(re.search(r'^\s*OI\s+::/0', output, re.MULTILINE | re.IGNORECASE))
         if oi_default:
             emit(passed(
                 "OSPFv3: OI ::/0 default route present — "
-                "stub ABR (R2) is advertising the summary default correctly"
+                "stub ABR is advertising the summary default correctly"
             ), lf)
         else:
             emit(failed(
-                "OSPFv3: OI ::/0 default route NOT found — "
-                "check R2 'area 10 stub no-summary' and Area 10 adjacency"
+                f"OSPFv3: OI ::/0 default route NOT found — "
+                f"check stub ABR 'area stub no-summary' and Area 10 adjacency"
             ), lf)
             worst = _worst(worst, "FAIL")
 
@@ -349,7 +360,7 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
         if ext:
             emit(warned(
                 f"{len(ext)} OE/ON external route(s) in stub area — "
-                "unexpected; verify 'area 10 stub' is configured on this router"
+                "unexpected; verify 'area stub' is configured on this router"
             ), lf)
             worst = _worst(worst, "WARN")
         else:
@@ -459,22 +470,23 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
         eigrp_output = conn.send_command("show ipv6 route eigrp")
         emit_raw(eigrp_output, lf)
 
+        # IOL displays EIGRPv6 external routes as 'EX' (not 'D EX' as in IPv4 EIGRP).
         d_ex = [l for l in eigrp_output.splitlines()
-                if re.match(r'^\s*D\s+EX\s+', l, re.IGNORECASE)]
+                if re.match(r'^\s*(D\s+EX|EX)\s+', l, re.IGNORECASE)]
         if d_ex:
             emit(passed(
-                f"{len(d_ex)} D EX route(s) in EIGRPv6 table — "
+                f"{len(d_ex)} EX route(s) in EIGRPv6 table — "
                 "redistributed OSPFv3 routes received from ASBR"
             ), lf)
         else:
             drift_detail = (
                 f"  Router   : {device_name}\n"
                 f"  Check    : redistribution\n"
-                f"  Finding  : no D EX routes in EIGRPv6 table\n"
+                f"  Finding  : no EX routes in EIGRPv6 table\n"
                 f"  Impact   : OSPFv3 → EIGRPv6 redistribution not propagating to this router"
             )
             emit(failed(
-                "No D EX routes in EIGRPv6 table — "
+                "No EX routes in EIGRPv6 table — "
                 "check ASBR 'redistribute ospf' in EIGRPv6"
             ), lf)
             emit_drift(device_name, drift_detail, lf)
