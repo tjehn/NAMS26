@@ -760,15 +760,15 @@ network statement back in, but it did not remove anything that shouldn't be ther
 If R1 had an extra network statement — something in the config that isn't in the YAML
 — the merge would leave it in place. A replace candidate would remove it. That's the
 next level of configuration management, and it's one of the things Ansible's
-declarative model addresses in Modules 9 through 11.
+declarative model addresses in Modules 07 through 12.
 
 | Module | Protocol   | Tool          | What It Adds                                  |
 |--------|------------|---------------|-----------------------------------------------|
 | 02     | EIGRP      | Netmiko       | Direct SSH, explicit command control           |
 | 03–04  | OSPF       | NAPALM        | Candidate config, diff before commit, rollback |
-| 05–07  | IPv6/IS-IS | Nornir        | Concurrent execution, inventory model          |
-| 08–09  | BGP        | pyATS/Genie   | Structured parsing, stateful testing           |
-| 10–12  | MPLS/VPN   | Ansible       | Declarative intent, idempotency at scale       |
+| 05–06  | IPv6/IS-IS | Nornir        | Concurrent execution, inventory model          |
+| 10–12  | BGP        | pyATS/Genie   | Structured parsing, stateful testing           |
+| 07–12  | MPLS/VPN   | Ansible       | Declarative intent, idempotency at scale       |
 
 ---
 

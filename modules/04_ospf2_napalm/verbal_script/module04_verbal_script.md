@@ -764,9 +764,9 @@ about targeting devices at scale. The three-file workflow continues. See you the
 |--------|------------|---------------|------------------------------------------------|
 | 02     | EIGRP      | Netmiko       | Direct SSH, explicit command control            |
 | 03–04  | OSPF       | NAPALM        | Candidate config, diff before commit            |
-| 05–07  | TBD        | Nornir        | Concurrent execution, inventory model           |
-| 08–09  | TBD        | pyATS/Genie   | Structured parsing, stateful testing            |
-| 10–12  | TBD        | Ansible       | Declarative intent, idempotency at scale        |
+| 05–06  | TBD        | Nornir        | Concurrent execution, inventory model           |
+| 10–12  | TBD        | pyATS/Genie   | Structured parsing, stateful testing            |
+| 07–12  | TBD        | Ansible       | Declarative intent, idempotency at scale        |
 
 ---
 
