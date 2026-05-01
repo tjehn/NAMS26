@@ -846,12 +846,9 @@ def _print_detail(detail: dict, lf=None) -> None:
     ]:
         emit(line, lf)
 
-    for device_name, messages in detail.items():
-        device_line = f"\n  {BOLD}{device_name}{RESET}"
-        print(device_line)
-        if lf:
-            lf.write(_strip_ansi(device_line) + "\n")
-        for msg in messages:
+    for device_name, dev_info in detail.items():
+        device_header(device_name, dev_info["dns_name"], dev_info["oob_ip"], lf)
+        for msg in dev_info["messages"]:
             indented = f"  {msg}"
             print(indented)
             if lf:
@@ -1059,7 +1056,11 @@ def main() -> None:
 
             results[device_name] = {}
             _result_collector = []
-            detail[device_name] = _result_collector
+            detail[device_name] = {
+                "dns_name": dns_name,
+                "oob_ip":   oob_ip,
+                "messages": _result_collector,
+            }
 
             if not dns_name:
                 emit(failed(f"No dns_name defined for {device_name} — skipping."), lf)
