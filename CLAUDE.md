@@ -177,6 +177,18 @@ CORRECT: "A timestamped session log is written to modules/02_eigrp_netmiko/logs/
 
 This mirrors the `LOG_DIR = os.path.join(MODULE_DIR, "logs")` standard in every script.
 
+### Verbal Script Terminal Command Standard
+
+All terminal commands in verbal scripts must be written as single lines.
+No line continuation characters of any kind:
+
+- No backslash `\` (bash continuation)
+- No backtick `` ` `` (PowerShell continuation)
+
+Long operations should be broken into sequential numbered steps rather than wrapped
+single commands. This ensures commands work correctly on both Windows PowerShell and
+Linux bash regardless of recording platform.
+
 ### `utils/` Standard Scripts
 
 Every module's `utils/` must contain these five files (copy from the previous module and adapt):
