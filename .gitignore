@@ -86,3 +86,10 @@ modules/*/configs/*.txt
 
 # CoS sync exchange directory (local only — not a project deliverable)
 modules/CoS_NAMS26_SYNC/
+
+# Session status docs, CoS instruction files, and local reference material
+*_session_status.md
+*_cos_instructions.md
+*_cos_*.md
+260426 - project restructuring and refinement.txt
+_pdf_reference/
