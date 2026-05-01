@@ -248,21 +248,43 @@ RESET  = "\033[0m"
 BOLD   = "\033[1m"
 DIM    = "\033[2m"
 
+_ANSI_RE = re.compile(r'\033\[[0-9;]*m')
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_RE.sub("", text)
+
 def passed(msg):  return f"{GREEN}  [PASS]{RESET} {msg}"
 def failed(msg):  return f"{RED}  [FAIL]{RESET} {msg}"
 def warned(msg):  return f"{YELLOW}  [WARN]{RESET} {msg}"
 def info(msg):    return f"{CYAN}  [INFO]{RESET} {msg}"
+
+_RESULT_PREFIXES = ("[PASS]", "[FAIL]", "[WARN]", "[INFO]")
+_result_collector: list | None = None
+
+
+def emit(line: str, lf=None) -> None:
+    print(line)
+    if lf:
+        lf.write(_strip_ansi(line) + "\n")
+    if _result_collector is not None and _strip_ansi(line).strip().startswith(_RESULT_PREFIXES):
+        _result_collector.append(line)
 
 def section(title):
     print(f"\n{BOLD}  {'─' * 54}{RESET}")
     print(f"{BOLD}  {title}{RESET}")
     print(f"{BOLD}  {'─' * 54}{RESET}")
 
-def device_header(device_name, dns_name, oob_ip):
+def device_header(device_name, dns_name, oob_ip, lf=None):
     bar = "=" * 60
-    print(f"\n{BOLD}{bar}{RESET}")
-    print(f"{BOLD}  Device : {device_name}   DNS : {dns_name}   OOB : {oob_ip}{RESET}")
-    print(f"{BOLD}{bar}{RESET}")
+    lines = [
+        f"\n{BOLD}{bar}{RESET}",
+        f"{BOLD}  Device : {device_name}   DNS : {dns_name}   OOB : {oob_ip}{RESET}",
+        f"{BOLD}{bar}{RESET}",
+    ]
+    for line in lines:
+        print(line)
+        if lf:
+            lf.write(_strip_ansi(line) + "\n")
 
 def demo_header(scenario_key, title):
     bar = "=" * 60
@@ -443,13 +465,13 @@ def run_demo_failure(
         section("Fault Injected (in-memory only — router not changed)")
 
         if scenario_key == "missing-keychain":
-            print(info("key_chains list cleared — no key chain will be defined on router"))
+            emit(info("key_chains list cleared — no key chain will be defined on router"))
 
         elif scenario_key == "keychain-mismatch":
             auth = broken_data["eigrp"].get("authentication") or []
             if isinstance(auth, list):
                 for entry in auth:
-                    print(info(
+                    emit(info(
                         f"Interface {entry['interface']}: "
                         f"key_chain reference changed to '{entry['key_chain']}' "
                         f"(does not match any defined key chain)"
@@ -457,21 +479,21 @@ def run_demo_failure(
 
         elif scenario_key == "wrong-as":
             correct_as = device_data["eigrp"]["as"]
-            print(info(f"EIGRP AS changed from {correct_as} → 999"))
-            print(info("Neighbors expect AS {correct_as} — they will ignore hellos from AS 999"))
+            emit(info(f"EIGRP AS changed from {correct_as} → 999"))
+            emit(info("Neighbors expect AS {correct_as} — they will ignore hellos from AS 999"))
 
         elif scenario_key == "passive-active":
             broken_intf = broken_data.get("_injected_passive", "unknown")
-            print(info(f"Interface {broken_intf} moved to passive — hellos suppressed"))
-            print(info("Neighbor on the other end will time out after hold timer expires"))
+            emit(info(f"Interface {broken_intf} moved to passive — hellos suppressed"))
+            emit(info("Neighbor on the other end will time out after hold timer expires"))
 
         elif scenario_key == "missing-network":
             removed = broken_data.get("_removed_network", {})
-            print(info(
+            emit(info(
                 f"Network statement removed: "
                 f"{removed.get('network', '?')} {removed.get('wildcard', '?')}"
             ))
-            print(info("This prefix will not be advertised to any EIGRP neighbor"))
+            emit(info("This prefix will not be advertised to any EIGRP neighbor"))
 
         # --- Config diff -----------------------------------------------------
         section("Configuration Diff")
@@ -514,7 +536,7 @@ def connect(device_name: str, dns_name: str, creds: dict):
     lab reboot before executing live troubleshooting checks.
     """
     if not os.path.isfile(KNOWN_HOSTS_FILE):
-        print(warned(
+        emit(warned(
             f"known_hosts not found at {KNOWN_HOSTS_FILE} — "
             f"run utils/clear_known_hosts.sh then utils/check_ssh.py first"
         ))
@@ -532,14 +554,14 @@ def connect(device_name: str, dns_name: str, creds: dict):
     }
     try:
         conn = ConnectHandler(**params)
-        print(info(f"Connected to {device_name} ({dns_name})"))
+        emit(info(f"Connected to {device_name} ({dns_name})"))
         return conn
     except NetmikoTimeoutException:
-        print(failed(f"Timeout connecting to {device_name} ({dns_name})"))
+        emit(failed(f"Timeout connecting to {device_name} ({dns_name})"))
     except NetmikoAuthenticationException:
-        print(failed(f"Authentication failed on {device_name}"))
+        emit(failed(f"Authentication failed on {device_name}"))
     except Exception as exc:
-        print(failed(f"Connection error on {device_name}: {exc}"))
+        emit(failed(f"Connection error on {device_name}: {exc}"))
     return None
 
 
@@ -551,20 +573,20 @@ def check_neighbors(conn, device_name: str, eigrp_data: dict) -> None:
     print(f"\n{output}\n")
 
     if "INIT" in output:
-        print(warned("Neighbor stuck in INIT state — possible authentication mismatch"))
+        emit(warned("Neighbor stuck in INIT state — possible authentication mismatch"))
     if "Auth" in output and "0" not in output:
-        print(warned("Authentication counters non-zero — check key chain configuration"))
+        emit(warned("Authentication counters non-zero — check key chain configuration"))
 
     expected = eigrp_data.get("static_neighbors", []) or []
     for neighbor in expected:
         ip = neighbor.get("ip", "")
         if ip and ip not in output:
-            print(failed(
+            emit(failed(
                 f"Expected neighbor {ip} not present — "
                 f"check passive-interface, AS number, and authentication"
             ))
         elif ip:
-            print(passed(f"Neighbor {ip} present"))
+            emit(passed(f"Neighbor {ip} present"))
 
 
 def check_authentication(conn, device_name: str, eigrp_data: dict) -> None:
@@ -577,7 +599,7 @@ def check_authentication(conn, device_name: str, eigrp_data: dict) -> None:
 
     auth_config = eigrp_data.get("authentication") or []
     if not auth_config:
-        print(info("No authentication configured in YAML for this device"))
+        emit(info("No authentication configured in YAML for this device"))
         return
 
     interfaces_with_auth = []
@@ -611,9 +633,9 @@ def check_authentication(conn, device_name: str, eigrp_data: dict) -> None:
     for intf in interfaces_with_auth:
         abbrev = ios_abbrev(intf)
         if intf and (intf in output or abbrev in output):
-            print(passed(f"Interface {intf} present in EIGRP interfaces output"))
+            emit(passed(f"Interface {intf} present in EIGRP interfaces output"))
         elif intf:
-            print(failed(
+            emit(failed(
                 f"Interface {intf} NOT in EIGRP interfaces output — "
                 f"may be passive or authentication preventing adjacency"
             ))
@@ -627,9 +649,9 @@ def check_authentication(conn, device_name: str, eigrp_data: dict) -> None:
     for kc in key_chains:
         name = kc.get("name", "")
         if name and name in kc_output:
-            print(passed(f"Key chain '{name}' found"))
+            emit(passed(f"Key chain '{name}' found"))
         elif name:
-            print(failed(f"Key chain '{name}' NOT found — key chain not defined on router"))
+            emit(failed(f"Key chain '{name}' NOT found — key chain not defined on router"))
 
 
 def check_passive(conn, device_name: str, eigrp_data: dict) -> None:
@@ -646,19 +668,19 @@ def check_passive(conn, device_name: str, eigrp_data: dict) -> None:
     for intf in no_passive:
         if intf in output and "Passive" in output:
             # Rough check — interface appears in passive section
-            print(warned(
+            emit(warned(
                 f"Interface {intf} may be passive — "
                 f"YAML expects it to be active (no passive-interface)"
             ))
         else:
-            print(passed(f"Interface {intf} — active (not passive)"))
+            emit(passed(f"Interface {intf} — active (not passive)"))
 
     # Confirm explicitly passive interfaces are in passive list
     for intf in passive_list:
         if intf in output:
-            print(passed(f"Interface {intf} — correctly passive"))
+            emit(passed(f"Interface {intf} — correctly passive"))
         else:
-            print(warned(f"Interface {intf} — expected to be passive but not found in output"))
+            emit(warned(f"Interface {intf} — expected to be passive but not found in output"))
 
 
 def check_routes(conn, device_name: str, eigrp_data: dict) -> None:
@@ -669,7 +691,7 @@ def check_routes(conn, device_name: str, eigrp_data: dict) -> None:
     print(f"\n{route_output}\n")
 
     if not route_output.strip():
-        print(warned("No EIGRP routes in routing table — check neighbors and network statements"))
+        emit(warned("No EIGRP routes in routing table — check neighbors and network statements"))
 
     section("EIGRP Topology — show ip eigrp topology")
     topo_output = conn.send_command("show ip eigrp topology")
@@ -684,16 +706,16 @@ def check_routes(conn, device_name: str, eigrp_data: dict) -> None:
     topo_data = "\n".join(topo_data_lines)
 
     if "P " not in topo_data:
-        print(warned("No passive (stable) routes in topology table — EIGRP may not be converged"))
+        emit(warned("No passive (stable) routes in topology table — EIGRP may not be converged"))
 
     active_routes = [l for l in topo_data_lines if l.startswith("A ")]
     if active_routes:
-        print(failed(
+        emit(failed(
             f"Active routes found in topology table — EIGRP is currently reconverging "
             f"({len(active_routes)} active prefix(es))"
         ))
     else:
-        print(passed("All topology entries passive — EIGRP is converged"))
+        emit(passed("All topology entries passive — EIGRP is converged"))
 
 
 def check_process(conn, device_name: str, eigrp_data: dict) -> None:
@@ -705,9 +727,9 @@ def check_process(conn, device_name: str, eigrp_data: dict) -> None:
 
     expected_as = str(eigrp_data.get("as", ""))
     if expected_as and f"eigrp {expected_as}" in output.lower():
-        print(passed(f"EIGRP AS {expected_as} confirmed in process output"))
+        emit(passed(f"EIGRP AS {expected_as} confirmed in process output"))
     elif expected_as:
-        print(failed(
+        emit(failed(
             f"EIGRP AS {expected_as} NOT found — "
             f"possible wrong AS number or EIGRP process not running"
         ))
@@ -720,6 +742,28 @@ LIVE_CHECKS = {
     "routes"        : check_routes,
     "process"       : check_process,
 }
+
+
+# =============================================================================
+# DETAIL
+# =============================================================================
+
+def _print_detail(detail: dict) -> None:
+    """Print a per-device list of all INFO/PASS/WARN/FAIL lines before the summary."""
+    bar = "=" * 60
+    for line in [
+        f"\n{BOLD}{bar}{RESET}",
+        f"{BOLD}  Troubleshooting Detail{RESET}",
+        f"{BOLD}{bar}{RESET}",
+    ]:
+        print(line)
+
+    for device_name, dev_info in detail.items():
+        device_header(device_name, dev_info["dns_name"], dev_info["oob_ip"])
+        for msg in dev_info["messages"]:
+            print(f"  {msg}")
+
+    print(f"{BOLD}{bar}{RESET}")
 
 
 # =============================================================================
@@ -906,9 +950,12 @@ def main() -> None:
     else:
         checks_to_run = AVAILABLE_CHECKS
 
+    global _result_collector
     print(f"\n{BOLD}NAMS26 — Module 02: EIGRP Classic Mode Troubleshooting{RESET}")
     print(f"Targets : {', '.join(target_routers)}")
     print(f"Checks  : {', '.join(checks_to_run)}")
+
+    detail: dict = {}
 
     for device_name in target_routers:
         device_data = devices[device_name]
@@ -917,15 +964,22 @@ def main() -> None:
         creds       = device_data.get("credentials", default_creds)
         eigrp_data  = device_data.get("eigrp", {})
 
+        _result_collector = []
+        detail[device_name] = {
+            "dns_name": dns_name,
+            "oob_ip":   oob_ip,
+            "messages": _result_collector,
+        }
+
         if not dns_name:
-            print(failed(f"No dns_name defined for {device_name} in YAML — skipping."))
+            emit(failed(f"No dns_name defined for {device_name} in YAML — skipping."))
             continue
 
         device_header(device_name, dns_name, oob_ip)
 
         conn = connect(device_name, dns_name, creds)
         if conn is None:
-            print(failed(f"Skipping all checks on {device_name} — connection failed."))
+            emit(failed(f"Skipping all checks on {device_name} — connection failed."))
             continue
 
         try:
@@ -933,8 +987,10 @@ def main() -> None:
                 LIVE_CHECKS[check_name](conn, device_name, eigrp_data)
         finally:
             conn.disconnect()
-            print(info(f"Disconnected from {device_name}"))
+            emit(info(f"Disconnected from {device_name}"))
 
+    _result_collector = None
+    _print_detail(detail)
     print(f"\n{'=' * 60}")
     print(f"{BOLD}Troubleshooting session complete.{RESET}\n")
 
