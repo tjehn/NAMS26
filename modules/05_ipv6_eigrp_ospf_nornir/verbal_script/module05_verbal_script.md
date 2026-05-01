@@ -939,8 +939,7 @@ process-level fault — the EIGRP neighbors on R1 stay up, the OSPF neighbors st
 but EIGRP-learned routes stop entering the OSPF domain.
 
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "ipv6 router eigrp 100" "no redistribute ospf 1 metric 10000 100 255 1 1500"
+python utils/push_config.py --router R1 --cmd "ipv6 router eigrp 100" "no redistribute ospf 1 metric 10000 100 255 1 1500"
 ```
 
 The redistribution configuration is now gone from R1. The EIGRP AS 100 domain — R1
@@ -983,29 +982,91 @@ Now let's see what the verifier catches that the troubleshooter already told us:
 python scripts/verify_ipv6_eigrp_ospf.py --check redistribution
 ```
 
-The `redistribution` check runs against the full topology. OSPF routers — R2, R3,
-R4, R5, and R9 — are interrogated for the EIGRP-originated prefixes that should be
-visible in their routing tables. Those prefixes are missing.
+> **Instructor talking point:** The redistribution check runs against the full topology. Watch what
+> the verifier surfaces.
+>
+> R1 FAILs immediately — the verify script found that 'redistribute ospf'
+> is absent from the EIGRPv6 AS 100 configuration. That's the line we
+> removed. The DRIFT block timestamps exactly when the deviation was detected
+> and logs it to the session log as a permanent audit trail.
+>
+> R4, R6, and R8 FAIL downstream — they can no longer see EIGRP AS 100
+> prefixes in their OSPFv3 tables. The fault on R1 has cascaded exactly
+> as expected through the topology.
+>
+> R2 and R3 PASS — they are OSPFv3 internal routers that don't depend
+> on the AS 100 redistribution path for their routing table.
+>
+> R5 and R9 are stub area routers — they return INFO, which is correct
+> and expected behavior as we established during verification.
+>
+> The troubleshooter told us the protocol was healthy. The verifier told
+> us the network no longer matches the source of truth. Both were right.
+> Both were needed.
 
 ```
-  [FAIL] R2  — EIGRP AS 100 prefix FC00:192:168:17::/64 not in routing table
-  [FAIL] R3  — EIGRP AS 100 prefix FC00:192:168:17::/64 not in routing table
-  [FAIL] R4  — EIGRP AS 100 prefix FC00:192:168:17::/64 not in routing table
-  [FAIL] R5  — EIGRP AS 100 prefix FC00:192:168:17::/64 not in routing table
-  [FAIL] R9  — EIGRP AS 100 prefix FC00:192:168:17::/64 not in routing table
+============================================================
+  Verification Summary
+============================================================
+  Device    redistribution
+  ────────────────────────
+  R1        FAIL
+  R2        PASS
+  R3        PASS
+  R4        FAIL
+  R5        INFO
+  R6        FAIL
+  R7        FAIL
+  R8        FAIL
+  R9        INFO
+  ────────────────────────
+  Totals    PASS:2  FAIL:5  INFO:2
+============================================================
+============================================================
+Verification complete.
 ```
 
-> **Instructor talking point:** The troubleshooter told us the processes are running
-> and the neighbors are up. The verifier told us that five routers can't reach the
-> EIGRP domain that R1 is supposed to be redistributing.
->
-> Both of those statements are true at the same time. Troubleshooting answers
-> "is EIGRP working?" — and the answer is yes. The EIGRP process is running, the
-> neighbors are up, the topology is converged. Verification answers "does this network
-> match what the YAML says it should look like?" — and the answer is no.
->
-> These are fundamentally different questions. In production you need both answers,
-> and you need to know which tool gives you which one.
+```
+  [FAIL] EIGRPv6 AS 100: 'redistribute ospf' NOT found — OSPFv3 → EIGRPv6 redistribution missing
+=== DRIFT DETECTED — R1 — 20260501 02:54:29 ===
+  Router   : R1
+  Check    : redistribution
+  Finding  : 'redistribute ospf' absent from EIGRPv6 AS 100 config
+  Impact   : OSPFv3 routes are not being redistributed into EIGRPv6
+===================================================
+```
+
+```
+  [INFO] 2 OSPFv3 external route(s) (OE2/ON2) present
+  [FAIL] EIGRP AS 100 prefixes NOT in OSPFv3 table — check ASBR 'redistribute eigrp 100'
+=== DRIFT DETECTED — R4 — 20260501 02:54:37 ===
+  Router   : R4
+  Check    : redistribution
+  Finding  : EIGRP AS 100 routes absent from OSPFv3 table
+  Impact   : redistribution from EIGRP AS 100 not reaching this router
+===================================================
+```
+
+```
+  [FAIL] EIGRP AS 100 routes NOT in OSPFv3 table — check ASBR 'redistribute eigrp 100'
+=== DRIFT DETECTED — R6 — 20260501 02:54:42 ===
+  Router   : R6
+  Check    : redistribution
+  Finding  : EIGRP AS 100 routes absent from OSPFv3 table
+  Impact   : remote ASBR for AS 100 may have stopped redistributing
+===================================================
+```
+
+```
+  [PASS] 3 EX route(s) in route table — redistributed OSPFv3 routes received from ASBR
+  [FAIL] EIGRP AS 100 prefixes NOT visible as EX routes — check ASBR redistribution for AS 100
+=== DRIFT DETECTED — R8 — 20260501 02:54:47 ===
+  Router   : R8
+  Check    : redistribution
+  Finding  : no routes from EIGRP AS 100 visible as EX
+  Impact   : redistribution from AS 100 domain not reaching this router
+===================================================
+```
 
 ---
 
