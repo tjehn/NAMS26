@@ -144,11 +144,17 @@ def device_header(device_name: str, dns_name: str, oob_ip: str, lf=None) -> None
         if lf:
             lf.write(_strip_ansi(line) + "\n")
 
+_RESULT_PREFIXES = ("[PASS]", "[FAIL]", "[WARN]", "[INFO]")
+_result_collector: list | None = None
+
+
 def emit(line: str, lf=None) -> None:
     """Print a line to stdout and mirror it (without ANSI) to the log file."""
     print(line)
     if lf:
         lf.write(_strip_ansi(line) + "\n")
+    if _result_collector is not None and _strip_ansi(line).strip().startswith(_RESULT_PREFIXES):
+        _result_collector.append(line)
 
 def emit_raw(text: str, lf=None) -> None:
     """Print and log a block of raw command output."""
@@ -1079,8 +1085,32 @@ def check_route_lookup(conn, device_name: str, target: str, lf=None) -> None:
 
 
 # =============================================================================
-# SUMMARY
+# DETAIL + SUMMARY
 # =============================================================================
+
+def _print_detail(detail: dict, lf=None) -> None:
+    """Print a per-device list of all INFO/PASS/WARN/FAIL lines before the summary."""
+    bar = "=" * 60
+    for line in [
+        f"\n{BOLD}{bar}{RESET}",
+        f"{BOLD}  Verification Detail{RESET}",
+        f"{BOLD}{bar}{RESET}",
+    ]:
+        emit(line, lf)
+
+    for device_name, dev_info in detail.items():
+        device_header(device_name, dev_info["dns_name"], dev_info["oob_ip"], lf)
+        for msg in dev_info["messages"]:
+            indented = f"  {msg}"
+            print(indented)
+            if lf:
+                lf.write(_strip_ansi(indented) + "\n")
+
+    footer = f"{BOLD}{bar}{RESET}"
+    print(footer)
+    if lf:
+        lf.write(_strip_ansi(footer) + "\n")
+
 
 def _print_summary(
     results: dict[str, dict[str, str]],
@@ -1286,6 +1316,7 @@ def main() -> None:
         sys.exit(1)
 
     # Open log file
+    global _result_collector
     lf = setup_logger()
 
     # Run header
@@ -1299,6 +1330,7 @@ def main() -> None:
         emit(line, lf)
 
     results: dict[str, dict[str, str]] = {}
+    detail:  dict = {}
 
     try:
         for device_name in target_routers:
@@ -1308,6 +1340,12 @@ def main() -> None:
             creds       = device_data.get("credentials", default_creds)
 
             results[device_name] = {}
+            _result_collector = []
+            detail[device_name] = {
+                "dns_name": dns_name,
+                "oob_ip":   oob_ip,
+                "messages": _result_collector,
+            }
 
             if not dns_name:
                 emit(failed(f"No dns_name defined for {device_name} — skipping."), lf)
@@ -1352,6 +1390,8 @@ def main() -> None:
                 device.close()
                 lf and lf.write(f"  [INFO] Disconnected from {device_name}\n")
 
+        _result_collector = None
+        _print_detail(detail, lf)
         _print_summary(results, checks_to_run, lf)
         emit(f"\n{'=' * 60}\nVerification complete.\n", lf)
 
