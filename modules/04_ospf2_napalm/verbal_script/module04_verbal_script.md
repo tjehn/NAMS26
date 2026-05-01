@@ -592,8 +592,7 @@ looks healthy, but the routing domain quietly loses external reachability.
 ### Part 1 — Inject the Drift
 
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "router ospf 1" "no redistribute eigrp 100 metric-type 1 subnets"
+python utils/push_config.py --router R1 --cmd "router ospf 1" "no redistribute eigrp 100 metric-type 1 subnets"
 ```
 
 R1 stops redistributing EIGRP 100 into OSPF. R7 and R8's loopbacks — the EIGRP 100
@@ -626,33 +625,57 @@ perspective, R1 is completely healthy.
 
 ---
 
-### Part 3 — Verifier Reveals the Drift
+### Part 3 — Verifier Surfaces the Impact
+
+Now let's see what the verifier catches that the troubleshooter already told us:
 
 ```bash
 python scripts/verify_ospf_advanced.py --router R1 --check redistribution
 ```
 
-The check reports FAIL on R1:
+> **Instructor talking point:** The redistribution check runs against R1 in its ASBR role.
+> Watch what the verifier surfaces — and notice how precisely it scopes the fault.
+>
+> R1 FAILs immediately — the verify script found that no E1 or E2 external routes are
+> present in R1's OSPF routing table. That is the direct consequence of the statement
+> we removed: `redistribute eigrp 100 metric-type 1 subnets`. R1 is no longer injecting
+> EIGRP 100 prefixes into the OSPF domain. The DRIFT block timestamps exactly when the
+> deviation was detected and logs it to the session log as a permanent audit trail.
+>
+> The OSPF domain — R2, R3, R4, R5, R10 — has silently lost reachability to the EIGRP
+> 100 side of the network. R7 and R8's loopbacks have disappeared from every OSPF
+> router's route table. The 192.1.17.0/24 and 192.1.18.0/24 EIGRP segments are gone.
+>
+> All OSPF adjacencies remain FULL. R1's OSPF process is running correctly. EIGRP 100
+> is running correctly on R1. The policy that connects them — the redistribute
+> statement — is simply gone. Nothing in the protocol signals its absence.
+>
+> The troubleshooter told us the protocol was healthy. The verifier told us the network
+> no longer matches the source of truth. Both were right. Both were needed.
 
 ```
-  [FAIL] OSPF: no external routes (E1/E2/N1/N2) found
-         — EIGRP -> OSPF redistribution may have failed
+============================================================
+  Verification Summary
+============================================================
+  Device    redistribution
+  ────────────────────────
+  R1        FAIL
+  ────────────────────────
+  Totals    FAIL:1
+============================================================
+============================================================
+Verification complete.
 ```
 
-> **Instructor talking point:** The YAML says R1 should be redistributing EIGRP 100
-> into OSPF. The live router is not. The external routes that should be in the OSPF
-> domain are absent. That's configuration drift — the router no longer matches its
-> source of truth.
->
-> The troubleshooter passed. The verifier failed. Both answers are correct. They are
-> answering different questions.
->
-> This is the same lesson as Module 3, but in a redistribution context. And
-> redistribution is where this distinction matters most in production. A broken
-> neighbor is visible immediately — adjacencies drop, routes disappear, alarms fire.
-> A broken redistribution statement is invisible to the protocol. OSPF is fully
-> operational. EIGRP is fully operational. The policy that connects them is simply
-> gone, and nothing tells you unless you're comparing against a source of truth.
+```
+  [FAIL] OSPF: no external routes (E1/E2/N1/N2) found — EIGRP -> OSPF redistribution may have failed
+=== DRIFT DETECTED — R1 — YYMMDD HH:MM:SS ===
+  Router   : R1
+  Check    : redistribution
+  Finding  : no E1/E2 external routes in OSPF routing table
+  Impact   : EIGRP 100 routes are not being redistributed into OSPF
+===================================================
+```
 
 ---
 

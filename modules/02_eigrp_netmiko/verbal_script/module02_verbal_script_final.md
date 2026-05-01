@@ -795,29 +795,57 @@ looks completely healthy.
 
 ---
 
-### Part 3 — Verification Reveals the Drift
+### Part 3 — Verifier Surfaces the Impact
+
+Now let's see what the verifier catches that the troubleshooter missed:
 
 ```bash
 python scripts/verify_eigrp_classic.py --router R4
 ```
 
-Fifteen network statements return `[PASS]`. Then:
+> **Instructor talking point:** The routes check runs against R4's full network statement
+> list and validates each entry against live interface state. Watch what the verifier
+> surfaces — and notice how precisely it scopes the fault.
+>
+> R4's neighbor and interface checks both PASS — the adjacency table is intact,
+> passive interface configuration matches the YAML, and every network statement
+> tied to a real interface returns PASS.
+>
+> Then the routes check hits `network 192.1.99.0 0.0.0.255`. That prefix is not in
+> the YAML. There is no interface on R4 with an IP address in the 192.1.99.0/24
+> range. The DRIFT block timestamps exactly when the deviation was detected and logs
+> it to the session log as a permanent audit trail.
+>
+> R4 is advertising a phantom prefix into EIGRP AS 100. Every other router in the
+> domain has installed a route to 192.1.99.0 that black-holes traffic. All adjacencies
+> are healthy. The protocol is working. The configuration is wrong.
+>
+> The troubleshooter told us the protocol was healthy. The verifier told us the router
+> no longer matches the source of truth. Both were right. Both were needed.
 
 ```
-  [FAIL] Network 192.1.99.0 0.0.0.255 (classful inferred) — no interface found
-         with a matching IP on R4
+============================================================
+  Verification Summary
+============================================================
+  Device    neighbors       interfaces      routes
+  ────────────────────────────────────────────────────────────
+  R4        PASS            PASS            FAIL
+  ────────────────────────────────────────────────────────────
+  Totals    PASS:1          PASS:1          FAIL:1
+============================================================
+============================================================
+Verification complete.
 ```
 
-> **Instructor talking point:** This is configuration drift. The router has a
-> network statement that does not correspond to any interface on the device, and
-> that does not exist anywhere in our YAML source of truth.
->
-> The router passed troubleshooting. It failed verification. Both of those
-> statements are true at the same time. That distinction matters.
->
-> The verification script is not asking "is EIGRP working?" — it is asking "does
-> this router match what our YAML says it should look like?" Those are fundamentally
-> different questions, and in production you need both answers.
+```
+  [FAIL] Network 192.1.99.0 0.0.0.255 (classful inferred) — no interface found with a matching IP on R4
+=== DRIFT DETECTED — R4 — YYMMDD HH:MM:SS ===
+  Router   : R4
+  Check    : routes
+  Finding  : network 192.1.99.0 0.0.0.255 present in running config, absent from YAML
+  Impact   : R4 is advertising a phantom prefix into EIGRP AS 100
+===================================================
+```
 
 ---
 

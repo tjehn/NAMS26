@@ -709,29 +709,59 @@ router ID.
 
 ---
 
-### Part 3 — Verifier Reveals the Drift
+### Part 3 — Verifier Surfaces the Impact
+
+Now let's see what the verifier catches that the troubleshooter missed:
 
 ```bash
 python scripts/verify_ospf_classic.py --router R1 --check routes
 ```
 
-The network statement validation section reports:
+> **Instructor talking point:** The routes check runs against R1's full network statement
+> list and validates each entry against live interface state. Watch what the verifier
+> surfaces.
+>
+> Every backbone link passes — the 192.1.100.0/24 multi-access segment and all adjacent
+> connections are up/up and matching their YAML entries. All serial link network
+> statements pass.
+>
+> Then the check hits `network 1.0.0.0 0.255.255.255 area 0`. That is R1's loopback
+> network statement — the entry that covers R1's eleven loopback interfaces and their
+> simulated prefix pools. That statement is now absent from R1's running configuration.
+> R1's loopbacks are up and reachable locally, but OSPF is no longer advertising them.
+> The DRIFT block timestamps exactly when the deviation was detected and logs it to the
+> session log as a permanent audit trail.
+>
+> Every other router in the domain has lost reachability to R1's loopback prefixes.
+> Adjacencies are FULL everywhere. The LSDB is populated. The protocol is healthy.
+> The configuration is wrong.
+>
+> The troubleshooter told us the protocol was healthy. The verifier told us the router
+> no longer matches the source of truth. Both were right. Both were needed.
 
 ```
-  [FAIL] Network 1.0.0.0 0.255.255.255 area 0 — no interface found
-         with a matching IP on R1
+============================================================
+  Verification Summary
+============================================================
+  Device    routes
+  ───────────────
+  R1        FAIL
+  ───────────────
+  Totals    FAIL:1
+============================================================
+============================================================
+Verification complete.
 ```
 
-> **Instructor talking point:** The YAML says R1 should be advertising `1.0.0.0/8`
-> into OSPF area 0. The live router is not. That discrepancy is configuration drift —
-> the router no longer matches its source of truth.
->
-> The troubleshooter passed. The verifier failed. Both answers are correct. They are
-> answering different questions.
->
-> In production, you need both. The troubleshooter tells you whether the protocol is
-> functional right now. The verifier tells you whether the configuration matches what
-> was intended. A router can be operationally healthy and still be wrong.
+```
+  [FAIL] Network 1.0.0.0 0.255.255.255 area 0 — no interface found with a matching IP on R1
+=== DRIFT DETECTED — R1 — YYMMDD HH:MM:SS ===
+  Router   : R1
+  Check    : routes
+  Finding  : network 1.0.0.0 0.255.255.255 area 0 absent from OSPF process
+  Impact   : R1's loopback prefixes are not being advertised into OSPF Area 0
+===================================================
+```
 
 ---
 
