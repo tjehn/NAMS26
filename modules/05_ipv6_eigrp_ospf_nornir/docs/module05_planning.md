@@ -43,7 +43,7 @@ By the end of Module 05, the following will be in place:
 | R1 | ASBR | Area 0 | AS 100 (ASBR) |
 | R2 | ABR | Area 0 ↔ Area 10 | — |
 | R3 | ABR | Area 0 ↔ Area 20 | — |
-| R4 | ABR | Area 10 ↔ Area 20 | — |
+| R4 | Internal | Area 20 | — |
 | R5 | Internal | Area 10 | — |
 | R6 | ASBR | Area 20 | AS 111 (ASBR) |
 | R7 | EIGRP only | — | AS 100 |
@@ -55,12 +55,8 @@ By the end of Module 05, the following will be in place:
 | Area | Type | Routers | ABR | Notes |
 |------|------|---------|-----|-------|
 | 0 | Backbone | R1, R2, R3 | — | R1/R2/R3 LAN segment |
-| 10 | Totally Stubby | R2 (ABR), R4 (ABR), R5, R9 | R2, R4 | `stub no-summary` on R2 |
-| 20 | NSSA | R3 (ABR), R4 (ABR), R6 (ASBR) | R3, R4 | `nssa no-summary` on R3 |
-
-> R4 is a dual-ABR: it sits at the boundary of Area 10 and Area 20. This is a
-> deliberate design choice — it demonstrates that an ABR does not need to connect
-> to Area 0 directly as long as there is a path through Area 0 ABRs.
+| 10 | Totally Stubby | R2 (ABR), R5, R9 | R2 | `stub no-summary` on R2 |
+| 20 | NSSA | R3 (ABR), R4, R6 (ASBR) | R3 | `nssa no-summary` on R3 |
 
 ### EIGRPv6 Domains
 
@@ -75,11 +71,11 @@ By the end of Module 05, the following will be in place:
 |---------|-------------|---------|---------------|
 | `FC00:192:168:123::/64` | R1–R2–R3 LAN | Eth0/0 | OSPFv3 Area 0 |
 | `FC00:192:168:17::/64` | R1–R7 | Eth0/1 / Eth0/0 | EIGRPv6 AS 100 |
-| R2–R4 link | TBD from YAML | Area 10 |
-| R3–R6 or R3–R4 link | TBD from YAML | Area 20 |
-
-> Confirm all link prefixes against the YAML before finalizing the verbal script.
-> The YAML is the authoritative source — this table is a planning summary.
+| `FC00:192:168:25::/64` | R2–R5 | Serial / Eth | OSPFv3 Area 10 |
+| `FC00:192:168:59::/64` | R5–R9 | Eth | OSPFv3 Area 10 |
+| `FC00:192:168:34::/64` | R3–R4 | Eth0/0 | OSPFv3 Area 20 |
+| `FC00:192:168:46::/64` | R4–R6 | Eth0/1 / Eth0/0 | OSPFv3 Area 20 |
+| `FC00:192:168:68::/64` | R6–R8 | Eth0/1 / Eth0/0 | EIGRPv6 AS 111 |
 
 ---
 
@@ -276,8 +272,7 @@ and the merge model limitation.
 
 **Inject the drift:**
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "ipv6 router ospf 1" "no redistribute eigrp 100"
+python utils/push_config.py --router R1 --cmd "ipv6 router ospf 1" "no redistribute eigrp 100"
 ```
 R1 stops redistributing EIGRP 100 into OSPFv3. R7's prefixes vanish from the OSPFv3 domain.
 OSPFv3 adjacencies remain FULL.
@@ -307,8 +302,7 @@ the configure script produces no diff and leaves the stray line in place.
 
 **Stray line demonstration:**
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "ipv6 router ospf 1" "redistribute connected"
+python utils/push_config.py --router R1 --cmd "ipv6 router ospf 1" "redistribute connected"
 python scripts/configure_ipv6_eigrp_ospf.py --router R1
 # No change — stray line remains; Nornir/netmiko_send_config is additive
 python scripts/verify_ipv6_eigrp_ospf.py --router R1 --check redistribution
@@ -320,6 +314,29 @@ It does not add config enforcement. The stray line persists because `netmiko_sen
 does not enforce complete intended state — it only applies what is in the rendered template.
 This is the boundary between Nornir (push-based) and Ansible (desired state). That
 transition begins in Module 10.
+
+---
+
+## Known Lab Artifacts
+
+### OSPFv3 Router ID — R3 and R6
+
+Live lab shows R3 and R6 using their OOB IPv4 management addresses as OSPFv3 Router IDs
+(`192.168.1.103` for R3, `192.168.1.106` for R6) rather than the explicitly configured
+values from the YAML (`3.3.3.3` and `6.6.6.6`).
+
+**Cause:** The OSPFv3 Router ID is selected once at process startup and is not updated
+when a `router-id` statement is added mid-session. R3 and R6 have IPv4 addresses on
+`Ethernet1/3` (OOB), so IOS auto-selected those addresses as Router IDs before the
+configure script applied the explicit `router-id` command. A `clear ospfv3 process` on
+R3 and R6 would force re-election using the explicitly configured value.
+
+**Impact:** Adjacencies and routing are fully functional. The Router IDs are simply
+different from what the YAML specifies. This is an operational note, not a fault.
+
+**Resolution:** Out of scope for Module 05. A lab reset (Wipe + Start) followed by the
+full pre-flight and deploy sequence will apply the explicit Router IDs from process
+initialization. No corrective action required during a normal lab session.
 
 ---
 
