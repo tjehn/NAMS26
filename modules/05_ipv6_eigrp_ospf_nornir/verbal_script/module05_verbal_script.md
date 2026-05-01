@@ -983,19 +983,27 @@ python scripts/verify_ipv6_eigrp_ospf.py --check redistribution
 ```
 
 > **Instructor talking point:** The redistribution check runs against the full topology. Watch what
-> the verifier surfaces.
+> the verifier surfaces — and notice how precisely it scopes the fault.
 >
 > R1 FAILs immediately — the verify script found that 'redistribute ospf'
 > is absent from the EIGRPv6 AS 100 configuration. That's the line we
 > removed. The DRIFT block timestamps exactly when the deviation was detected
 > and logs it to the session log as a permanent audit trail.
 >
-> R4, R6, and R8 FAIL downstream — they can no longer see EIGRP AS 100
-> prefixes in their OSPFv3 tables. The fault on R1 has cascaded exactly
-> as expected through the topology.
+> R7 FAILs downstream — R7 is in EIGRP AS 100 and was receiving OSPFv3-originated
+> routes as EX via R1's redistribution. Those routes are now gone entirely.
+> R7's route table has no EX entries, and specifically no AS 111 prefixes
+> that would have flowed through R6 → OSPFv3 → R1 → EIGRPv6 AS 100 → R7.
 >
-> R2 and R3 PASS — they are OSPFv3 internal routers that don't depend
-> on the AS 100 redistribution path for their routing table.
+> R2, R3, R4, R6, and R8 all PASS. The fault removed the OSPFv3→EIGRPv6
+> direction only. The EIGRPv6→OSPFv3 direction is still active: R1 is still
+> redistributing EIGRP AS 100 routes into the OSPF domain. The OSPF network
+> is completely unaffected.
+>
+> R4 and R6 are in NSSA Area 20. The verifier knows that Type 5 LSAs from
+> backbone ASBRs cannot enter an NSSA, so it does not check for AS 100
+> routes there — it emits INFO for that domain and moves on. That is not a
+> failure. That is NSSA working exactly as designed.
 >
 > R5 and R9 are stub area routers — they return INFO, which is correct
 > and expected behavior as we established during verification.
@@ -1013,14 +1021,14 @@ python scripts/verify_ipv6_eigrp_ospf.py --check redistribution
   R1        FAIL
   R2        PASS
   R3        PASS
-  R4        FAIL
+  R4        PASS
   R5        INFO
-  R6        FAIL
+  R6        PASS
   R7        FAIL
-  R8        FAIL
+  R8        PASS
   R9        INFO
   ────────────────────────
-  Totals    PASS:2  FAIL:5  INFO:2
+  Totals    PASS:5  FAIL:2  INFO:2
 ============================================================
 ============================================================
 Verification complete.
@@ -1037,34 +1045,19 @@ Verification complete.
 ```
 
 ```
-  [INFO] 2 OSPFv3 external route(s) (OE2/ON2) present
-  [FAIL] EIGRP AS 100 prefixes NOT in OSPFv3 table — check ASBR 'redistribute eigrp 100'
-=== DRIFT DETECTED — R4 — 20260501 02:54:37 ===
-  Router   : R4
+  [FAIL] No EX routes in route table — check ASBR 'redistribute ospf' in EIGRPv6
+=== DRIFT DETECTED — R7 — 20260501 02:54:44 ===
+  Router   : R7
   Check    : redistribution
-  Finding  : EIGRP AS 100 routes absent from OSPFv3 table
-  Impact   : redistribution from EIGRP AS 100 not reaching this router
+  Finding  : no EX routes in route table
+  Impact   : OSPFv3 → EIGRPv6 redistribution not propagating to this router
 ===================================================
-```
-
-```
-  [FAIL] EIGRP AS 100 routes NOT in OSPFv3 table — check ASBR 'redistribute eigrp 100'
-=== DRIFT DETECTED — R6 — 20260501 02:54:42 ===
-  Router   : R6
+  [FAIL] EIGRP AS 111 prefixes NOT visible as EX routes — check ASBR redistribution for AS 111
+=== DRIFT DETECTED — R7 — 20260501 02:54:44 ===
+  Router   : R7
   Check    : redistribution
-  Finding  : EIGRP AS 100 routes absent from OSPFv3 table
-  Impact   : remote ASBR for AS 100 may have stopped redistributing
-===================================================
-```
-
-```
-  [PASS] 3 EX route(s) in route table — redistributed OSPFv3 routes received from ASBR
-  [FAIL] EIGRP AS 100 prefixes NOT visible as EX routes — check ASBR redistribution for AS 100
-=== DRIFT DETECTED — R8 — 20260501 02:54:47 ===
-  Router   : R8
-  Check    : redistribution
-  Finding  : no routes from EIGRP AS 100 visible as EX
-  Impact   : redistribution from AS 100 domain not reaching this router
+  Finding  : no routes from EIGRP AS 111 visible as EX
+  Impact   : redistribution from AS 111 domain not reaching this router
 ===================================================
 ```
 

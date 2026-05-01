@@ -30,6 +30,7 @@ Logging:
     on every run. Log captures all raw command output and result lines in plain text.
 """
 
+import ipaddress
 import os
 import re
 import sys
@@ -226,6 +227,76 @@ def _is_backbone_connected(device_data: dict) -> bool:
     )
 
 
+def _is_nssa_area(device_data: dict) -> bool:
+    """Return True if the device is configured in an NSSA area."""
+    ospf = device_data.get("ospf") or {}
+    return any(at.get("type") == "nssa" for at in (ospf.get("area_types") or []))
+
+
+def _nssa_area_ids(device_data: dict) -> set:
+    """Return the set of NSSA area IDs (as strings) this device participates in."""
+    ospf = device_data.get("ospf") or {}
+    return {str(at["area"]) for at in (ospf.get("area_types") or []) if at.get("type") == "nssa"}
+
+
+def _eigrp_as_to_ospf_areas(all_devices: dict) -> dict:
+    """Return {as_number: set_of_area_id_strings} for each EIGRP AS that has an ASBR.
+
+    Maps each EIGRP AS to the OSPF areas where its ASBR has interfaces. Used by the
+    NSSA redistribution check to determine which ASes have ASBRs inside the NSSA (Type 7,
+    ON2 expected) vs in the backbone (Type 5, blocked by NSSA).
+    """
+    result: dict = {}
+    for dev_data in all_devices.values():
+        if not (dev_data.get("eigrp") and dev_data.get("ospf")):
+            continue
+        as_num = (dev_data.get("eigrp") or {}).get("as_number")
+        if not as_num:
+            continue
+        areas: set = set()
+        for iface in dev_data.get("interfaces", {}).values():
+            area = iface.get("ospf_area")
+            if area is not None and str(area).strip():
+                areas.add(str(area))
+        result.setdefault(as_num, set()).update(areas)
+    return result
+
+
+def _nssa_areas_in_topology(all_devices: dict) -> set:
+    """Return the set of all NSSA area IDs (as strings) declared anywhere in the topology."""
+    result: set = set()
+    for dev_data in all_devices.values():
+        result.update(_nssa_area_ids(dev_data))
+    return result
+
+
+def _eigrp_prefixes_by_as(all_devices: dict) -> dict:
+    """Return {as_number: [network_string, ...]} for every EIGRP-enabled interface in YAML.
+
+    Used to build expected per-domain prefix sets for redistribution checks.
+    Skips shutdown interfaces and interfaces with no IPv6 address.
+    """
+    result: dict = {}
+    for dev_data in all_devices.values():
+        if not dev_data.get("eigrp"):
+            continue
+        for iface_data in dev_data.get("interfaces", {}).values():
+            as_val = iface_data.get("eigrp_as")
+            if not as_val or iface_data.get("shutdown", False):
+                continue
+            addr = iface_data.get("ipv6_address", "")
+            if not addr:
+                continue
+            try:
+                net = str(ipaddress.ip_interface(addr).network)
+                lst = result.setdefault(as_val, [])
+                if net not in lst:
+                    lst.append(net)
+            except ValueError:
+                pass
+    return result
+
+
 # =============================================================================
 # VERIFICATION CHECKS
 # =============================================================================
@@ -399,15 +470,18 @@ def check_routes(conn, device_name: str, device_data: dict, lf=None) -> str:
     return worst
 
 
-def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> str:
+def check_redistribution(conn, device_name: str, device_data: dict, all_devices: dict, lf=None) -> str:
     """Validate EIGRPv6 ↔ OSPFv3 redistribution per router role.
 
-    ASBRs (R1, R6):   config check for 'redistribute ospf' in EIGRP and
-                       'redistribute eigrp' in OSPF.
-    EIGRP-only (R7, R8): D EX entries in EIGRPv6 table — redistributed from OSPFv3.
-    OSPF stub (R5, R9):  skip — stub area blocks external routes by design;
-                          validated via 'routes' check (default OI ::/0).
-    OSPF non-stub (R2, R3, R4): OE2 or ON2 routes in OSPFv3 table.
+    ASBRs (R1, R6):          config check for 'redistribute ospf' in EIGRP and
+                              'redistribute eigrp' in OSPF.
+    EIGRP-only (R7, R8):     D EX entries in EIGRPv6 table — redistributed from OSPFv3.
+    OSPF stub (R5, R9):      skip — stub area blocks external routes by design;
+                              validated via 'routes' check (default OI ::/0).
+    OSPF NSSA non-backbone (R4): ON2 routes for NSSA-local ASBRs only. Type 5 LSAs from
+                              backbone ASBRs (R1/AS 100) are blocked by NSSA — those ASes
+                              return INFO rather than FAIL.
+    OSPF backbone (R2, R3):  OE2 or ON2 routes per EIGRP domain in OSPFv3 table.
 
     Returns: "PASS", "WARN", "FAIL", or "INFO"
     """
@@ -466,31 +540,118 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
             emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
 
+        # Route table check: verify routes from OTHER EIGRP domains are visible via OSPFv3.
+        # If this ASBR is in an NSSA, Type 5 LSAs from backbone ASBRs cannot enter —
+        # those ASes return INFO rather than FAIL.
+        section("OSPFv3 Route Table — show ipv6 route ospf", lf)
+        ospf_route_output = conn.send_command("show ipv6 route ospf")
+        emit_raw(ospf_route_output, lf)
+
+        this_nssa   = _nssa_area_ids(device_data)
+        as_to_areas = _eigrp_as_to_ospf_areas(all_devices)
+
+        for as_num, prefixes in _eigrp_prefixes_by_as(all_devices).items():
+            if as_num == as_number:
+                continue
+            asbr_areas = as_to_areas.get(as_num, set())
+            if this_nssa and asbr_areas.isdisjoint(this_nssa):
+                emit(info(
+                    f"EIGRP AS {as_num}: ASBR is outside NSSA Area "
+                    f"{', '.join(sorted(this_nssa))} — "
+                    "Type 5 LSAs do not enter NSSA areas; routes not expected here"
+                ), lf)
+                continue
+            found = any(
+                re.search(rf'O(E[12]|N[12])\s+{re.escape(p)}', ospf_route_output, re.IGNORECASE)
+                for p in prefixes
+            )
+            if found:
+                emit(passed(
+                    f"EIGRP AS {as_num} routes visible as OE2/ON2 in OSPFv3 table"
+                ), lf)
+            else:
+                drift_detail = (
+                    f"  Router   : {device_name}\n"
+                    f"  Check    : redistribution\n"
+                    f"  Finding  : EIGRP AS {as_num} routes absent from OSPFv3 table\n"
+                    f"  Impact   : remote ASBR for AS {as_num} may have stopped redistributing"
+                )
+                emit(failed(
+                    f"EIGRP AS {as_num} routes NOT in OSPFv3 table — "
+                    f"check ASBR 'redistribute eigrp {as_num}'"
+                ), lf)
+                emit_drift(device_name, drift_detail, lf)
+                worst = _worst(worst, "FAIL")
+
     elif role == "EIGRP_ONLY":
-        eigrp_output = conn.send_command("show ipv6 route eigrp")
-        emit_raw(eigrp_output, lf)
+        # 'show ipv6 route eigrp' on IOL only returns internal (D) routes; EX routes
+        # do not appear under the eigrp filter. Use the full table and filter here.
+        route_output = conn.send_command("show ipv6 route")
+        emit_raw(route_output, lf)
 
         # IOL displays EIGRPv6 external routes as 'EX' (not 'D EX' as in IPv4 EIGRP).
-        d_ex = [l for l in eigrp_output.splitlines()
+        d_ex = [l for l in route_output.splitlines()
                 if re.match(r'^\s*(D\s+EX|EX)\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
         if d_ex:
             emit(passed(
-                f"{len(d_ex)} EX route(s) in EIGRPv6 table — "
+                f"{len(d_ex)} EX route(s) in route table — "
                 "redistributed OSPFv3 routes received from ASBR"
             ), lf)
         else:
             drift_detail = (
                 f"  Router   : {device_name}\n"
                 f"  Check    : redistribution\n"
-                f"  Finding  : no EX routes in EIGRPv6 table\n"
+                f"  Finding  : no EX routes in route table\n"
                 f"  Impact   : OSPFv3 → EIGRPv6 redistribution not propagating to this router"
             )
             emit(failed(
-                "No EX routes in EIGRPv6 table — "
+                "No EX routes in route table — "
                 "check ASBR 'redistribute ospf' in EIGRPv6"
             ), lf)
             emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
+
+        # Per-EIGRP-domain check: prefixes from every domain other than this router's own
+        # AS must be visible as EX — but only if this AS's ASBR is in a position to
+        # receive those routes. If the ASBR lives in an NSSA, Type 5 LSAs from ASBRs in
+        # other areas cannot enter; those domains return INFO rather than FAIL.
+        own_as       = (device_data.get("eigrp") or {}).get("as_number")
+        as_to_areas  = _eigrp_as_to_ospf_areas(all_devices)
+        nssa_areas   = _nssa_areas_in_topology(all_devices)
+        own_asbr_areas = as_to_areas.get(own_as, set())
+        own_asbr_nssa  = own_asbr_areas & nssa_areas  # NSSA areas where this AS's ASBR lives
+
+        for as_num, prefixes in _eigrp_prefixes_by_as(all_devices).items():
+            if as_num == own_as:
+                continue
+            foreign_asbr_areas = as_to_areas.get(as_num, set())
+            if own_asbr_nssa and foreign_asbr_areas.isdisjoint(own_asbr_nssa):
+                # Foreign ASBR is not in our NSSA — its Type 5 LSAs are blocked at the ABR.
+                emit(info(
+                    f"EIGRP AS {as_num}: ASBR is outside NSSA Area "
+                    f"{', '.join(sorted(own_asbr_nssa))} — "
+                    "Type 5 LSAs do not enter NSSA areas; routes not expected at this router"
+                ), lf)
+                continue
+            found = any(
+                re.search(rf'(D\s+EX|EX)\s+{re.escape(p)}', route_output, re.IGNORECASE)
+                for p in prefixes
+            )
+            if found:
+                emit(passed(f"EIGRP AS {as_num} prefixes visible as EX routes"), lf)
+            else:
+                drift_detail = (
+                    f"  Router   : {device_name}\n"
+                    f"  Check    : redistribution\n"
+                    f"  Finding  : no routes from EIGRP AS {as_num} visible as EX\n"
+                    f"  Impact   : redistribution from AS {as_num} domain not reaching this router"
+                )
+                emit(failed(
+                    f"EIGRP AS {as_num} prefixes NOT visible as EX routes — "
+                    f"check ASBR redistribution for AS {as_num}"
+                ), lf)
+                emit_drift(device_name, drift_detail, lf)
+                worst = _worst(worst, "FAIL")
 
     elif _is_stub_area(device_data) and not _is_backbone_connected(device_data):
         emit(info(
@@ -500,19 +661,57 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
         ), lf)
         return "INFO"
 
+    elif _is_nssa_area(device_data) and not _is_backbone_connected(device_data):
+        # Non-backbone NSSA router (R4, Area 20). Type 5 LSAs from backbone ASBRs are
+        # blocked by NSSA — only Type 7 (ON2) routes from ASBRs within this NSSA are
+        # expected. Backbone ASBRs return INFO rather than FAIL.
+        ospf_output = conn.send_command("show ipv6 route ospf")
+        emit_raw(ospf_output, lf)
+
+        this_nssa = _nssa_area_ids(device_data)
+        as_to_areas = _eigrp_as_to_ospf_areas(all_devices)
+
+        for as_num, prefixes in _eigrp_prefixes_by_as(all_devices).items():
+            asbr_areas = as_to_areas.get(as_num, set())
+            if asbr_areas.isdisjoint(this_nssa):
+                emit(info(
+                    f"EIGRP AS {as_num}: ASBR is outside NSSA Area {', '.join(sorted(this_nssa))} — "
+                    "Type 5 LSAs do not enter NSSA areas; routes not expected here"
+                ), lf)
+            else:
+                found = any(
+                    re.search(rf'ON[12]\s+{re.escape(p)}', ospf_output, re.IGNORECASE)
+                    for p in prefixes
+                )
+                if found:
+                    emit(passed(
+                        f"EIGRP AS {as_num} prefixes visible as ON2 — "
+                        "NSSA-local redistribution working"
+                    ), lf)
+                else:
+                    drift_detail = (
+                        f"  Router   : {device_name}\n"
+                        f"  Check    : redistribution\n"
+                        f"  Finding  : EIGRP AS {as_num} prefixes absent as ON2 routes\n"
+                        f"  Impact   : NSSA-local redistribution from AS {as_num} not working"
+                    )
+                    emit(failed(
+                        f"EIGRP AS {as_num} prefixes NOT visible as ON2 — "
+                        f"check NSSA ASBR 'redistribute eigrp {as_num}' in OSPFv3"
+                    ), lf)
+                    emit_drift(device_name, drift_detail, lf)
+                    worst = _worst(worst, "FAIL")
+
     else:
-        # Non-stub OSPF-only routers (R2, R3, R4): check for OE2 or ON2
+        # Backbone-connected OSPF routers (R2, R3): full OE2/ON2 visibility expected for
+        # every EIGRP domain. "Any external routes present" is not sufficient — if one
+        # ASBR stops redistributing, the other's routes can mask the failure.
         ospf_output = conn.send_command("show ipv6 route ospf")
         emit_raw(ospf_output, lf)
 
         ext = [l for l in ospf_output.splitlines()
                if re.match(r'^\s*O(E[12]|N[12])\s+[0-9A-Fa-f:]', l, re.IGNORECASE)]
-        if ext:
-            emit(passed(
-                f"{len(ext)} OSPFv3 external route(s) (OE2/ON2) present — "
-                "EIGRPv6 redistribution visible from this router"
-            ), lf)
-        else:
+        if not ext:
             drift_detail = (
                 f"  Router   : {device_name}\n"
                 f"  Check    : redistribution\n"
@@ -525,6 +724,31 @@ def check_redistribution(conn, device_name: str, device_data: dict, lf=None) -> 
             ), lf)
             emit_drift(device_name, drift_detail, lf)
             worst = _worst(worst, "FAIL")
+        else:
+            emit(info(f"{len(ext)} OSPFv3 external route(s) (OE2/ON2) present"), lf)
+
+        for as_num, prefixes in _eigrp_prefixes_by_as(all_devices).items():
+            found = any(
+                re.search(rf'O(E[12]|N[12])\s+{re.escape(p)}', ospf_output, re.IGNORECASE)
+                for p in prefixes
+            )
+            if found:
+                emit(passed(
+                    f"EIGRP AS {as_num} prefixes visible as OE2/ON2 in OSPFv3 table"
+                ), lf)
+            else:
+                drift_detail = (
+                    f"  Router   : {device_name}\n"
+                    f"  Check    : redistribution\n"
+                    f"  Finding  : EIGRP AS {as_num} routes absent from OSPFv3 table\n"
+                    f"  Impact   : redistribution from EIGRP AS {as_num} not reaching this router"
+                )
+                emit(failed(
+                    f"EIGRP AS {as_num} prefixes NOT in OSPFv3 table — "
+                    f"check ASBR 'redistribute eigrp {as_num}'"
+                ), lf)
+                emit_drift(device_name, drift_detail, lf)
+                worst = _worst(worst, "FAIL")
 
     return worst
 
@@ -825,7 +1049,7 @@ def main() -> None:
 
                 if "redistribution" in checks_to_run:
                     results[device_name]["redistribution"] = check_redistribution(
-                        conn, device_name, device_data, lf)
+                        conn, device_name, device_data, devices, lf)
 
                 if "areas" in checks_to_run:
                     results[device_name]["areas"] = check_areas(
