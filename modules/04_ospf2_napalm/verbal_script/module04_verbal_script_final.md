@@ -679,12 +679,12 @@ Verification complete.
 ```
 
 ```
-  [FAIL] OSPF: no external routes (E1/E2/N1/N2) found — EIGRP -> OSPF redistribution may have failed
-=== DRIFT DETECTED — R1 — YYMMDD HH:MM:SS ===
+  [FAIL] OSPF: 'redistribute eigrp' not found in OSPF config — EIGRP → OSPF redistribution missing
+=== DRIFT DETECTED — R1 — 20260502 04:35:46 ===
   Router   : R1
   Check    : redistribution
-  Finding  : no E1/E2 external routes in OSPF routing table
-  Impact   : EIGRP 100 routes are not being redistributed into OSPF
+  Finding  : 'redistribute eigrp' absent from OSPF config
+  Impact   : EIGRP routes are not being redistributed into OSPF domain
 ===================================================
 ```
 
