@@ -27,20 +27,16 @@ Pre-flight requirement:
     key no longer matches (IOL generates new keys after every Wipe).
 
 What this script does per router:
-    1. Spawns: ssh -o StrictHostKeyChecking=accept-new <user>@<dns_name>
-    2. Detects the "Are you sure you want to continue connecting" prompt
-       and sends "yes" to accept and store the host key
-    3. Detects the password prompt and sends the password
-    4. Detects the IOS router prompt (e.g. R1> or R1#)
-    5. Sends "exit" to close the session cleanly
-    6. Reports PASS or FAIL per router
+    1. Connects via paramiko with AutoAddPolicy (accepts any new host key)
+    2. Persists the accepted key to ~/.ssh/known_hosts
+    3. Reports PASS or FAIL per router
 """
 
 import os
 import sys
 import yaml
 import argparse
-import pexpect
+import paramiko
 
 # =============================================================================
 # PATH RESOLUTION
@@ -49,9 +45,12 @@ import pexpect
 #     data/ipv6_eigrp_ospf.yaml
 #     utils/init_ssh.py   <-- here
 # =============================================================================
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODULE_DIR = os.path.dirname(SCRIPT_DIR)
-YAML_FILE  = os.path.join(MODULE_DIR, "data", "ipv6_eigrp_ospf.yaml")
+SCRIPT_DIR       = os.path.dirname(os.path.abspath(__file__))
+MODULE_DIR       = os.path.dirname(SCRIPT_DIR)
+MODULES_DIR      = os.path.dirname(MODULE_DIR)
+PROJECT_ROOT     = os.path.dirname(MODULES_DIR)
+YAML_FILE        = os.path.join(MODULE_DIR, "data", "ipv6_eigrp_ospf.yaml")
+KNOWN_HOSTS_PATH = os.path.expanduser("~/.ssh/known_hosts")
 
 # =============================================================================
 # TERMINAL OUTPUT HELPERS
@@ -65,7 +64,6 @@ BOLD   = "\033[1m"
 
 def passed(msg): print(f"{GREEN}  [PASS]{RESET} {msg}")
 def failed(msg): print(f"{RED}  [FAIL]{RESET} {msg}")
-def warned(msg): print(f"{YELLOW}  [WARN]{RESET} {msg}")
 def info(msg):   print(f"{CYAN}  [INFO]{RESET} {msg}")
 
 
@@ -73,113 +71,53 @@ def info(msg):   print(f"{CYAN}  [INFO]{RESET} {msg}")
 # SSH INIT
 # =============================================================================
 
-# Maximum seconds pexpect waits for any single pattern match during the SSH
-# handshake (host key prompt → password prompt → router prompt → exit).
-# IOL routers on EVE-NG can be slow to respond; 15 s gives enough headroom
-# without letting a dead host stall the sequence for too long.
-# Current: 15 s   Practical range: 10 – 30 s
-SSH_TIMEOUT = 15
-
-# Ordered list of string/regex patterns that pexpect watches for after each
-# SSH interaction. pexpect.expect() returns the index of the first pattern
-# that matches — the IDX_* constants below map those indices to human-readable
-# names so the while-loop branches are self-documenting.
-EXPECT_PATTERNS = [
-    r"Are you sure you want to continue connecting",  # host key prompt (new/changed key)
-    r"[Pp]assword:",                                  # password prompt
-    r"[>#]",                                          # IOS exec or enable prompt
-    pexpect.EOF,                                      # connection closed by remote
-    pexpect.TIMEOUT,                                  # no pattern matched within SSH_TIMEOUT
-]
-
-IDX_HOSTKEY  = 0   # "Are you sure..." — send "yes" to accept and store the key
-IDX_PASSWORD = 1   # Password: — send the credential password
-IDX_PROMPT   = 2   # R1> or R1# — router is authenticated and at a prompt
-IDX_EOF      = 3   # EOF — SSH process exited unexpectedly
-IDX_TIMEOUT  = 4   # TIMEOUT — nothing matched within SSH_TIMEOUT seconds
+# TCP connection timeout passed to paramiko.SSHClient.connect().
+# Raises socket.timeout if the TCP handshake does not complete within this window.
+# Current: 10 s   Practical range: 5 – 20 s
+SSH_TIMEOUT = 10
 
 
 def init_ssh_router(device_name: str, dns_name: str,
                     username: str, password: str) -> bool:
-    """SSH to a single router, accept host key, authenticate, confirm prompt."""
-    ssh_cmd = (
-        f"ssh "
-        # Accept new host keys automatically; reject keys that changed (protects
-        # against accidental connection to the wrong host after a lab rebuild).
-        f"-o StrictHostKeyChecking=accept-new "
-        # Write accepted keys to the standard known_hosts file so Netmiko/Nornir
-        # scripts can connect without host-key prompts after init_ssh runs.
-        f"-o UserKnownHostsFile={os.path.expanduser('~/.ssh/known_hosts')} "
-        # TCP-level connection timeout in seconds — distinct from SSH_TIMEOUT
-        # (which governs pexpect pattern matching). A host that does not respond
-        # to TCP SYN within this window is immediately reported FAIL.
-        # Current: 10 s   Practical range: 5 – 20 s
-        f"-o ConnectTimeout=10 "
-        f"{username}@{dns_name}"
-    )
+    """Connect via paramiko, auto-accept host key, update known_hosts.
+
+    Args:
+        device_name : Display name (e.g. 'R1') — used for output only.
+        dns_name    : SSH target hostname (e.g. 'r1.lab').
+        username    : SSH username.
+        password    : SSH password.
+
+    Returns:
+        True if the connection succeeded and known_hosts was updated.
+        False on any failure (timeout, auth error, connection refused).
+    """
+    client = paramiko.SSHClient()
+    if os.path.isfile(KNOWN_HOSTS_PATH):
+        client.load_host_keys(KNOWN_HOSTS_PATH)
+    # AutoAddPolicy accepts new host keys and adds them to the in-memory store.
+    # save_host_keys() below persists them to known_hosts after a successful connect.
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
-        child = pexpect.spawn(ssh_cmd, timeout=SSH_TIMEOUT, encoding="utf-8")
+        client.connect(
+            hostname=dns_name,
+            username=username,
+            password=password,
+            timeout=SSH_TIMEOUT,
+        )
+        client.save_host_keys(KNOWN_HOSTS_PATH)
+        info(f"{device_name} — host key accepted and stored")
+        client.close()
+        return True
 
-        while True:
-            idx = child.expect(EXPECT_PATTERNS)
-
-            if idx == IDX_HOSTKEY:
-                child.sendline("yes")
-                info(f"{device_name} — host key accepted")
-                continue
-
-            elif idx == IDX_PASSWORD:
-                child.sendline(password)
-                break
-
-            elif idx == IDX_PROMPT:
-                info(f"{device_name} — already authenticated, prompt reached")
-                child.sendline("exit")
-                child.expect([pexpect.EOF, pexpect.TIMEOUT], timeout=5)
-                return True
-
-            elif idx == IDX_EOF:
-                failed(f"{device_name} — connection closed unexpectedly before password prompt")
-                return False
-
-            elif idx == IDX_TIMEOUT:
-                failed(f"{device_name} — timeout waiting for host key or password prompt")
-                return False
-
-        idx = child.expect(EXPECT_PATTERNS, timeout=SSH_TIMEOUT)
-
-        if idx == IDX_PROMPT:
-            child.sendline("exit")
-            child.expect([pexpect.EOF, pexpect.TIMEOUT], timeout=5)
-            return True
-
-        elif idx == IDX_PASSWORD:
-            failed(f"{device_name} — authentication failed (password re-prompt)")
-            child.sendline("")
-            child.expect([pexpect.EOF, pexpect.TIMEOUT], timeout=5)
-            return False
-
-        elif idx == IDX_EOF:
-            failed(f"{device_name} — connection closed after password — check credentials")
-            return False
-
-        elif idx == IDX_TIMEOUT:
-            failed(f"{device_name} — timeout waiting for router prompt after authentication")
-            return False
-
-        else:
-            failed(f"{device_name} — unexpected state in SSH handshake")
-            return False
-
-    except pexpect.exceptions.TIMEOUT:
-        failed(f"{device_name} — overall session timeout ({SSH_TIMEOUT}s)")
+    except paramiko.AuthenticationException:
+        failed(f"{device_name} — authentication failed (check credentials)")
         return False
-    except pexpect.exceptions.EOF:
-        failed(f"{device_name} — unexpected EOF during SSH session")
+    except paramiko.SSHException as exc:
+        failed(f"{device_name} — SSH error: {exc}")
         return False
-    except FileNotFoundError:
-        failed(f"{device_name} — 'ssh' binary not found — is OpenSSH installed?")
+    except OSError as exc:
+        failed(f"{device_name} — connection failed: {exc}")
         return False
     except Exception as exc:
         failed(f"{device_name} — unexpected error: {exc}")
@@ -194,10 +132,9 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "NAMS26 Module 05 Utility — SSH Initialization\n"
+            "NAMS26 Module 05 Utility — SSH Lab Initialization\n"
             "Connects to each lab router via SSH, accepts the host key,\n"
-            "authenticates, confirms the router prompt, and exits cleanly.\n"
-            "Populates ~/.ssh/known_hosts for use by Nornir and Netmiko scripts.\n"
+            "authenticates, and persists the key to ~/.ssh/known_hosts.\n"
             "\n"
             "Run after clear_known_hosts.sh following every EVE-NG lab reboot."
         ),
@@ -232,6 +169,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Load YAML
     if not os.path.isfile(YAML_FILE):
         print(f"[ERROR] YAML file not found: {YAML_FILE}")
         sys.exit(1)
@@ -250,10 +188,12 @@ def main() -> None:
         print("[ERROR] No devices found in YAML.")
         sys.exit(1)
 
+    # Inject default credentials
     for device_data in devices.values():
         if not device_data.get("credentials"):
             device_data["credentials"] = default_creds
 
+    # Resolve target routers
     def resolve_router(token: str) -> str | None:
         if token in devices:
             return token
@@ -280,7 +220,8 @@ def main() -> None:
         print("[ERROR] No valid target routers.")
         sys.exit(1)
 
-    print(f"\n{BOLD}NAMS26 — Module 05: SSH Initialization{RESET}")
+    # Run header
+    print(f"\n{BOLD}NAMS26 — Module 05: SSH Lab Initialization{RESET}")
     print(f"Targets : {', '.join(target_routers)}")
     print("=" * 60)
 
@@ -291,6 +232,7 @@ def main() -> None:
         dns_name    = device_data.get("dns_name", "")
         creds       = device_data.get("credentials", default_creds)
 
+        # CLI args override YAML credentials
         username = args.username or creds.get("username", "netadmin")
         password = args.password or creds.get("password", "admin")
 
@@ -306,6 +248,7 @@ def main() -> None:
         if ok:
             passed(f"{device_name} ({dns_name}) — SSH OK, known_hosts updated")
 
+    # Summary
     print("\n" + "=" * 60)
     print(f"{BOLD}  SSH Initialization Summary{RESET}")
     print("=" * 60)
@@ -326,7 +269,7 @@ def main() -> None:
     print()
 
     if fail_count:
-        print(f"{YELLOW}  [WARN]{RESET} {fail_count} router(s) failed. "
+        print(f"{YELLOW}  [WARN]{RESET} {fail_count} router(s) failed SSH initialization. "
               f"Resolve before running Nornir scripts.")
         sys.exit(1)
     else:
