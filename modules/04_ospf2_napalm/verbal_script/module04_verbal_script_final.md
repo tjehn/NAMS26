@@ -592,8 +592,19 @@ looks healthy, but the routing domain quietly loses external reachability.
 ### Part 1 — Inject the Drift
 
 ```bash
-python utils/push_config.py --router R1 --cmd "router ospf 1" "no redistribute eigrp 100 metric-type 1 subnets"
+python utils/push_config.py --router R1 --cmd "router ospf 1" "no redistribute eigrp 100 subnets"
 ```
+
+> **Instructor note — IOS normalization:**
+> Students will notice that the YAML specifies `metric-type 1` explicitly,
+> but `show running-config` on R1 shows `redistribute eigrp 100 subnets`
+> without `metric-type 1`. This is expected IOS behavior — `metric-type 1`
+> is the OSPF default, so IOS normalizes it out of the running config and
+> does not store default values. NAPALM pushes the command with
+> `metric-type 1` explicitly and IOS accepts it, but stores the normalized
+> form. The fault command uses `no redistribute eigrp 100 subnets` — without
+> `metric-type 1` — because that is what IOS actually stores and what the
+> `no` form must match exactly.
 
 R1 stops redistributing EIGRP 100 into OSPF. R7 and R8's loopbacks — the EIGRP 100
 prefixes — disappear from the OSPF domain. The `192.1.17.0/24` and `192.1.18.0/24`
