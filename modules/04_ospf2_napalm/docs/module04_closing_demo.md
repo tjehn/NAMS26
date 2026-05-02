@@ -46,8 +46,7 @@ during a troubleshooting session, or a configuration rollback that removed one l
 too many.
 
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "router ospf 1" "no redistribute eigrp 100 metric-type 1 subnets"
+python utils/push_config.py --router R1 --cmd "router ospf 1" "no redistribute eigrp 100 subnets"
 ```
 
 Expected output:
@@ -57,7 +56,7 @@ NAMS26 — Module 04: Ad-hoc Config Push [LIVE]
 Targets  : R1
 Commands :
   router ospf 1
-  no redistribute eigrp 100 metric-type 1 subnets
+  no redistribute eigrp 100 subnets
 
 Proceed? [y/N]: y
 
@@ -144,9 +143,23 @@ Expected output:
   ──────────────────────────────────────────────────────
   Redistribution Validation
   ──────────────────────────────────────────────────────
-  [PASS] EIGRP AS 100: 0 D EX route(s) present...
-  [FAIL] OSPF: no external routes (E1/E2/N1/N2) found
-         — EIGRP -> OSPF redistribution may have failed
+  [PASS] EIGRP AS 100: 'redistribute ospf' configured — OSPF → EIGRP redistribution present
+  [FAIL] OSPF: 'redistribute eigrp' not found in OSPF config — EIGRP → OSPF redistribution missing
+=== DRIFT DETECTED — R1 — 20260502 03:40:27 ===
+  Router   : R1
+  Check    : redistribution
+  Finding  : 'redistribute eigrp' absent from OSPF config
+  Impact   : EIGRP routes are not being redistributed into OSPF domain
+===================================================
+
+============================================================
+  Verification Summary
+============================================================
+  Device    redistribution
+  ────────────────────────
+  R1        FAIL
+  ────────────────────────
+  Totals    FAIL:1
 ```
 
 > **Instructor talking point:** This is configuration drift. The YAML says R1 should
@@ -289,8 +302,7 @@ To demonstrate this, push a stray redistribution statement to R1 and then run th
 configure script:
 
 ```bash
-python utils/push_config.py --router R1 \
-  --cmd "router ospf 1" "redistribute connected subnets"
+python utils/push_config.py --router R1 --cmd "router ospf 1" "redistribute connected subnets"
 python scripts/configure_ospf_advanced.py --router R1
 ```
 
@@ -314,8 +326,7 @@ the routing table — but the configure script cannot correct it automatically.
 > if the optional drift was injected, and confirm a clean verify run:
 >
 > ```bash
-> python utils/push_config.py --router R1 \
->   --cmd "router ospf 1" "no redistribute connected subnets"
+> python utils/push_config.py --router R1 --cmd "router ospf 1" "no redistribute connected subnets"
 > python scripts/verify_ospf_advanced.py --router R1
 > ```
 
