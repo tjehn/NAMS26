@@ -1,0 +1,923 @@
+260501 - closing_demo_claude.ai_review.txt
+
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> python utils/push_config.py --router R1 --cmd "ipv6 router eigrp 100" "no redistribute ospf 1 metric 10000 100 255 1 1500"
+
+NAMS26 — Module 05: Ad-hoc Config Push [LIVE]
+Targets  : R1
+Commands :
+  ipv6 router eigrp 100
+  no redistribute ospf 1 metric 10000 100 255 1 1500
+
+Proceed? [y/N]: y
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+  [INFO] Connected to R1 (r1.lab)
+
+  Sending configuration:
+
+  configure terminal
+  Enter configuration commands, one per line.  End with CNTL/Z.
+  R1(config)#ipv6 router eigrp 100
+  R1(config-rtr)#no redistribute ospf 1 metric 10000 100 255 1 1500
+  R1(config-rtr)#end
+  R1#
+
+  [PASS] Configuration applied and saved.
+  [INFO] Disconnected from R1
+
+============================================================
+Push session complete.
+
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> python scripts/troubleshoot_ipv6_eigrp_ospf.py --router R1 --check neighbors
+
+NAMS26 — Module 05: IPv6 EIGRP/OSPFv3 Troubleshooting
+Targets : R1
+Checks  : neighbors
+  [INFO] Logging to  : J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir\logs\troubleshoot_ipv6_eigrp_ospf_20260501_162452.log  
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+  [INFO] Connected to R1 (r1.lab)
+
+  ──────────────────────────────────────────────────────
+  EIGRPv6 Neighbors — show ipv6 eigrp neighbors
+  ──────────────────────────────────────────────────────
+
+EIGRP-IPv6 Neighbors for AS(100)
+H   Address                 Interface              Hold Uptime   SRTT   RTO  Q  Seq
+                                                   (sec)         (ms)       Cnt Num
+0   Link-local address:     Et0/1                    14 11:56:30    7   100  0  6
+    FE80:192:168:17::7
+
+  [PASS] EIGRPv6: 1 neighbor(s) active
+
+  ──────────────────────────────────────────────────────
+  OSPFv3 Neighbors — show ipv6 ospf neighbor detail
+  ──────────────────────────────────────────────────────
+
+
+            OSPFv3 Router with ID (192.168.1.101) (Process ID 1)
+
+ Neighbor 192.168.1.102
+    In the area 0 via interface Ethernet0/0
+    Neighbor: interface-id 3, link-local address FE80:192:168:123::2
+    Neighbor priority is 1, State is FULL, 6 state changes
+    DR is 192.168.1.103 BDR is 192.168.1.102
+    Options is 0x000013 in Hello (V6-Bit, E-Bit, R-Bit)
+    Options is 0x000013 in DBD (V6-Bit, E-Bit, R-Bit)
+    Dead timer due in 00:00:37
+    Neighbor is up for 11:56:33
+    Index 2/2/2, retransmission queue length 0, number of retransmission 0
+    First 0x0(0)/0x0(0)/0x0(0) Next 0x0(0)/0x0(0)/0x0(0)
+    Last retransmission scan length is 0, maximum is 0
+    Last retransmission scan time is 0 msec, maximum is 0 msec
+
+    Neighbor: interface-id 3, link-local address FE80:192:168:123::3
+    Neighbor priority is 1, State is FULL, 6 state changes
+    DR is 192.168.1.103 BDR is 192.168.1.102
+    Options is 0x000013 in Hello (V6-Bit, E-Bit, R-Bit)
+    Options is 0x000013 in DBD (V6-Bit, E-Bit, R-Bit)
+    Dead timer due in 00:00:30
+    Neighbor is up for 11:56:33
+    Index 1/1/1, retransmission queue length 0, number of retransmission 1
+    First 0x0(0)/0x0(0)/0x0(0) Next 0x0(0)/0x0(0)/0x0(0)
+    Last retransmission scan length is 1, maximum is 1
+    Last retransmission scan time is 0 msec, maximum is 0 msec
+
+  [PASS] OSPFv3: At least one FULL adjacency confirmed
+
+============================================================
+  Troubleshooting Detail
+============================================================
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+    [INFO] Connected to R1 (r1.lab)
+    [PASS] EIGRPv6: 1 neighbor(s) active
+    [PASS] OSPFv3: At least one FULL adjacency confirmed
+============================================================
+
+============================================================
+  Troubleshooting Summary
+============================================================
+  Device    neighbors       
+  ──────────────────────────
+  R1        PASS
+  ──────────────────────────
+  Totals    PASS:1
+============================================================
+
+
+============================================================
+Troubleshooting session complete.
+
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> python scripts/verify_ipv6_eigrp_ospf.py --check redistribution
+  [INFO] Logging to  : J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir\logs\verify_ipv6_eigrp_ospf_20260501_162524.log
+
+NAMS26 — Module 05: IPv6 EIGRP/OSPFv3 Verification
+Targets : R1, R2, R3, R4, R5, R6, R7, R8, R9
+Checks  : redistribution
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+  [INFO] Connected to R1 (r1.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+ipv6 router eigrp 100
+ eigrp router-id 1.1.1.1
+
+  [FAIL] EIGRPv6 AS 100: 'redistribute ospf' NOT found — OSPFv3 → EIGRPv6 redistribution missing
+
+=== DRIFT DETECTED — R1 — 20260501 16:25:26 ===
+  Router   : R1
+  Check    : redistribution
+  Finding  : 'redistribute ospf' absent from EIGRPv6 AS 100 config
+  Impact   : OSPFv3 routes are not being redistributed into EIGRPv6
+===================================================
+
+
+ipv6 router ospf 1
+ redistribute eigrp 100
+
+  [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+
+  ──────────────────────────────────────────────────────
+  OSPFv3 Route Table — show ipv6 route ospf
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 29 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+OI  FC00:10:2:2::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:3:3::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:4:4::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:5:5::/64 [110/75]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:6:6::/64 [110/31]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:9:9::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:22:22::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:33:33::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:44:44::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:99:99::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:192:168:25::/64 [110/74]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:192:168:34::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:46::/64 [110/30]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:59::/64 [110/84]
+     via FE80:192:168:123::2, Ethernet0/0
+
+  [PASS] EIGRP AS 111 routes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R2   DNS : r2.lab   OOB : 192.168.1.102/24
+============================================================
+  [INFO] Connected to R2 (r2.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 27 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+O   FC00:10:1:1::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+O   FC00:10:3:3::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:4:4::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+O   FC00:10:5:5::/64 [110/65]
+     via FE80:192:168:25::5, Serial2/0
+OI  FC00:10:6:6::/64 [110/31]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:7:7::/64 [110/20]
+     via FE80:192:168:123::1, Ethernet0/0
+OE2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+O   FC00:10:9:9::/64 [110/75]
+     via FE80:192:168:25::5, Serial2/0
+O   FC00:10:11:11::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+OI  FC00:10:33:33::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:44:44::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:77:77::/64 [110/20]
+     via FE80:192:168:123::1, Ethernet0/0
+OE2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+O   FC00:10:99:99::/64 [110/75]
+     via FE80:192:168:25::5, Serial2/0
+O   FC00:192:168:1::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+OI  FC00:192:168:34::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:46::/64 [110/30]
+     via FE80:192:168:123::3, Ethernet0/0
+O   FC00:192:168:59::/64 [110/74]
+     via FE80:192:168:25::5, Serial2/0
+
+  [INFO] 4 OSPFv3 external route(s) (OE2/ON2) present
+  [PASS] EIGRP AS 100 prefixes visible as OE2/ON2 in OSPFv3 table
+  [PASS] EIGRP AS 111 prefixes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R3   DNS : r3.lab   OOB : 192.168.1.103/24
+============================================================
+  [INFO] Connected to R3 (r3.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 27 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+O   FC00:10:1:1::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+OI  FC00:10:2:2::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:4:4::/64 [110/11]
+     via FE80:192:168:34::4, Ethernet0/1
+OI  FC00:10:5:5::/64 [110/75]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:6:6::/64 [110/21]
+     via FE80:192:168:34::4, Ethernet0/1
+OE2 FC00:10:7:7::/64 [110/20]
+     via FE80:192:168:123::1, Ethernet0/0
+ON2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:34::4, Ethernet0/1
+OI  FC00:10:9:9::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:11:11::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+OI  FC00:10:22:22::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:44:44::/64 [110/11]
+     via FE80:192:168:34::4, Ethernet0/1
+OE2 FC00:10:77:77::/64 [110/20]
+     via FE80:192:168:123::1, Ethernet0/0
+ON2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:34::4, Ethernet0/1
+OI  FC00:10:99:99::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:192:168:1::/64 [110/11]
+     via FE80:192:168:123::1, Ethernet0/0
+OI  FC00:192:168:25::/64 [110/74]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:192:168:46::/64 [110/20]
+     via FE80:192:168:34::4, Ethernet0/1
+OI  FC00:192:168:59::/64 [110/84]
+     via FE80:192:168:123::2, Ethernet0/0
+
+  [INFO] 4 OSPFv3 external route(s) (OE2/ON2) present
+  [PASS] EIGRP AS 100 prefixes visible as OE2/ON2 in OSPFv3 table
+  [PASS] EIGRP AS 111 prefixes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R4   DNS : r4.lab   OOB : 192.168.1.104/24
+============================================================
+  [INFO] Connected to R4 (r4.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 14 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+OI  ::/0 [110/11]
+     via FE80:192:168:34::3, Ethernet0/0
+O   FC00:10:6:6::/64 [110/11]
+     via FE80:192:168:46::6, Ethernet0/1
+ON2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:46::6, Ethernet0/1
+O   FC00:10:33:33::/64 [110/11]
+     via FE80:192:168:34::3, Ethernet0/0
+ON2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:46::6, Ethernet0/1
+
+  [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected here
+  [PASS] EIGRP AS 111 prefixes visible as ON2 — NSSA-local redistribution working
+
+============================================================
+  Device : R5   DNS : r5.lab   OOB : 192.168.1.105/24
+============================================================
+  [INFO] Connected to R5 (r5.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+  [INFO] R5 is in a stub/totally-stubby area — external OSPFv3 routes are filtered by design. See 'routes' check for OI ::/0 default route validation.
+
+============================================================
+  Device : R6   DNS : r6.lab   OOB : 192.168.1.106/24
+============================================================
+  [INFO] Connected to R6 (r6.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+ipv6 router eigrp 111
+ eigrp router-id 6.6.6.6
+ redistribute ospf 1 metric 10000 100 255 1 1500
+
+  [PASS] EIGRPv6 AS 111: 'redistribute ospf' configured — OSPFv3 → EIGRPv6 redistribution present
+
+ipv6 router ospf 1
+ area 20 nssa
+ redistribute eigrp 111
+
+  [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+
+  ──────────────────────────────────────────────────────
+  OSPFv3 Route Table — show ipv6 route ospf
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 16 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+OI  ::/0 [110/21]
+     via FE80:192:168:46::4, Ethernet0/0
+O   FC00:10:4:4::/64 [110/11]
+     via FE80:192:168:46::4, Ethernet0/0
+O   FC00:10:33:33::/64 [110/21]
+     via FE80:192:168:46::4, Ethernet0/0
+O   FC00:10:44:44::/64 [110/11]
+     via FE80:192:168:46::4, Ethernet0/0
+O   FC00:192:168:34::/64 [110/20]
+     via FE80:192:168:46::4, Ethernet0/0
+
+  [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected here
+
+============================================================
+  Device : R7   DNS : r7.lab   OOB : 192.168.1.107/24
+============================================================
+  [INFO] Connected to R7 (r7.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 7 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+C   FC00:10:7:7::/64 [0/0]
+     via Loopback0, directly connected
+L   FC00:10:7:7::7/128 [0/0]
+     via Loopback0, receive
+C   FC00:10:77:77::/64 [0/0]
+     via Loopback1, directly connected
+L   FC00:10:77:77::7/128 [0/0]
+     via Loopback1, receive
+C   FC00:192:168:17::/64 [0/0]
+     via Ethernet0/0, directly connected
+L   FC00:192:168:17::7/128 [0/0]
+     via Ethernet0/0, receive
+L   FF00::/8 [0/0]
+     via Null0, receive
+
+  [FAIL] No EX routes in route table — check ASBR 'redistribute ospf' in EIGRPv6
+
+=== DRIFT DETECTED — R7 — 20260501 16:25:42 ===
+  Router   : R7
+  Check    : redistribution
+  Finding  : no EX routes in route table
+  Impact   : OSPFv3 → EIGRPv6 redistribution not propagating to this router
+===================================================
+
+  [FAIL] EIGRP AS 111 prefixes NOT visible as EX routes — check ASBR redistribution for AS 111
+
+=== DRIFT DETECTED — R7 — 20260501 16:25:42 ===
+  Router   : R7
+  Check    : redistribution
+  Finding  : no routes from EIGRP AS 111 visible as EX
+  Impact   : redistribution from AS 111 domain not reaching this router
+===================================================
+
+
+============================================================
+  Device : R8   DNS : r8.lab   OOB : 192.168.1.108/24
+============================================================
+  [INFO] Connected to R8 (r8.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 13 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+EX  ::/0 [170/307200]
+     via FE80:192:168:68::6, Ethernet0/0
+EX  FC00:10:4:4::/64 [170/307200]
+     via FE80:192:168:68::6, Ethernet0/0
+C   FC00:10:8:8::/64 [0/0]
+     via Loopback0, directly connected
+L   FC00:10:8:8::8/128 [0/0]
+     via Loopback0, receive
+EX  FC00:10:33:33::/64 [170/307200]
+     via FE80:192:168:68::6, Ethernet0/0
+EX  FC00:10:44:44::/64 [170/307200]
+     via FE80:192:168:68::6, Ethernet0/0
+D   FC00:10:66:66::/64 [90/409600]
+     via FE80:192:168:68::6, Ethernet0/0
+C   FC00:10:88:88::/64 [0/0]
+     via Loopback1, directly connected
+L   FC00:10:88:88::88/128 [0/0]
+     via Loopback1, receive
+EX  FC00:192:168:34::/64 [170/307200]
+     via FE80:192:168:68::6, Ethernet0/0
+C   FC00:192:168:68::/64 [0/0]
+     via Ethernet0/0, directly connected
+L   FC00:192:168:68::8/128 [0/0]
+     via Ethernet0/0, receive
+L   FF00::/8 [0/0]
+     via Null0, receive
+
+  [PASS] 5 EX route(s) in route table — redistributed OSPFv3 routes received from ASBR
+  [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected at this router
+
+============================================================
+  Device : R9   DNS : r9.lab   OOB : 192.168.1.109/24
+============================================================
+  [INFO] Connected to R9 (r9.lab)
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+  [INFO] R9 is in a stub/totally-stubby area — external OSPFv3 routes are filtered by design. See 'routes' check for OI ::/0 default route validation.
+
+============================================================
+  Verification Detail
+============================================================
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+    [INFO] Connected to R1 (r1.lab)
+    [FAIL] EIGRPv6 AS 100: 'redistribute ospf' NOT found — OSPFv3 → EIGRPv6 redistribution missing
+    [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+    [PASS] EIGRP AS 111 routes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R2   DNS : r2.lab   OOB : 192.168.1.102/24
+============================================================
+    [INFO] Connected to R2 (r2.lab)
+    [INFO] 4 OSPFv3 external route(s) (OE2/ON2) present
+    [PASS] EIGRP AS 100 prefixes visible as OE2/ON2 in OSPFv3 table
+    [PASS] EIGRP AS 111 prefixes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R3   DNS : r3.lab   OOB : 192.168.1.103/24
+============================================================
+    [INFO] Connected to R3 (r3.lab)
+    [INFO] 4 OSPFv3 external route(s) (OE2/ON2) present
+    [PASS] EIGRP AS 100 prefixes visible as OE2/ON2 in OSPFv3 table
+    [PASS] EIGRP AS 111 prefixes visible as OE2/ON2 in OSPFv3 table
+
+============================================================
+  Device : R4   DNS : r4.lab   OOB : 192.168.1.104/24
+============================================================
+    [INFO] Connected to R4 (r4.lab)
+    [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected here
+    [PASS] EIGRP AS 111 prefixes visible as ON2 — NSSA-local redistribution working
+
+============================================================
+  Device : R5   DNS : r5.lab   OOB : 192.168.1.105/24
+============================================================
+    [INFO] Connected to R5 (r5.lab)
+    [INFO] R5 is in a stub/totally-stubby area — external OSPFv3 routes are filtered by design. See 'routes' check for OI ::/0 default route validation.
+
+============================================================
+  Device : R6   DNS : r6.lab   OOB : 192.168.1.106/24
+============================================================
+    [INFO] Connected to R6 (r6.lab)
+    [PASS] EIGRPv6 AS 111: 'redistribute ospf' configured — OSPFv3 → EIGRPv6 redistribution present
+    [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+    [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected here
+
+============================================================
+  Device : R7   DNS : r7.lab   OOB : 192.168.1.107/24
+============================================================
+    [INFO] Connected to R7 (r7.lab)
+    [FAIL] No EX routes in route table — check ASBR 'redistribute ospf' in EIGRPv6
+    [FAIL] EIGRP AS 111 prefixes NOT visible as EX routes — check ASBR redistribution for AS 111
+
+============================================================
+  Device : R8   DNS : r8.lab   OOB : 192.168.1.108/24
+============================================================
+    [INFO] Connected to R8 (r8.lab)
+    [PASS] 5 EX route(s) in route table — redistributed OSPFv3 routes received from ASBR
+    [INFO] EIGRP AS 100: ASBR is outside NSSA Area 20 — Type 5 LSAs do not enter NSSA areas; routes not expected at this router
+
+============================================================
+  Device : R9   DNS : r9.lab   OOB : 192.168.1.109/24
+============================================================
+    [INFO] Connected to R9 (r9.lab)
+    [INFO] R9 is in a stub/totally-stubby area — external OSPFv3 routes are filtered by design. See 'routes' check for OI ::/0 default route validation.
+============================================================
+
+============================================================
+  Verification Summary
+============================================================
+  Device    redistribution
+  ────────────────────────
+  R1        FAIL
+  R2        PASS
+  R3        PASS
+  R4        PASS
+  R5        INFO
+  R6        PASS
+  R7        FAIL
+  R8        PASS
+  R9        INFO
+  ────────────────────────
+  Totals    PASS:5  FAIL:2  INFO:2
+============================================================
+
+
+============================================================
+Verification complete.
+
+
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> python scripts/configure_ipv6_eigrp_ospf.py --router R1     
+
+NAMS26 — Module 05: IPv6 EIGRP/OSPFv3 / Nornir [DEPLOY]
+Targets : R1
+============================================================
+configure_task******************************************************************
+* R1 ** changed : True *********************************************************
+vvvv configure_task ** changed : True vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Configured R1
+---- netmiko_send_config ** changed : True ------------------------------------- INFO
+configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#hostname R1
+R1(config)#ipv6 unicast-routing
+R1(config)#ipv6 cef
+R1(config)#interface Ethernet0/0
+R1(config-if)# description R1/R2/R3 LAN - OSPF Area 0
+R1(config-if)# no ip address
+R1(config-if)# ipv6 address FE80:192:168:123::1 link-local
+R1(config-if)# ipv6 address FC00:192:168:123::1/64
+R1(config-if)# ipv6 ospf 1 area 0
+R1(config-if)# no shutdown
+R1(config-if)#interface Ethernet0/1
+R1(config-if)# description R1 to R7 - EIGRPv6 100
+R1(config-if)# no ip address
+R1(config-if)# ipv6 address FE80:192:168:17::1 link-local
+R1(config-if)# ipv6 address FC00:192:168:17::1/64
+R1(config-if)# ipv6 eigrp 100
+R1(config-if)# no shutdown
+R1(config-if)#interface Ethernet0/2
+R1(config-if)# description UNUSED
+R1(config-if)# no ip address
+R1(config-if)# shutdown
+R1(config-if)#interface Ethernet0/3
+R1(config-if)# description UNUSED
+R1(config-if)# no ip address
+R1(config-if)# shutdown
+R1(config-if)#interface Ethernet1/0
+R1(config-if)# description UNUSED
+R1(config-if)# no ip address
+R1(config-if)# shutdown
+R1(config-if)#interface Ethernet1/1
+R1(config-if)# description UNUSED
+R1(config-if)# no ip address
+R1(config-if)# shutdown
+R1(config-if)#interface Ethernet1/2
+R1(config-if)# description UNUSED
+R1(config-if)# shutdown
+R1(config-if)#interface Loopback0
+R1(config-if)# description Router ID / OSPF Loopback
+R1(config-if)# ip address 1.1.1.1 255.255.255.255
+R1(config-if)# ipv6 address FE80:10:1:1::1 link-local
+R1(config-if)# ipv6 address FC00:10:1:1::1/64
+R1(config-if)# ipv6 ospf 1 area 0
+R1(config-if)# ipv6 ospf network point-to-point
+R1(config-if)#interface Loopback1
+R1(config-if)# description OSPF Loopback
+R1(config-if)# no ip address
+R1(config-if)# ipv6 address FE80:DB8:192:168:1::1 link-local
+R1(config-if)# ipv6 address FC00:192:168:1::1/64
+R1(config-if)# ipv6 ospf 1 area 0
+R1(config-if)# ipv6 ospf network point-to-point
+R1(config-if)# no shutdown
+R1(config-if)#interface Loopback2
+R1(config-if)# description OSPF Loopback
+R1(config-if)# no ip address
+R1(config-if)# ipv6 address FE80:10:11:11::1 link-local
+R1(config-if)# ipv6 address FC00:10:11:11::1/64
+R1(config-if)# ipv6 ospf 1 area 0
+R1(config-if)# ipv6 ospf network point-to-point
+R1(config-if)# no shutdown
+R1(config-if)#ipv6 router eigrp 100
+R1(config-rtr)# eigrp router-id 1.1.1.1
+R1(config-rtr)# redistribute ospf 1 metric 10000 100 255 1 1500
+R1(config-rtr)#ipv6 router ospf 1
+R1(config-rtr)# redistribute eigrp 100
+R1(config-rtr)#end
+R1#
+---- netmiko_send_command ** changed : False ----------------------------------- INFO
+Building configuration...
+
+  [OK]
+^^^^ END configure_task ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+============================================================
+  [PASS] Done. Configs saved to: J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir\configs
+  [INFO] Session logs saved to : J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir\logs
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> ```bash
+ash : The term 'ash' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or      
+if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```bash
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (ash:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+(nams26_venv) PS J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir> python scripts/verify_ipv6_eigrp_ospf.py --router R1        
+  [INFO] Logging to  : J:\CCIE EI Lab - Q1 2020\NAMS26_V03\modules\05_ipv6_eigrp_ospf_nornir\logs\verify_ipv6_eigrp_ospf_20260501_162847.log
+
+NAMS26 — Module 05: IPv6 EIGRP/OSPFv3 Verification
+Targets : R1
+Checks  : neighbors, routes, redistribution, areas
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+  [INFO] Connected to R1 (r1.lab)
+
+  ──────────────────────────────────────────────────────
+  EIGRPv6 Neighbors — show ipv6 eigrp neighbors
+  ──────────────────────────────────────────────────────
+
+EIGRP-IPv6 Neighbors for AS(100)
+H   Address                 Interface              Hold Uptime   SRTT   RTO  Q  Seq
+                                                   (sec)         (ms)       Cnt Num
+0   Link-local address:     Et0/1                    11 12:00:25    5   100  0  8
+    FE80:192:168:17::7
+
+  [PASS] EIGRPv6: 1 neighbor(s) active
+
+  ──────────────────────────────────────────────────────
+  OSPFv3 Neighbors — show ipv6 ospf neighbor
+  ──────────────────────────────────────────────────────
+
+
+            OSPFv3 Router with ID (192.168.1.101) (Process ID 1)
+
+Neighbor ID     Pri   State           Dead Time   Interface ID    Interface
+192.168.1.102     1   FULL/BDR        00:00:39    3               Ethernet0/0
+192.168.1.103     1   FULL/DR         00:00:35    3               Ethernet0/0
+
+  [PASS] OSPFv3: 2 FULL adjacency(ies)
+
+  ──────────────────────────────────────────────────────
+  IPv6 Route Table — show ipv6 route
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 29 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+C   FC00:10:1:1::/64 [0/0]
+     via Loopback0, directly connected
+L   FC00:10:1:1::1/128 [0/0]
+     via Loopback0, receive
+OI  FC00:10:2:2::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:3:3::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:4:4::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:5:5::/64 [110/75]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:6:6::/64 [110/31]
+     via FE80:192:168:123::3, Ethernet0/0
+D   FC00:10:7:7::/64 [90/409600]
+     via FE80:192:168:17::7, Ethernet0/1
+OE2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:9:9::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+C   FC00:10:11:11::/64 [0/0]
+     via Loopback2, directly connected
+L   FC00:10:11:11::1/128 [0/0]
+     via Loopback2, receive
+OI  FC00:10:22:22::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:33:33::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:44:44::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+D   FC00:10:77:77::/64 [90/409600]
+     via FE80:192:168:17::7, Ethernet0/1
+OE2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:99:99::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+C   FC00:192:168:1::/64 [0/0]
+     via Loopback1, directly connected
+L   FC00:192:168:1::1/128 [0/0]
+     via Loopback1, receive
+C   FC00:192:168:17::/64 [0/0]
+     via Ethernet0/1, directly connected
+L   FC00:192:168:17::1/128 [0/0]
+     via Ethernet0/1, receive
+OI  FC00:192:168:25::/64 [110/74]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:192:168:34::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:46::/64 [110/30]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:59::/64 [110/84]
+     via FE80:192:168:123::2, Ethernet0/0
+C   FC00:192:168:123::/64 [0/0]
+     via Ethernet0/0, directly connected
+L   FC00:192:168:123::1/128 [0/0]
+     via Ethernet0/0, receive
+L   FF00::/8 [0/0]
+     via Null0, receive
+
+  [PASS] EIGRPv6: 2 EIGRP route(s) in table
+  [PASS] OSPFv3: 14 OSPFv3 route(s) in table
+
+  ──────────────────────────────────────────────────────
+  Redistribution Validation
+  ──────────────────────────────────────────────────────
+
+ipv6 router eigrp 100
+ eigrp router-id 1.1.1.1
+ redistribute ospf 1 metric 10000 100 255 1 1500
+
+  [PASS] EIGRPv6 AS 100: 'redistribute ospf' configured — OSPFv3 → EIGRPv6 redistribution present
+
+ipv6 router ospf 1
+ redistribute eigrp 100
+
+  [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+
+  ──────────────────────────────────────────────────────
+  OSPFv3 Route Table — show ipv6 route ospf
+  ──────────────────────────────────────────────────────
+
+IPv6 Routing Table - default - 29 entries
+Codes: C - Connected, L - Local, S - Static, U - Per-user Static route
+       B - BGP, HA - Home Agent, MR - Mobile Router, R - RIP
+       H - NHRP, I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea
+       IS - ISIS summary, D - EIGRP, EX - EIGRP external, NM - NEMO
+       ND - ND Default, NDp - ND Prefix, DCE - Destination, NDr - Redirect
+       RL - RPL, O - OSPF Intra, OI - OSPF Inter, OE1 - OSPF ext 1
+       OE2 - OSPF ext 2, ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       la - LISP alt, lr - LISP site-registrations, ld - LISP dyn-eid
+       lA - LISP away, a - Application
+OI  FC00:10:2:2::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+O   FC00:10:3:3::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:4:4::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:5:5::/64 [110/75]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:6:6::/64 [110/31]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:8:8::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:9:9::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:22:22::/64 [110/11]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:10:33:33::/64 [110/11]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:44:44::/64 [110/21]
+     via FE80:192:168:123::3, Ethernet0/0
+OE2 FC00:10:88:88::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:10:99:99::/64 [110/85]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:192:168:25::/64 [110/74]
+     via FE80:192:168:123::2, Ethernet0/0
+OI  FC00:192:168:34::/64 [110/20]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:46::/64 [110/30]
+     via FE80:192:168:123::3, Ethernet0/0
+OI  FC00:192:168:59::/64 [110/84]
+     via FE80:192:168:123::2, Ethernet0/0
+
+  [PASS] EIGRP AS 111 routes visible as OE2/ON2 in OSPFv3 table
+  [INFO] R1: no area_types in YAML — backbone-only router; area type check not applicable
+
+============================================================
+  Verification Detail
+============================================================
+
+============================================================
+  Device : R1   DNS : r1.lab   OOB : 192.168.1.101/24
+============================================================
+    [INFO] Connected to R1 (r1.lab)
+    [PASS] EIGRPv6: 1 neighbor(s) active
+    [PASS] OSPFv3: 2 FULL adjacency(ies)
+    [PASS] EIGRPv6: 2 EIGRP route(s) in table
+    [PASS] OSPFv3: 14 OSPFv3 route(s) in table
+    [PASS] EIGRPv6 AS 100: 'redistribute ospf' configured — OSPFv3 → EIGRPv6 redistribution present
+    [PASS] OSPFv3 PID 1: 'redistribute eigrp' configured — EIGRPv6 → OSPFv3 redistribution present
+    [PASS] EIGRP AS 111 routes visible as OE2/ON2 in OSPFv3 table
+    [INFO] R1: no area_types in YAML — backbone-only router; area type check not applicable
+============================================================
+
+============================================================
+  Verification Summary
+============================================================
+  Device    neighbors       routes          redistribution  areas
+  ────────────────────────────────────────────────────────────────────────
+  R1        PASS            PASS            PASS            INFO
+  ────────────────────────────────────────────────────────────────────────
+  Totals    PASS:1          PASS:1          PASS:1          INFO:1
+============================================================
+
+
+============================================================
+Verification complete.
+
+
