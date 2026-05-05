@@ -15,7 +15,7 @@ with each module deploying live Cisco IOL routers in EVE-NG using Python automat
 | 03     | OSPF Classic                              | NAPALM                | Complete    |
 | 04     | OSPF Advanced                             | NAPALM                | Complete    |
 | 05     | IPv6 EIGRP + OSPFv3                       | Nornir                | In Progress |
-| 06     | IS-IS (IPv4 + IPv6 zone)                  | Nornir                | Planned     |
+| 06     | IPv6 IS-IS                                | Nornir                | Planned     |
 | 07     | BGP Part 1                                | Ansible               | Planned     |
 | 08     | BGP Part 2                                | Ansible               | Planned     |
 | 09     | Route Policy                              | Ansible               | Planned     |

@@ -203,7 +203,7 @@ All verify scripts produce per-device PASS / WARN / FAIL output with a worst-cas
 
 ---
 
-### Module 06 — IS-IS / Nornir
+### Module 06 — IPv6 IS-IS / Nornir
 **Status: NOT STARTED**
 
 - IS-IS Named Mode (IPv4 primary topology)

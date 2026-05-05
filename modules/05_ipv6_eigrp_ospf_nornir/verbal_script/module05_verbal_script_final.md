@@ -1242,7 +1242,7 @@ testing replaces string matching. See you there.
 | 03 | OSPF Classic | NAPALM |
 | 04 | OSPF Advanced | NAPALM |
 | 05 | IPv6 EIGRP + OSPFv3 | Nornir |
-| 06 | IS-IS | Nornir |
+| 06 | IPv6 IS-IS | Nornir |
 | 07 | BGP Part 1 | Ansible |
 | 08 | BGP Part 2 | Ansible |
 | 09 | Route Policy | Ansible |
