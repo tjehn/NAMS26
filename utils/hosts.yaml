@@ -1,0 +1,99 @@
+# =============================================================================
+# File     : utils/hosts.yaml
+# Purpose  : Standalone host inventory for project-root utility scripts.
+#            Used by init_ssh.py, check_ssh.py, and label_interfaces.py.
+#            No routing config — connectivity data only.
+#
+#            This file is the single source of truth for all lab devices.
+#            Module YAML files reference their own device subsets separately.
+# =============================================================================
+
+default_credentials: &creds
+  username: netadmin
+  password: admin
+
+hosts:
+
+  # ---------------------------------------------------------------------------
+  # Routers — R1 through R12
+  # ---------------------------------------------------------------------------
+  R1:
+    dns_name: r1.lab
+    oob_ip:   192.168.1.101
+    credentials: *creds
+
+  R2:
+    dns_name: r2.lab
+    oob_ip:   192.168.1.102
+    credentials: *creds
+
+  R3:
+    dns_name: r3.lab
+    oob_ip:   192.168.1.103
+    credentials: *creds
+
+  R4:
+    dns_name: r4.lab
+    oob_ip:   192.168.1.104
+    credentials: *creds
+
+  R5:
+    dns_name: r5.lab
+    oob_ip:   192.168.1.105
+    credentials: *creds
+
+  R6:
+    dns_name: r6.lab
+    oob_ip:   192.168.1.106
+    credentials: *creds
+
+  R7:
+    dns_name: r7.lab
+    oob_ip:   192.168.1.107
+    credentials: *creds
+
+  R8:
+    dns_name: r8.lab
+    oob_ip:   192.168.1.108
+    credentials: *creds
+
+  R9:
+    dns_name: r9.lab
+    oob_ip:   192.168.1.109
+    credentials: *creds
+
+  R10:
+    dns_name: r10.lab
+    oob_ip:   192.168.1.110
+    credentials: *creds
+
+  R11:
+    dns_name: r11.lab
+    oob_ip:   192.168.1.111
+    credentials: *creds
+
+  R12:
+    dns_name: r12.lab
+    oob_ip:   192.168.1.112
+    credentials: *creds
+
+  # ---------------------------------------------------------------------------
+  # Core Switches
+  # ---------------------------------------------------------------------------
+  COSW-01:
+    dns_name: cosw-01.lab
+    oob_ip:   192.168.1.236
+    credentials: *creds
+
+  COSW-02:
+    dns_name: cosw-02.lab
+    oob_ip:   192.168.1.237
+    credentials: *creds
+
+  # ---------------------------------------------------------------------------
+  # OOB Switch
+  # ---------------------------------------------------------------------------
+  OOB_SW01:
+    dns_name: oob_sw01.lab
+    oob_ip:   192.168.1.240
+    credentials: *creds
