@@ -154,7 +154,7 @@ can write to it on a fresh clone without a `mkdir` guard. Required for: `configs
 
 ### `configs/` Directory Standard
 
-- Rendered config files are datetime-stamped: format `YYMMDD_HHMMSS_HOSTNAME_module.cfg` (e.g. `260428_143022_R1_eigrp_classic.cfg`)
+- Rendered config files are date-stamped: format `YYMMDD_HOSTNAME.cfg` (preferred) or `HOSTNAME_YYMMDD.cfg`
 - Date-stamped files are retained during development as an audit trail
 - Pre-publication manual check: confirm only one clean set of configs exists before final GitHub push (human review task — not automated)
 - `configs/` is git-ignored — files are written by `--dry-run` and are never committed
@@ -176,18 +176,6 @@ CORRECT: "A timestamped session log is written to modules/02_eigrp_netmiko/logs/
 ```
 
 This mirrors the `LOG_DIR = os.path.join(MODULE_DIR, "logs")` standard in every script.
-
-### Verbal Script Terminal Command Standard
-
-All terminal commands in verbal scripts must be written as single lines.
-No line continuation characters of any kind:
-
-- No backslash `\` (bash continuation)
-- No backtick `` ` `` (PowerShell continuation)
-
-Long operations should be broken into sequential numbered steps rather than wrapped
-single commands. This ensures commands work correctly on both Windows PowerShell and
-Linux bash regardless of recording platform.
 
 ### `utils/` Standard Scripts
 
@@ -434,7 +422,7 @@ optional_args = {
 ## Lab Environment
 
 - **Management network:** `192.168.1.x/24` — OOB interface `Ethernet1/3` on each router
-- **Lab DNS:** `192.168.1.12` — resolves `r1.lab` through `r11.lab`
+- **Lab DNS:** `192.168.1.12` — resolves `r1.lab` through `r12.lab`, `cosw-01.lab`, `cosw-02.lab`, `oob_sw01.lab`
 - **Default SSH credentials:** `netadmin` / `admin` (set in each module's YAML)
 - **Git remotes:** `origin` → Gitea at `192.168.1.12:8418` (dev), `github` → GitHub (production)
 - **Python venv:** `venv/` at project root (git-ignored). PyCharm cannot resolve the interpreter path when the project is opened from a UNC or mapped-drive path (`J:\` / `\\nas01\...`) — use the system Python (`C:\Users\tjehn\AppData\Local\Programs\Python\Python313\python.exe`) as the PyCharm interpreter in that case. All required packages are installed there.
@@ -581,6 +569,69 @@ absorbed into an earlier module.
     integration NAMS27
   - Reference files saved: `mcp_automation_server.py`,
     `mcp_automation_server_v2.py`, `MCPServer.py`
+
+---
+
+## Shared Lab Fabric — Modules 06–12
+
+Modules 06–12 are built on a reusable physical EVE-NG fabric. CoS must understand
+how this fabric differs from the point-to-point topologies used in Modules 02–05.
+
+### Physical Fabric Summary
+
+| Device | Role | OOB IP |
+|--------|------|--------|
+| R1–R12 | IOL Routers | 192.168.1.101–.112 |
+| COSW-01 | IOL Core Switch | 192.168.1.236 |
+| COSW-02 | IOL Core Switch | 192.168.1.237 |
+| OOB_SW01 | IOL OOB Switch | 192.168.1.240 |
+
+Router data plane interfaces (Ethernet0/0–1/2) connect into the COSW-01/COSW-02
+switch fabric. Logical links between routers are defined by VLAN assignments and
+shared IP subnets — not by direct physical cables.
+
+### Rules for CoS — Shared Fabric
+
+**1. Derive logical topology from YAML and IOS configs only.**
+Two routers are logically connected if they share a common subnet on their data
+plane interfaces. Read interface IP assignments and routing protocol neighbor
+statements from the module YAML and IOS configs. Do not reference switch
+configurations, VLAN databases, or CDP output from switches.
+
+**2. Switches are invisible — never appear in any module deliverable.**
+COSW-01, COSW-02, and OOB_SW01 must never appear in:
+- Topology maps (`.drawio`, `.drawio.svg`, `.png`)
+- YAML device inventories
+- Verbal scripts
+- Planning documents
+- Any student-facing content
+
+The switches are transparent infrastructure. Topology diagrams show
+router-to-router logical links only.
+
+**3. Ethernet1/3 is always OOB — never a logical topology interface.**
+Every router's Ethernet1/3 connects to OOB_SW01 for out-of-band management.
+It will never carry routing protocol traffic. It is present in the YAML as
+reference data only and is excluded from template rendering.
+
+**4. Router participation varies per module.**
+Not all 12 routers participate in every module. Derive the participating
+router set from the module YAML. Do not assume R1–R12 are all active.
+
+**5. Interface adjacency is subnet-based, not cable-based.**
+In Modules 02–05, a direct cable existed between any two connected routers.
+In Modules 06–12, adjacency is established through the switch fabric via
+shared VLANs. The IOS configs and YAML remain the authoritative source —
+but do not infer physical cabling from logical adjacency.
+
+### Topology Map Generation — Shared Fabric
+
+When generating the `.drawio` topology map for Modules 06–12:
+
+1. Read the module YAML — identify all participating routers and their interface IP assignments
+2. Identify shared subnets — any two routers sharing a subnet on data plane interfaces are logically adjacent
+3. Draw router-to-router links — label with interface names and IP addresses per established diagram standards
+4. Do not draw or reference switches — they do not exist in the student view of the topology
 
 ---
 
