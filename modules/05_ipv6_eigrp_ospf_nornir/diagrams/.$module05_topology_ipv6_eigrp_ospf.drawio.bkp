@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36">
   <diagram name="Page-1" id="ipv6-eigrp-ospf-mod05">
-    <mxGraphModel dx="1956" dy="1185" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="1174" dy="691" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -98,13 +98,13 @@
           <mxGeometry height="14" width="36" x="826" y="502" as="geometry" />
         </mxCell>
         <mxCell id="area20_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#002200;strokeColor=#00FF00;strokeWidth=2;opacity=60;fontColor=#00FF00;fontSize=12;fontStyle=1;verticalAlign=top;" value="Area 20 (NSSA)" vertex="1">
-          <mxGeometry height="230" width="340" x="1010" y="390" as="geometry" />
+          <mxGeometry height="300" width="340" x="1010" y="390" as="geometry" />
         </mxCell>
-        <mxCell id="R4" parent="1" style="strokeColor=#FFD700;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFD700;fontSize=13;fontStyle=1;" value="R4" vertex="1">
+        <mxCell id="R4" parent="1" style="strokeColor=#FFD700;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFD700;fontSize=13;fontStyle=1;" value="R4 (ABR)" vertex="1">
           <mxGeometry height="53" width="78" x="1030" y="470" as="geometry" />
         </mxCell>
-        <mxCell id="lbl_r4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=9;" value="Et0/0-1: Area 20&lt;br&gt;Lo0/1: Area 20" vertex="1">
-          <mxGeometry height="28" width="110" x="1025" y="548" as="geometry" />
+        <mxCell id="lbl_r4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=9;" value="Et0/0-1: Area 20&#xa;Lo0/1: Area 10" vertex="1">
+          <mxGeometry height="28" width="110" x="1025" y="531" as="geometry" />
         </mxCell>
         <mxCell id="il_r4_e00" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=8;fontStyle=2;" value="Et0/0" vertex="1">
           <mxGeometry height="14" width="36" x="1030" y="444" as="geometry" />
@@ -112,11 +112,14 @@
         <mxCell id="il_r4_e01" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=8;fontStyle=2;" value="Et0/1" vertex="1">
           <mxGeometry height="14" width="36" x="1108" y="483" as="geometry" />
         </mxCell>
+        <mxCell id="r4_lo_note" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#FFFFFF;fillColor=none;align=center;verticalAlign=middle;rounded=1;fontColor=#FFFFFF;fontSize=9;fontStyle=2;" value="R4 Lo0/Lo1&#xa;in Area 10" vertex="1">
+          <mxGeometry height="28" width="100" x="1025" y="580" as="geometry" />
+        </mxCell>
         <mxCell id="R6" parent="1" style="strokeColor=#FF0000;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=3;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FF6666;fontSize=13;fontStyle=1;" value="R6 (ASBR)" vertex="1">
           <mxGeometry height="53" width="78" x="1240" y="470" as="geometry" />
         </mxCell>
         <mxCell id="lbl_r6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=9;" value="FC00:10:6:6::6&#xa;Lo0 Area 20" vertex="1">
-          <mxGeometry height="28" width="100" x="1240" y="548" as="geometry" />
+          <mxGeometry height="28" width="100" x="1240" y="531" as="geometry" />
         </mxCell>
         <mxCell id="il_r6_e00" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#00FF00;fontSize=8;fontStyle=2;" value="Et0/0" vertex="1">
           <mxGeometry height="14" width="36" x="1208" y="483" as="geometry" />
@@ -125,7 +128,7 @@
           <mxGeometry height="14" width="36" x="1318" y="483" as="geometry" />
         </mxCell>
         <mxCell id="eigrp111_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a1a;strokeColor=#FFD700;strokeWidth=2;opacity=60;fontColor=#FFD700;fontSize=12;fontStyle=1;verticalAlign=top;" value="EIGRPv6 AS 111" vertex="1">
-          <mxGeometry height="226" width="210" x="1400" y="394" as="geometry" />
+          <mxGeometry height="200" width="210" x="1400" y="394" as="geometry" />
         </mxCell>
         <mxCell id="R8" parent="1" style="strokeColor=#FFD700;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.cisco.routers.router;fontColor=#FFD700;fontSize=13;fontStyle=1;" value="R8" vertex="1">
           <mxGeometry height="53" width="78" x="1451" y="470" as="geometry" />

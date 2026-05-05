@@ -1228,7 +1228,8 @@ The full lab reset procedure is documented in the project-level
 docs/eve-ng_lab_reset_sop.md — this is an instructor preparation procedure
 and is not referenced in student-facing materials.
 
-Module 6 continues on the Nornir platform with a different protocol stack. Module 8
+Module 6 continues on the Nornir platform with a different protocol stack. Modules 7
+through 9 move to Ansible — declarative intent, idempotency at scale. Module 10
 introduces pyATS and Genie — the abstraction level goes up another step. Show commands
 start returning structured Python objects instead of raw CLI strings, and stateful
 testing replaces string matching. See you there.
