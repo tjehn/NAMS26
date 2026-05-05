@@ -195,7 +195,7 @@ Every module's `utils/` must contain these five files (copy from the previous mo
 
 | File | Purpose | Referenced in SOP |
 |------|---------|-------------------|
-| `init_ssh.py` | Lab initialization — drives the interactive SSH first-connection flow using pexpect, accepts host key fingerprints, and populates `~/.ssh/known_hosts`. Run after every EVE-NG lab reset. | Yes |
+| `init_ssh.py` | Lab initialization — drives the interactive SSH first-connection flow using paramiko, accepts host key fingerprints, and populates `~/.ssh/known_hosts`. Run after every EVE-NG lab reset. | Yes |
 | `check_ssh.py` | Troubleshooting — verifies SSH connectivity against existing `~/.ssh/known_hosts` entries using Netmiko. Used when diagnosing lab connectivity issues, not as part of the reset sequence. | No |
 | `clear_known_hosts.sh` | Removes lab router entries from `~/.ssh/known_hosts` before a wipe/restart | Yes |
 | `ping_hosts.py` | ICMP reachability check against all devices in the module YAML. Must use `platform.system()` branching — Windows `ping.exe` uses `-n`/`-w` flags and different output format. See Addendum. | Yes |
@@ -206,8 +206,44 @@ Every module's `utils/` must contain these five files (copy from the previous mo
 regenerates RSA host keys on each cycle. `check_ssh.py` is a troubleshooting diagnostic that
 confirms existing known_hosts entries are still valid.
 
+> **Platform note:** The original `init_ssh.py` used `pexpect` for
+> interactive SSH host key acceptance. `pexpect` is Linux-only and fails
+> on Windows 10 with `ModuleNotFoundError`. Replaced with `paramiko`
+> using `AutoAddPolicy()` for automatic host key acceptance across all
+> modules in commit `a3d3fb5`. The replacement uses `load_host_keys()`
+> before connect to preserve existing entries and `save_host_keys()`
+> after connect to persist new keys to `~/.ssh/known_hosts`.
+
 Module-specific utility scripts (e.g., `module04_ospf_topology_map.py`) also live in `utils/`
 and follow the same `moduleNN_` naming prefix.
+
+### Project-Root `utils/` — Instructor Toolkit (NOT student-facing)
+
+A separate `utils/` toolkit exists at the project root (`NAMS26_V03/utils/`).
+This toolkit manages the shared physical lab fabric used by Modules 06–13.
+It is instructor-only and is never referenced in student-facing documentation.
+
+```
+NAMS26_V03/utils/
+├── hosts.yaml              ← all 15 lab devices (R1–R12, SW21, SW22, OOB_SW01)
+├── clear_known_hosts.sh    ← purge stale SSH host keys
+├── init_ssh.py             ← SSH lab initialization (paramiko, legacy algorithms)
+├── check_ssh.py            ← SSH connectivity diagnostic
+├── ping_hosts.py           ← ICMP reachability check
+└── label_interfaces.py     ← CDP-based interface labeling
+```
+
+**Status:** Untested — pending live lab validation.
+
+**Documentation:** `docs/instructor_lab_fabric_sop.md` — instructor only,
+never published to GitHub. Document to be created when toolkit is validated.
+
+**Design:** The physical fabric (R1–R12, SW21, SW22, OOB_SW01) is permanent.
+Logical topologies for each module are defined by VLAN assignments on SW21
+and SW22. No rewiring between modules.
+
+Do not reference this toolkit in any module README, verbal script, or
+student-facing document.
 
 ### Data → Template → Device Flow
 
@@ -403,6 +439,20 @@ optional_args = {
 - **Git remotes:** `origin` → Gitea at `192.168.1.12:8418` (dev), `github` → GitHub (production)
 - **Python venv:** `venv/` at project root (git-ignored). PyCharm cannot resolve the interpreter path when the project is opened from a UNC or mapped-drive path (`J:\` / `\\nas01\...`) — use the system Python (`C:\Users\tjehn\AppData\Local\Programs\Python\Python313\python.exe`) as the PyCharm interpreter in that case. All required packages are installed there.
 
+### Platform Standard — Windows 10
+
+All NAMS26 development is on Windows 10. The following standards apply
+to all scripts and documentation:
+
+- All scripts are invoked with `python` — not `python3`
+- Git commands run in PowerShell or Git Bash — not Linux bash
+- No bash-specific syntax in any script or document (`&&`, `||`,
+  `export`, `source`)
+- No `\` line continuation in terminal commands — single line only
+- Forward slashes `/` in Python script paths are acceptable on Windows
+  — Python handles platform path differences transparently via `os.path`
+- `pexpect` is Linux-only and must not be used — use `paramiko` instead
+
 ## EVE-NG Lab Reset — CRITICAL
 
 After every EVE-NG reboot the sequence is: **Stop → Wipe → Start → RSA keys → pre-flight → deploy**.
@@ -504,6 +554,34 @@ absorbed into an earlier module.
     - Prerequisite: student must be familiar with `show interface` parsing via pyATS/Genie or ntc-templates (Modules 08–09)
   - Elective — include if time and scope permit during Module 13 design
 
+- [ ] **SNMP/CDP Topology Map Generator** — noted during Session 260501
+  - Discover neighbors via CDP, build a topology graph, render in Flask
+  - Two-part tool: topology generator + MCP server wrapper
+  - Produces EVE-NG lab topology file, device inventory YAML, cabling
+    table, and IP addressing plan from a structured request
+  - Candidate for Module 13 proof-of-concept; full implementation NAMS27
+
+- [ ] **EVE-NG Topology Builder MCP** — noted during Session 260501
+  - MCP server that accepts structured topology requests and produces
+    EVE-NG `.unl` topology files, device inventory YAML, and cabling
+    tables automatically
+  - Example request: two core switches (16 interfaces), eight
+    distribution switches (16 interfaces), twelve access switches
+    (20 interfaces) with full cabling instructions
+  - Candidate for Module 13; full implementation NAMS27
+
+- [ ] **Network Automation MCP Server** — noted during Session 260501
+  - FastMCP + Scrapli async SSH server exposing `run_show` and
+    `push_config` tools to any MCP-compatible client
+  - Three versions reviewed: basic (password auth), security/performance
+    (SSH key + async gather), and full production (adds `get_intent`,
+    `snapshot_state`, `check_maintenance_window`, `assess_risk`)
+  - Source: Udemy course "Automate Network Tasks with Claude and MCP"
+  - Candidate for Module 13 change control interface; full MCP
+    integration NAMS27
+  - Reference files saved: `mcp_automation_server.py`,
+    `mcp_automation_server_v2.py`, `MCPServer.py`
+
 ---
 
 ## Addendum — Discovered Quirks and Fixes
@@ -524,3 +602,17 @@ branches: Windows looks for `"Loss"` in the line and extracts the `(N% loss)` gr
 Linux/macOS parses the third comma-separated field of the "packet loss" line.
 
 Apply this same platform-aware pattern to `ping_hosts.py` in every new module.
+
+### Linux/macOS Adaptation (planned — APPENDIX.md)
+
+NAMS26 scripts and documentation are written for Windows 10. A future
+addendum in `APPENDIX.md` will explain how students can adapt scripts
+for Linux/macOS. Key differences to document:
+
+- `python` → `python3` on some Linux distributions
+- `ping_hosts.py` already has platform branching — no change needed
+- `init_ssh.py` uses `paramiko` — cross-platform, no change needed
+- Git commands work identically in Linux bash
+- Path separators are handled by `os.path` — no change needed
+
+Do not add this addendum until Module 12 is complete.
