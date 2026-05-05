@@ -48,6 +48,7 @@ out/
 *.drawio~
 *.drawio.bak
 *.drawio.autosave
+*.dtmp
 
 # Ansible-specific
 *.retry
@@ -57,10 +58,6 @@ fact_cache/
 vault_password.txt
 *.aes256
 collections/               # ← optional: local collections
-
-# Project-specific: lab generated configs & backups
-labs/*/configs/*
-!labs/*/configs/.gitkeep
 
 # General OS / editor junk
 .DS_Store
@@ -93,3 +90,13 @@ modules/CoS_NAMS26_SYNC/
 *_cos_*.md
 260426 - project restructuring and refinement.txt
 _pdf_reference/
+
+# Internal — Claude Code and AI development files
+CLAUDE.md
+.claude/
+
+# Internal — instructor production documents
+docs/publication_sop.md
+
+# Module raw IOS config captures (instructor reference — not published)
+modules/*/[0-9][0-9]_ios_configs/
