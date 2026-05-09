@@ -229,7 +229,41 @@ Ethernet1/2:
 
 ## 9. IOS Command Reference
 
-*(Draft notes and snippets go here.)*
+### IOL: `speed` and `duplex` Not Supported on Ethernet Interfaces
+
+Cisco IOL routers do not implement the `speed` and `duplex` commands on Ethernet
+interfaces. Sending them produces `% Invalid input detected` but does **not** abort
+the configuration session — the remaining lines are applied normally, and the interface
+comes up correctly without them.
+
+When an automation script pushes `speed 100` and `duplex full` to an IOL router, the
+errors are benign. No corrective action is required. On real Cisco hardware these
+commands are required for forced speed/duplex — they are kept in the YAML and templates
+so the scripts work correctly on physical equipment without modification.
+
+### IS-IS Named Mode: `passive-interface` Belongs Under the Process, Not the Interface
+
+In IS-IS **Named Mode**, the interface-level `isis passive` command is not valid. IOS
+will reject it with `% Invalid input detected`. The correct syntax places
+`passive-interface` under the `router isis` process block:
+
+```
+! WRONG — rejected in IS-IS Named Mode
+interface Loopback0
+ isis passive
+
+! CORRECT — Named Mode syntax
+router isis NAMS26
+ passive-interface Loopback0
+```
+
+This applies to all passive interfaces, including loopbacks and any stub segment that
+should participate in IS-IS for prefix advertisement but not form adjacencies.
+
+In **Classic Mode**, `isis passive` on the interface is valid. Named Mode requires the
+process-level form. When migrating templates from Classic to Named Mode, audit all
+interfaces that were using `isis passive` and move them to `passive-interface` under
+the process block.
 
 ---
 
