@@ -1,0 +1,64 @@
+{# =============================================================
+   06_ipv6_isis_nornir_ospf_stub.j2
+   OSPF configuration renderer
+
+   OSPF-1 (isis_role == 'ospf_only'):
+     Full config — all interfaces, loopbacks, and OSPF process block.
+
+   ASBR-1 (isis_role == 'asbr', has both isis and ospf blocks):
+     OSPF process block only. Interfaces are rendered by isis_named.j2.
+     The configure script concatenates both templates for ASBR-1.
+
+   Context variables: hostname, interfaces, loopbacks, ospf, isis_role
+   Filters required: ip_address, netmask
+   ============================================================= #}
+
+{% if isis_role == 'ospf_only' %}
+{% for intf_name, intf in interfaces.items() %}
+interface {{ intf_name }}
+ description {{ intf.description }}
+{% if intf.shutdown %}
+ shutdown
+{% else %}
+{% if intf.ip is defined %}
+ ip address {{ intf.ip | ip_address }} {{ intf.ip | netmask }}
+{% endif %}
+{% if intf.speed %}
+ speed {{ intf.speed }}
+ duplex {{ intf.duplex }}
+{% endif %}
+{% if intf_name != 'Ethernet1/3' and ospf.interfaces is defined and intf_name in ospf.interfaces %}
+{% set ointf = ospf.interfaces[intf_name] %}
+{% if ointf.ospf_network is defined %}
+ ip ospf network {{ ointf.ospf_network }}
+{% endif %}
+{% endif %}
+ no shutdown
+{% endif %}
+!
+{% endfor %}
+
+{% for lo_name, lo in loopbacks.items() %}
+interface {{ lo_name }}
+ description {{ lo.description }}
+ ip address {{ lo.ip | ip_address }} {{ lo.ip | netmask }}
+ no shutdown
+!
+{% endfor %}
+
+{% endif %}
+router ospf {{ ospf.process_id }}
+ router-id {{ ospf.router_id }}
+{% for ointf_name, ointf in ospf.interfaces.items() %}
+{% if ointf.ospf_passive | default(false) %}
+ passive-interface {{ ointf_name }}
+{% endif %}
+{% endfor %}
+{% for ointf_name, ointf in ospf.interfaces.items() %}
+{% if ointf_name in interfaces %}
+ network {{ interfaces[ointf_name].ip | ip_address }} 0.0.0.0 area {{ ointf.area }}
+{% elif ointf_name in loopbacks %}
+ network {{ loopbacks[ointf_name].ip | ip_address }} 0.0.0.0 area {{ ointf.area }}
+{% endif %}
+{% endfor %}
+!

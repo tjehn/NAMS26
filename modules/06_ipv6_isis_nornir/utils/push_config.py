@@ -8,7 +8,7 @@ Purpose  : Send one or more ad-hoc configuration lines to one or more lab
            troubleshooter to show the symptom, then restore with
            configure_isis.py.
 
-           Routers are resolved from module06_isis.yaml using the same
+           Routers are resolved from 06_ipv6_isis_nornir.yaml using the same
            --router alias logic as the other module scripts (BB-1, bb-1,
            bb-1.lab are all accepted). SSH host key verification relies on
            ~/.ssh/known_hosts populated by init_ssh.py.
@@ -47,7 +47,7 @@ from netmiko import ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticati
 # =============================================================================
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
 MODULE_DIR  = os.path.dirname(SCRIPT_DIR)
-YAML_FILE   = os.path.join(MODULE_DIR, "data", "module06_isis.yaml")
+YAML_FILE   = os.path.join(MODULE_DIR, "data", "06_ipv6_isis_nornir.yaml")
 KNOWN_HOSTS = os.path.expanduser("~/.ssh/known_hosts")
 
 # =============================================================================

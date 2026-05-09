@@ -1,0 +1,129 @@
+{# =============================================================
+   06_ipv6_isis_nornir_named.j2
+   IS-IS Named Mode — all routers except OSPF-1
+
+   Context variables (unpacked from device dict by configure script):
+     hostname, interfaces, loopbacks, isis, ospf (optional),
+     isis_role, all_devices (full devices dict for ASBR-1 prefix list)
+
+   Filters required: ip_address, netmask, network_prefix
+   ============================================================= #}
+
+{% for intf_name, intf in interfaces.items() %}
+interface {{ intf_name }}
+ description {{ intf.description }}
+{% if intf.shutdown %}
+ shutdown
+{% else %}
+{% if intf.ip is defined %}
+ ip address {{ intf.ip | ip_address }} {{ intf.ip | netmask }}
+{% endif %}
+{% if intf.ipv6 is defined %}
+ ipv6 address {{ intf.ipv6 }}
+{% endif %}
+{% if intf.speed %}
+ speed {{ intf.speed }}
+ duplex {{ intf.duplex }}
+{% endif %}
+{% if intf_name != 'Ethernet1/3' %}
+{% if isis is defined and isis.interfaces is defined and intf_name in isis.interfaces %}
+{% set iisis = isis.interfaces[intf_name] %}
+{% if iisis.isis_enable | default(false) %}
+ ip router isis {{ isis.process_name }}
+{% if iisis.ipv6_isis_enable | default(false) %}
+ ipv6 router isis {{ isis.process_name }}
+{% endif %}
+{% if iisis.isis_passive | default(false) %}
+ isis passive
+{% else %}
+{% if iisis.isis_network is defined %}
+ isis network point-to-point
+{% endif %}
+{% if iisis.isis_priority is defined %}
+ isis priority {{ iisis.isis_priority }}
+{% endif %}
+ isis metric {{ iisis.isis_metric }} {{ iisis.isis_circuit_type | replace('-only', '') }}
+ isis circuit-type {{ iisis.isis_circuit_type }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% if ospf is defined and ospf.interfaces is defined and intf_name in ospf.interfaces %}
+{% set ointf = ospf.interfaces[intf_name] %}
+{% if ointf.ospf_network is defined %}
+ ip ospf network {{ ointf.ospf_network }}
+{% endif %}
+{% endif %}
+{% endif %}
+ no shutdown
+{% endif %}
+!
+{% endfor %}
+
+{% for lo_name, lo in loopbacks.items() %}
+interface {{ lo_name }}
+ description {{ lo.description }}
+ ip address {{ lo.ip | ip_address }} {{ lo.ip | netmask }}
+{% if lo.ipv6 is defined %}
+ ipv6 address {{ lo.ipv6 }}
+{% endif %}
+{% if isis is defined and isis.interfaces is defined and lo_name in isis.interfaces %}
+{% set iisis = isis.interfaces[lo_name] %}
+{% if iisis.isis_enable | default(false) %}
+ ip router isis {{ isis.process_name }}
+{% if iisis.ipv6_isis_enable | default(false) %}
+ ipv6 router isis {{ isis.process_name }}
+{% endif %}
+ isis passive
+{% endif %}
+{% endif %}
+ no shutdown
+!
+{% endfor %}
+
+router isis {{ isis.process_name }}
+ net {{ isis.net }}
+ is-type {{ isis.is_type }}
+ metric-style {{ isis.metric_style }}
+{% if isis.ipv6_multitopology | default(false) %}
+ !
+ address-family ipv6
+  multi-topology
+ exit-address-family
+{% endif %}
+{% if isis.is_type == 'level-1-2' %}
+ !
+ address-family ipv4 unicast
+  redistribute isis ip level-2 into level-1 distribute-list prefix LEAK-L2-TO-L1
+ exit-address-family
+{% endif %}
+{% if ospf is defined %}
+ redistribute ospf {{ ospf.process_id }} metric 20 metric-type external route-map OSPF-TO-ISIS
+{% endif %}
+!
+{% if isis.is_type == 'level-1-2' %}
+ip prefix-list LEAK-L2-TO-L1 seq 5 permit 0.0.0.0/0 le 32
+!
+{% endif %}
+{% if ospf is defined %}
+{% set ns = namespace(seq=5) %}
+{% for ointf_name in ospf.interfaces %}
+{% if not ointf_name.startswith('Loopback') and ointf_name in interfaces %}
+ip prefix-list OSPF-ROUTES seq {{ ns.seq }} permit {{ interfaces[ointf_name].ip | network_prefix }}
+{% set ns.seq = ns.seq + 5 %}
+{% endif %}
+{% endfor %}
+{% if all_devices is defined %}
+{% for dev_name, dev in all_devices.items() %}
+{% if dev.isis_role | default('') == 'ospf_only' %}
+{% for lo_name, lo in dev.loopbacks.items() %}
+ip prefix-list OSPF-ROUTES seq {{ ns.seq }} permit {{ lo.ip }}
+{% set ns.seq = ns.seq + 5 %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+!
+route-map OSPF-TO-ISIS permit 10
+ match ip address prefix-list OSPF-ROUTES
+!
+{% endif %}

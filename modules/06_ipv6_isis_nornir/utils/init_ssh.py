@@ -42,14 +42,14 @@ import paramiko
 # PATH RESOLUTION
 # utils/ sits one level below the module root:
 #   modules/06_ipv6_isis_nornir/
-#     data/module06_isis.yaml
+#     data/06_ipv6_isis_nornir.yaml
 #     utils/init_ssh.py   <-- here
 # =============================================================================
 SCRIPT_DIR       = os.path.dirname(os.path.abspath(__file__))
 MODULE_DIR       = os.path.dirname(SCRIPT_DIR)
 MODULES_DIR      = os.path.dirname(MODULE_DIR)
 PROJECT_ROOT     = os.path.dirname(MODULES_DIR)
-YAML_FILE        = os.path.join(MODULE_DIR, "data", "module06_isis.yaml")
+YAML_FILE        = os.path.join(MODULE_DIR, "data", "06_ipv6_isis_nornir.yaml")
 KNOWN_HOSTS_PATH = os.path.expanduser("~/.ssh/known_hosts")
 
 # =============================================================================
@@ -274,7 +274,7 @@ def main() -> None:
         sys.exit(1)
     else:
         passed("All routers reachable via SSH. known_hosts is current.")
-        print(f"{CYAN}  Ready to run configure_isis.py{RESET}\n")
+        print(f"{CYAN}  Ready to run configure_06_ipv6_isis_nornir.py{RESET}\n")
 
 
 if __name__ == "__main__":
