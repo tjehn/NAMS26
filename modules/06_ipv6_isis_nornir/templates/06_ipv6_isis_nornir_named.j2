@@ -33,9 +33,7 @@ interface {{ intf_name }}
 {% if iisis.ipv6_isis_enable | default(false) %}
  ipv6 router isis {{ isis.process_name }}
 {% endif %}
-{% if iisis.isis_passive | default(false) %}
- isis passive
-{% else %}
+{% if not iisis.isis_passive | default(false) %}
 {% if iisis.isis_network is defined %}
  isis network point-to-point
 {% endif %}
@@ -73,7 +71,6 @@ interface {{ lo_name }}
 {% if iisis.ipv6_isis_enable | default(false) %}
  ipv6 router isis {{ isis.process_name }}
 {% endif %}
- isis passive
 {% endif %}
 {% endif %}
  no shutdown
@@ -84,6 +81,11 @@ router isis {{ isis.process_name }}
  net {{ isis.net }}
  is-type {{ isis.is_type }}
  metric-style {{ isis.metric_style }}
+{% for intf_name, iisis in isis.interfaces.items() %}
+{% if iisis.isis_passive | default(false) %}
+ passive-interface {{ intf_name }}
+{% endif %}
+{% endfor %}
 {% if isis.ipv6_multitopology | default(false) %}
  !
  address-family ipv6

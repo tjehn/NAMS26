@@ -556,7 +556,7 @@ def check_mt(conn, device_name: str, device_data: dict, lf=None) -> str:
 
     if re.search(r'IPv6\s+Unicast', output, re.IGNORECASE):
         emit(passed("MT-IS-IS: IPv6 Unicast topology confirmed in neighbor detail"), lf)
-    elif re.search(r'Multi.Topology|MT\s+ISIS', output, re.IGNORECASE):
+    elif re.search(r'Multi.Topology|MT\s+ISIS|Remote TID.*2', output, re.IGNORECASE):
         emit(passed("MT-IS-IS: Multi-Topology capability confirmed in neighbor detail"), lf)
     else:
         emit(warned(
@@ -641,7 +641,7 @@ def check_ospf(conn, device_name: str, device_data: dict, lf=None) -> str:
         route_out = conn.send_command("show ip route ospf")
         emit_raw(route_out, lf)
 
-        ospf_routes = [l for l in route_out.splitlines() if re.match(r'^\s+O\b', l)]
+        ospf_routes = [l for l in route_out.splitlines() if re.match(r'^\s*O\b', l)]
         if ospf_routes:
             emit(passed(
                 f"OSPF: {len(ospf_routes)} OSPF route(s) present — "

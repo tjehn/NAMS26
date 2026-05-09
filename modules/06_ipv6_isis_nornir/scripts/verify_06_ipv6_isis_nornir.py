@@ -55,14 +55,14 @@ AVAILABLE_CHECKS = ["neighbors", "lsdb", "routes", "mt"]
 
 # Expected IS-IS neighbor counts per device (from topology design)
 EXPECTED_NEIGHBORS = {
-    "BB-1":   3,   # ABR-1, ABR-2, ABR-3
-    "BB-2":   3,   # ABR-1, ABR-2, ABR-3
+    "BB-1":   4,   # BB-2, ABR-1, ABR-2, ABR-3
+    "BB-2":   4,   # BB-1, ABR-1, ABR-2, ABR-3
     "ABR-1":  5,   # BB-1, BB-2, BR-1, BR-2, BR-3
     "ABR-2":  4,   # BB-1, BB-2, BR-4, BR-5
     "ABR-3":  3,   # BB-1, BB-2, ASBR-1
-    "BR-1":   1,   # ABR-1
-    "BR-2":   1,   # ABR-1
-    "BR-3":   1,   # ABR-1
+    "BR-1":   5,   # ABR-1, BR-2, BR-3, BR-4, BR-5 (shared LAN segment)
+    "BR-2":   5,   # ABR-1, BR-1, BR-3, BR-4, BR-5 (shared LAN segment)
+    "BR-3":   5,   # ABR-1, BR-1, BR-2, BR-4, BR-5 (shared LAN segment)
     "BR-4":   2,   # ABR-2, BR-5
     "BR-5":   2,   # ABR-2, BR-4
     "ASBR-1": 1,   # ABR-3
@@ -279,14 +279,16 @@ def check_lsdb(conn, device_name: str, dev: dict, lf=None) -> str:
     # External TLVs — ASBR-1 redistributes OSPF into IS-IS;
     # redistributed prefixes appear as external reachability entries in the LSP.
     if device_name == "ASBR-1":
-        if re.search(r'External|IP-External', detail_out, re.IGNORECASE):
+        # Named Mode redistributed prefixes appear as regular IP entries (no "External" TLV keyword).
+        # Check for OSPF-1's loopback 10.6.31.1 as proof that redistribution is working.
+        if "10.6.31.1" in detail_out:
             emit(passed(
-                "External TLVs present in LSDB — "
+                "OSPF redistributed prefix (10.6.31.1) found in LSDB — "
                 "OSPF-to-IS-IS redistribution confirmed"
             ), lf)
         else:
             emit(warned(
-                "External TLVs NOT found in LSDB — "
+                "OSPF redistributed prefix (10.6.31.1) NOT found in LSDB — "
                 "check 'redistribute ospf' under 'router isis NAMS26' on ASBR-1"
             ), lf)
             worst = _worst(worst, "WARN")
@@ -300,8 +302,9 @@ def check_routes(conn, device_name: str, dev: dict, lf=None) -> str:
     output = conn.send_command("show ip route isis")
     emit_raw(output, lf)
 
-    # IS-IS route lines begin with 'i' (i L1, i L2, i ia, i su)
-    route_lines = [l for l in output.splitlines() if re.match(r'^\s+i\b', l)]
+    # IS-IS route lines begin with 'i' at column 0 (i L1, i L2, i ia, i su).
+    # Avoid matching the 'i - IS-IS' legend line which also contains 'i'.
+    route_lines = [l for l in output.splitlines() if re.match(r'^i\s', l)]
     if route_lines:
         emit(passed(f"IS-IS routes in routing table ({len(route_lines)} prefix(es))"), lf)
     else:
@@ -316,7 +319,8 @@ def check_routes(conn, device_name: str, dev: dict, lf=None) -> str:
         ipv6_out = conn.send_command("show ipv6 route isis")
         emit_raw(ipv6_out, lf)
 
-        ipv6_lines = [l for l in ipv6_out.splitlines() if re.match(r'^\s+I\b', l)]
+        # IPv6 IS-IS route codes: I1 (L1), I2 (L2), IA (interarea), IS (summary) — all at column 0.
+        ipv6_lines = [l for l in ipv6_out.splitlines() if re.match(r'^I[12AS]', l)]
         if ipv6_lines:
             emit(passed(f"IS-IS IPv6 routes present ({len(ipv6_lines)} prefix(es))"), lf)
         else:
@@ -341,7 +345,7 @@ def check_mt(conn, device_name: str, dev: dict, lf=None) -> str:
     nbr_detail = conn.send_command("show isis neighbors detail")
     emit_raw(nbr_detail, lf)
 
-    if re.search(r'(MT IPv6|Multi-Topology|Topology.*IPv6)', nbr_detail, re.IGNORECASE):
+    if re.search(r'(MT IPv6|Multi-Topology|Topology.*IPv6|Remote TID.*2)', nbr_detail, re.IGNORECASE):
         emit(passed("MT-IS-IS IPv6 capability confirmed in neighbor detail"), lf)
     else:
         emit(warned(
@@ -357,7 +361,7 @@ def check_mt(conn, device_name: str, dev: dict, lf=None) -> str:
         detail_out = conn.send_command(f"show isis database {device_name}.00-00 detail")
         emit_raw(detail_out, lf)
 
-        if lo_ipv6_addr in detail_out:
+        if lo_ipv6_addr.lower() in detail_out.lower():
             emit(passed(f"IPv6 loopback {lo_ipv6_addr} advertised in LSDB"), lf)
         else:
             emit(warned(
@@ -397,7 +401,7 @@ def check_ospf_only(conn, device_name: str, dev: dict, checks_to_run: list, lf=N
     if "routes" in checks_to_run:
         route_out = conn.send_command("show ip route ospf")
         emit_raw(route_out, lf)
-        ospf_lines = [l for l in route_out.splitlines() if re.match(r'^\s+O\b', l)]
+        ospf_lines = [l for l in route_out.splitlines() if re.match(r'^\s*O\b', l)]
         if ospf_lines:
             emit(passed(f"OSPF routes present ({len(ospf_lines)} prefix(es))"), lf)
         else:

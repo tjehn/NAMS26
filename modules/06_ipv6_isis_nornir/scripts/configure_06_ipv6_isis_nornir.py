@@ -38,7 +38,9 @@ from nornir.core.filter import F
 from nornir.core.inventory import (
     Inventory, Host, Hosts, Groups, Defaults, ConnectionOptions,
 )
+from nornir.core.plugins.connections import ConnectionPluginRegister
 from nornir.core.task import Task, Result
+from nornir.plugins.runners import SerialRunner
 from nornir_netmiko.tasks import netmiko_send_config, netmiko_send_command
 from nornir_utils.plugins.functions import print_result
 
@@ -180,7 +182,8 @@ def _build_nornir(target_devices: dict) -> Nornir:
         groups=Groups({}),
         defaults=defaults,
     )
-    return Nornir(inventory=inventory)
+    ConnectionPluginRegister.auto_register()
+    return Nornir(inventory=inventory, runner=SerialRunner())
 
 
 # =============================================================================
