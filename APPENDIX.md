@@ -265,6 +265,43 @@ process-level form. When migrating templates from Classic to Named Mode, audit a
 interfaces that were using `isis passive` and move them to `passive-interface` under
 the process block.
 
+### IS-IS: `show isis interface` Commands Not Supported on IOL 15.7
+
+Both `show isis interface brief` and `show isis interface` (bare) produce error
+output on Cisco IOL 15.7:
+
+- `show isis interface brief` — `% Invalid input detected`
+- `show isis interface` — `% Incomplete command.`
+
+Use `show clns interface` instead. It lists all interfaces with their CLNS status.
+IS-IS-enabled interfaces show `Routing Protocol: IS-IS` with circuit type, metric,
+and adjacency count. Non-IS-IS interfaces show `CLNS protocol processing disabled`.
+
+### IS-IS: `show clns protocol` Displays Area ID and System ID Separately, Not as a Combined NET
+
+IOL 15.7 does not print the full NET string (e.g. `49.0001.0000.0000.0001.00`) on
+a single line. The area ID and system ID appear in separate fields:
+
+```
+IS-IS Router: NAMS26
+  System Id: 0000.0000.0001.00  IS-Type: level-2
+  Manual area address(es):
+    49.0001
+```
+
+To verify a NET programmatically, check the two components separately. Given a NET
+in the format `AA.BBBB.SSSS.SSSS.SSSS.00`:
+
+```python
+parts     = net.split(".")
+area_id   = ".".join(parts[:2])    # e.g. "49.0001"
+system_id = ".".join(parts[2:5])   # e.g. "0000.0000.0001"
+```
+
+IS type is also abbreviated: `level-2` instead of `level-2-only`, `level-1` instead
+of `level-1-only`. Strip `-only` from the YAML value before matching against
+`show clns protocol` output.
+
 ---
 
 ## 10. Troubleshooting Reference

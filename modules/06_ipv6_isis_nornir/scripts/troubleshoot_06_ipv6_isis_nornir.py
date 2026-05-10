@@ -12,7 +12,7 @@ Purpose  : IS-IS Named Mode troubleshooting tool for the Module 06 lab.
 Checks:
     process      — show clns protocol — IS-IS process running, NET, IS type
     adjacency    — show isis neighbors — Up/Down/Init state, DIS election
-    interfaces   — show isis interface brief — IS-IS active interfaces
+    interfaces   — show clns interface — IS-IS active interfaces
     lsdb         — show isis database — own LSP presence, LSDB size
     reachability — ping neighbor IPs derived from YAML subnet topology
     mt           — show isis neighbors detail — MT-IS-IS capability (BR-4, BR-5)
@@ -265,18 +265,33 @@ def check_process(conn, device_name: str, device_data: dict, lf=None) -> str:
         ), lf)
         result = _worst(result, "WARN")
 
-    if net and net.upper() in output.upper():
-        emit(passed(f"NET {net} confirmed"), lf)
-    elif net:
-        emit(failed(
-            f"NET {net} not found in 'show clns protocol' — "
-            f"check 'net {net}' under 'router isis {process_name}'"
-        ), lf)
-        result = _worst(result, "FAIL")
+    if net:
+        parts     = net.split(".")
+        area_id   = ".".join(parts[:2])    # e.g. "49.0001"
+        system_id = ".".join(parts[2:5])   # e.g. "0000.0000.0001"
+
+        if area_id.upper() in output.upper():
+            emit(passed(f"Area ID {area_id} confirmed in clns protocol output"), lf)
+        else:
+            emit(failed(
+                f"Area ID {area_id} not found — check NET under "
+                f"'router isis {process_name}'"
+            ), lf)
+            result = _worst(result, "FAIL")
+
+        if system_id.upper() in output.upper():
+            emit(passed(f"System ID {system_id} confirmed"), lf)
+        else:
+            emit(failed(
+                f"System ID {system_id} not found — check NET under "
+                f"'router isis {process_name}'"
+            ), lf)
+            result = _worst(result, "FAIL")
 
     is_type = isis_data.get("is_type", "")
     if is_type:
-        if re.search(re.escape(is_type), output, re.IGNORECASE):
+        is_type_short = is_type.replace("-only", "")
+        if re.search(re.escape(is_type_short), output, re.IGNORECASE):
             emit(passed(f"IS type '{is_type}' confirmed"), lf)
         else:
             emit(warned(
@@ -379,7 +394,7 @@ def check_adjacency(conn, device_name: str, device_data: dict, lf=None) -> str:
 
 
 def check_interfaces(conn, device_name: str, device_data: dict, lf=None) -> str:
-    """Check IS-IS interface state via 'show isis interface brief'.
+    """Check IS-IS interface state via 'show clns interface'.
 
     OSPF-1: IS-IS not applicable — returns INFO.
     All others: verify expected ISIS-enabled interfaces are active in IS-IS.
@@ -389,8 +404,8 @@ def check_interfaces(conn, device_name: str, device_data: dict, lf=None) -> str:
         emit(info(f"{device_name} is OSPF-only — IS-IS interface check not applicable"), lf)
         return "INFO"
 
-    section("IS-IS Interfaces — show isis interface brief", lf)
-    output = conn.send_command("show isis interface brief")
+    section("IS-IS Interfaces — show clns interface", lf)
+    output = conn.send_command("show clns interface")
     emit_raw(output, lf)
 
     result = "PASS"
@@ -422,7 +437,7 @@ def check_interfaces(conn, device_name: str, device_data: dict, lf=None) -> str:
 
     if missing:
         emit(failed(
-            f"Expected IS-IS interfaces not in 'show isis interface brief': "
+            f"Expected IS-IS interfaces not in 'show clns interface': "
             f"{', '.join(missing)} — check 'ip router isis' on these interfaces"
         ), lf)
         result = _worst(result, "FAIL")
@@ -805,7 +820,7 @@ def main() -> None:
         descriptions = {
             "process"     : "show clns protocol — IS-IS process name, NET, IS type",
             "adjacency"   : "show isis neighbors — Up/Down/Init state, DIS election check",
-            "interfaces"  : "show isis interface brief — IS-IS active interfaces",
+            "interfaces"  : "show clns interface — IS-IS active interfaces",
             "lsdb"        : "show isis database — own LSP presence, LSDB size",
             "reachability": "ping neighbor IPs derived from YAML subnet topology",
             "mt"          : "show isis neighbors detail — MT-IS-IS (BR-4, BR-5 only)",
