@@ -15,7 +15,7 @@
 | Config Mode | Named Mode exclusively |
 | Lab Fabric | Shared fabric — COSW-01 / COSW-02 |
 | Router Count | 12 (R1–R12) |
-| Status | IN PROGRESS — Phase 1 complete |
+| Status | COMPLETE — Phase 6 complete |
 
 ---
 
@@ -94,10 +94,6 @@ this sequence using `nr.filter(F(isis_role="abr"))` followed by
 | R11 | ASBR-1 | L1-only + OSPF | 49.0004 | IS-IS + OSPF, redistribution boundary |
 | R12 | OSPF-1 | OSPF only | — | OSPF stub domain — not in IS-IS |
 
-> **Note on OSPF-2:** The OSPF stub domain includes two OSPF routers (OSPF-1 and OSPF-2).
-> OSPF-2 is simulated via loopback networks on OSPF-1 to stay within the 12-router budget,
-> OR a second physical router can be added if EVE-NG capacity permits.
-> Confirm during lab build. The planning document assumes OSPF-1 carries both roles if needed.
 
 ### IS-IS Area Summary
 
@@ -190,13 +186,10 @@ NET format: `49.AABB.RRRR.RRRR.RRRR.00`
 | Link | Subnet | Left | Right |
 |------|--------|------|-------|
 | ASBR-1 ↔ OSPF-1 | 10.6.30.0/30 | .1 | .2 |
-| ASBR-1 ↔ OSPF-2 | 10.6.30.4/30 | .5 | .6 |
-| OSPF-1 ↔ OSPF-2 | 10.6.30.8/30 | .9 | .10 |
 
 | Router | Loopback0 |
 |--------|-----------|
 | OSPF-1 | 10.6.31.1/32 |
-| OSPF-2 | 10.6.31.2/32 |
 
 ### IPv6 Addressing Plan — Area 49.0003 Only
 
@@ -246,7 +239,7 @@ Configured on each ABR:
 ```
 router isis NAMS26
  address-family ipv4 unicast
-  redistribute isis ip level-2 into level-1 route-map LEAK-L2-TO-L1
+  redistribute isis ip level-2 into level-1 distribute-list prefix LEAK-L2-TO-L1
 ```
 
 Demo point: show L1 router routing table before and after leaking is configured.
@@ -267,7 +260,7 @@ IS-IS advertises IPv6 prefixes in separate TLVs (Type 236 for IPv6 reachability)
 Verify with `show isis database detail` — IPv6 TLVs visible only on BR-4 and BR-5 LSPs.
 
 ### OSPF Redistribution (Area 49.0004)
-ASBR-1 runs OSPF process 1 toward OSPF-1 and OSPF-2, and IS-IS NAMS26 toward
+ASBR-1 runs OSPF process 1 toward OSPF-1, and IS-IS NAMS26 toward
 ABR-3. Redistribution is one-way: OSPF → IS-IS only.
 
 ```
@@ -275,8 +268,10 @@ router isis NAMS26
  redistribute ospf 1 metric 20 metric-type external route-map OSPF-TO-ISIS
 ```
 
-Redistributed routes appear in the IS-IS LSDB as external reachability TLVs
-(Type 135 with up/down bit set). Verify with `show isis database detail` on BB-1.
+In IS-IS Named Mode, redistributed OSPF routes appear as regular IP
+prefix entries in ASBR-1's LSP at metric 20 — not as explicit External
+TLVs. Verify by checking that OSPF-1's loopback prefix (10.6.31.1)
+appears in ASBR-1's detailed LSP entry in `show isis database detail`.
 
 ### Wide Metrics
 All routers use `metric-style wide` under IS-IS Named Mode. Narrow metrics
@@ -291,42 +286,25 @@ support values up to 16,777,215. Default interface cost: 10.
 
 Each device in the Nornir inventory carries an `isis_role` field in host data:
 
-```yaml
-# hosts.yaml (excerpt)
-BB-1:
-  hostname: bb-1.lab
-  groups:
-    - isis_routers
-  data:
-    isis_role: backbone
-    isis_area: "49.0001"
+```python
+# Programmatic inventory — built directly from YAML devices block
+# No hosts.yaml / groups.yaml files written to disk.
+# isis_role field exposed as host data for nr.filter(F(isis_role=...))
 
-ABR-1:
-  hostname: abr-1.lab
-  groups:
-    - isis_routers
-  data:
-    isis_role: abr
-    isis_area: "49.0001"
-
-BR-2:
-  hostname: br-2.lab
-  groups:
-    - isis_routers
-  data:
-    isis_role: leaf
-    isis_area: "49.0002"
-    isis_dis: true
-
-ASBR-1:
-  hostname: asbr-1.lab
-  groups:
-    - isis_routers
-    - ospf_routers
-  data:
-    isis_role: asbr
-    isis_area: "49.0004"
+host_dict["BB-1"] = Host(
+    name="BB-1",
+    hostname="bb-1.lab",
+    platform="ios",
+    data={
+        "isis_role": "backbone",
+        "isis_area": "49.0001",
+    },
+    ...
+)
 ```
+
+The YAML devices block is the single source of truth for both
+configuration content and Nornir inventory. No duplication.
 
 ### Deployment Sequence Using `nr.filter()`
 
@@ -342,6 +320,10 @@ result = abrs.run(task=configure_isis)
 # Phase 3 — leaf routers last (ABRs must be up)
 leaves = nr.filter(F(isis_role__in=["leaf", "asbr"]))
 result = leaves.run(task=configure_isis)
+
+# Phase 4 — OSPF-only router (independent of IS-IS convergence)
+ospf_only = nr.filter(F(isis_role="ospf_only"))
+result = ospf_only.run(task=configure_ospf_task)
 ```
 
 This enforces correct operational sequencing — not just correctness of config,
@@ -351,9 +333,9 @@ but correctness of deployment order. IS-IS adjacencies form in the right sequenc
 
 | Script | Purpose |
 |--------|---------|
-| `configure_isis.py` | Deploy IS-IS Named Mode config — backbone, ABRs, leaf routers in sequence |
-| `verify_isis.py` | Per-device PASS/WARN/FAIL — neighbors, LSDB, routes, MT-IS-IS |
-| `troubleshoot_isis.py` | Operational checks — adjacency state, DIS, route leaking, redistribution |
+| `configure_06_ipv6_isis_nornir.py` | Deploy IS-IS Named Mode config — backbone, ABRs, leaf routers in sequence |
+| `verify_06_ipv6_isis_nornir.py` | Per-device PASS/WARN/FAIL — neighbors, LSDB, routes, MT-IS-IS |
+| `troubleshoot_06_ipv6_isis_nornir.py` | Operational checks — adjacency state, DIS, route leaking, redistribution |
 
 ---
 
@@ -363,19 +345,24 @@ The closing demo demonstrates the automation story, not IS-IS edge cases.
 Three beats:
 
 **Beat 1 — Clean state verify**
-Run `verify_isis.py` against all routers. All checks PASS. Students see the
+Run `verify_06_ipv6_isis_nornir.py` against all routers. All checks PASS. Students see the
 Nornir result aggregation across 11 IS-IS devices simultaneously.
 
 **Beat 2 — Fault injection (DIS manipulation)**
-Lower BR-2's DIS priority to 0 on the LAN interface (`isis priority 0`).
-Run `troubleshoot_isis.py` — DIS check WARNS on Area 49.0002 (unexpected DIS).
-Run `verify_isis.py` — DIS check FAILs (expected DIS is BR-2, actual is BR-1 or BR-3).
-Restore BR-2 priority. Re-run verify — PASS.
+Lower BR-2's DIS priority to 0 on the LAN interface:
+python utils/push_config.py --router BR-2 --cmd "interface Ethernet0/0" "isis priority 0"
+Run troubleshoot script — adjacency check returns PASS. IS-IS adjacencies
+are healthy. The troubleshooter cannot detect the DIS policy drift.
+Run verify script — neighbors check returns WARN on BR-2. The source of
+truth says BR-2 should be DIS (isis_priority: 100). The live state shows
+another router won DIS election. The verifier catches what the
+troubleshooter cannot.
 
-**Beat 3 — Redistribution verification**
-Show `show isis database detail` on BB-1 — external reachability TLVs from
-ASBR-1 visible in the L2 LSDB. Students see IS-IS carrying external routes
-from the OSPF domain across the entire backbone.
+**Beat 3 — Restore from source of truth**
+python scripts/configure_06_ipv6_isis_nornir.py --router BR-2
+python scripts/verify_06_ipv6_isis_nornir.py --router BR-2 --check neighbors
+Nornir pushes the rendered config. isis priority 100 restored. BR-2
+reclaims DIS. Verifier confirms PASS.
 
 ---
 
@@ -383,12 +370,12 @@ from the OSPF domain across the entire backbone.
 
 | File | Phase | Notes |
 |------|-------|-------|
-| `data/module06_isis.yaml` | 2 | Device inventory, IS-IS config, OSPF config for ASBR-1 |
-| `templates/isis_named.j2` | 3 | IS-IS Named Mode Jinja2 template |
-| `templates/ospf_stub.j2` | 3 | OSPF stub config for ASBR-1 and OSPF-1/OSPF-2 |
-| `scripts/configure_isis.py` | 3 | Nornir configure script with `nr.filter()` sequencing |
-| `scripts/verify_isis.py` | 3 | Verification script |
-| `scripts/troubleshoot_isis.py` | 3 | Troubleshooting script |
+| `data/06_ipv6_isis_nornir.yaml` | 2 | Device inventory, IS-IS config, OSPF config for ASBR-1 |
+| `templates/06_ipv6_isis_nornir_named.j2` | 3 | IS-IS Named Mode Jinja2 template |
+| `templates/06_ipv6_isis_nornir_ospf_stub.j2` | 3 | OSPF stub config for ASBR-1 and OSPF-1 |
+| `scripts/configure_06_ipv6_isis_nornir.py` | 3 | Nornir configure script with `nr.filter()` sequencing |
+| `scripts/verify_06_ipv6_isis_nornir.py` | 3 | Verification script |
+| `scripts/troubleshoot_06_ipv6_isis_nornir.py` | 3 | Troubleshooting script |
 | `verbal_script/module06_verbal_script.md` | 5 | Draft verbal script (renamed to `_final` at Phase 6) |
 | `docs/module06_closing_demo.md` | 6 | Closing demo procedure |
 | `diagrams/module06_topology_isis.drawio` | 5 | CoS-generated drawio from YAML |
@@ -396,19 +383,19 @@ from the OSPF domain across the entire backbone.
 
 ---
 
-## Open Items
+## Resolved Items
 
-- [ ] Confirm physical router assignments (R1–R12 → BB-1 through OSPF-1)
-      once EVE-NG lab is built and IOS configs are captured
-- [ ] Confirm interface assignments (e0/0, e0/1 etc.) from captured IOS configs —
-      logical links derived from shared subnets per shared-fabric rules
-- [ ] Confirm OSPF-2 as separate physical router or simulated via loopbacks on OSPF-1
-- [ ] Validate NET address format with Cisco IOL IS-IS Named Mode
-      (some IOL images require dotted-decimal NET; confirm during lab build)
+All items resolved during lab build and script validation:
+
+- [x] Physical router assignments confirmed — R1=BB-1 through R12=OSPF-1
+- [x] Interface assignments confirmed from captured IOS configs
+- [x] OSPF-2 not implemented — OSPF-1 is the single OSPF stub router
+- [x] NET address format validated on Cisco IOL 15.7 — standard
+      dotted-decimal format accepted
 
 ---
 
 *NAMS26 — Network Automation Management Station 2026*
 *Module 06 Planning Document — `docs/module06_planning.md`*
-*Generated: 2026-05-05 — Phase 1 complete*
+*Updated: 2026-05-10 — Phase 6 complete*
 *Internal document — not for publication*
