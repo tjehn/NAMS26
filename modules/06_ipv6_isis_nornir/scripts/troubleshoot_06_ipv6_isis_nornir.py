@@ -366,30 +366,6 @@ def check_adjacency(conn, device_name: str, device_data: dict, lf=None) -> str:
         ), lf)
         result = _worst(result, "WARN")
 
-    # DIS check — only relevant if this device has isis_priority configured (LAN segment)
-    # The Circuit Id column shows DIS.pseudonode (e.g. BB-2.01) for LAN segments.
-    # If device_name appears in a Circuit Id entry, this router won DIS election.
-    if up_count > 0:
-        has_priority = any(
-            idata.get("isis_priority") is not None
-            for idata in device_data.get("isis", {}).get("interfaces", {}).values()
-        )
-        if has_priority:
-            section("DIS State — Circuit Id column of show isis neighbors", lf)
-            dis_pattern = re.compile(rf'{re.escape(device_name)}\.', re.IGNORECASE)
-            if dis_pattern.search(output):
-                emit(passed(
-                    f"{device_name} is acting as DIS on at least one LAN segment "
-                    "(own name found in Circuit Id column)"
-                ), lf)
-            else:
-                emit(warned(
-                    f"{device_name} has isis_priority configured but does not appear "
-                    "as DIS in any Circuit Id entry — another router won DIS election "
-                    "or the segment is P2P (no DIS election occurs)"
-                ), lf)
-                result = _worst(result, "WARN")
-
     return result
 
 
