@@ -135,6 +135,33 @@ ABR-3 into the L2 backbone and become visible across the entire IS-IS domain.
 | ASBR-1 | R11 | L1-only + OSPF | 49.0004 |
 | OSPF-1 | R12 | OSPF only | — |
 
+> **Instructor talking point:** The functional naming convention used in
+> this module is intentional. BB (Backbone) and BR (Branch) describe the
+> IS-IS role each router plays — BB routers are the Level-2 core, BR
+> routers are Level-1 leaf nodes in stub areas. In a real service provider
+> network you would see P (Provider core) and PE (Provider Edge) for
+> similar roles, but those terms carry MPLS VPN connotations that belong
+> in Modules 10–12. BB and BR keep the naming generic, readable, and free
+> of terminology we haven't introduced yet. ABR and ASBR are kept as-is —
+> they are standard IS-IS and OSPF terms students at this level already
+> know.
+
+> This topology represents a single-domain SP or large enterprise network.
+> All four IS-IS areas belong to the same administrative domain — same
+> organization, same IS-IS process (NAMS26), same operator. The L1 areas
+> are regional networks, not customer sites. Customers connect to SPs via
+> BGP, which we introduce in Module 07. IS-IS stays entirely within the
+> operator's own infrastructure. The OSPF stub domain (ASBR-1 and OSPF-1)
+> represents a separately administered internal network being absorbed into
+> the IS-IS domain — a common scenario during network consolidation or
+> acquisition.
+
+> The lab uses `10.6.0.0/8` RFC 1918 addressing for all internal IS-IS
+> infrastructure. This mirrors how many SPs address their internal networks
+> — private space for links and loopbacks that don't require public
+> reachability, with the addressing scheme organized by module number for
+> clarity.
+
 ---
 
 ## SECTION 3 — Tool Overview: Nornir (deepening)
@@ -630,8 +657,23 @@ EXPECTED_NEIGHBORS = {
 > (L1-only, single entry), totaling five entries visible in
 > `show isis neighbors`. This is correct IS-IS behavior on a broadcast
 > segment.
+>
+> Notice `BR-2.01` in the Circuit Id column for all LAN members —
+> that's BR-2's DIS signature, which we'll examine more closely in
+> the closing demo.
 
 If the count matches expected, PASS. If it's short, WARN. If zero, FAIL.
+
+> **Instructor talking point:** You may notice there is no default route
+> in the routing table on BR-1 — no `i*L1` entry. This is intentional.
+> IS-IS normally uses the ATT (Attached) bit to signal a default route
+> from L1/L2 ABRs toward L1 leaf routers. But when route leaking is
+> configured, IOS suppresses that default route because it is no longer
+> needed — BR-1 already has explicit `i L2` routes to every destination
+> in the domain. The `i L2` entries via `10.6.20.4` (ABR-1) are the
+> proof that route leaking is working. Route leaking replaces the default
+> route with full routing visibility — a more precise and more useful
+> result.
 
 Two role-specific sub-checks run inside `check_neighbors`:
 
@@ -658,6 +700,56 @@ that interface's config.
 Third, on ASBR-1 specifically: is `10.6.31.1` visible in ASBR-1's detailed LSP?
 That's OSPF-1's loopback — the address that ASBR-1 redistributes from OSPF into IS-IS.
 If it's missing, redistribution isn't working.
+
+`[SCREEN: show isis database on BR-1]`
+
+```
+BR-1#show isis database
+Tag NAMS26:
+IS-IS Level-1 Link State Database:
+LSPID                 LSP Seq Num  LSP Checksum  LSP Holdtime/Rcvd      ATT/P/OL
+BR-1.00-00          * 0x000000D7   0x5903        350/*                  1/0/0
+BR-2.00-00            0x000000DA   0xACA8        1005/1199              1/0/0
+BR-2.01-00            0x000000D6   0x1C2D        464/1199               0/0/0
+BR-3.00-00            0x000000D9   0x084A        1143/1199              1/0/0
+IS-IS Level-2 Link State Database:
+LSPID                 LSP Seq Num  LSP Checksum  LSP Holdtime/Rcvd      ATT/P/OL
+BB-1.00-00            0x000000DC   0x77DB        606/1198               0/0/0
+BB-2.00-00            0x000000D8   0xB196        826/1198               0/0/0
+ABR-1.00-00           0x000000DB   0x5469        1057/1199              0/0/0
+ABR-2.00-00           0x000000D6   0xAE2B        497/1198               0/0/0
+ABR-3.00-00           0x000000D8   0xFD88        1165/1198              0/0/0
+BR-1.00-00          * 0x000000DB   0xF682        1016/*                 0/0/0
+BR-2.00-00            0x000000DD   0x056F        1198/1199              0/0/0
+BR-2.01-00            0x000000D6   0x4E75        1143/1199              0/0/0
+BR-3.00-00            0x000000DA   0x1064        752/1199               0/0/0
+BR-4.00-00            0x000000DD   0xA5D6        723/1198               0/0/0
+BR-5.00-00            0x000000DB   0xD4A7        469/1198               0/0/0
+ASBR-1.00-00          0x000000D6   0x497E        768/1198               0/0/0
+```
+
+> **Instructor talking point:** The LSDB output from BR-1 tells the
+> complete IS-IS story in one screen. Notice two databases — Level-1
+> and Level-2.
+>
+> The L1 database shows only Area 49.0002 members: BR-1, BR-2, BR-3,
+> and critically `BR-2.01-00` — the pseudonode LSP. That `.01` suffix
+> is BR-2's DIS signature. BR-2 generated this LSP on behalf of the
+> entire LAN segment — it is proof of DIS election without running a
+> single show command about DIS specifically.
+>
+> The L2 database tells the second story — BR-1 can see all 11 IS-IS
+> routers in the entire domain. BB-1, BB-2, all three ABRs, all leaf
+> routers including BR-4 and BR-5 in the IPv6 zone, and ASBR-1 at the
+> redistribution boundary. A Level-1 only router seeing the full Level-2
+> LSDB is route leaking working exactly as designed. Without route
+> leaking, this L2 section would be empty on BR-1.
+>
+> Finally — the ATT/P/OL column. The `1/0/0` on BR-1, BR-2, and BR-3
+> shows the ATT bit set. This is IS-IS signaling from the L1/L2 ABRs:
+> "I have a path to the backbone." Even with route leaking active, the
+> ATT bit remains set. In a topology without route leaking, this ATT
+> bit is what generates the default route toward the ABR.
 
 ---
 
@@ -791,6 +883,32 @@ On OSPF-1: verifies OSPF adjacency with ASBR-1 is FULL.
 Same three-beat structure as Module 4. Inject a fault, run the troubleshooter, run
 the verifier, restore from the source of truth. The protocol is IS-IS, the fault is
 DIS priority manipulation.
+
+---
+
+`[SCREEN: show isis neighbors on ABR-1 — clean state]`
+
+```
+ABR-1#show isis neighbors
+Tag NAMS26:
+System Id       Type Interface     IP Address      State Holdtime Circuit Id
+BB-1            L2   Et0/0         10.6.11.1       UP    23       01
+BB-2            L2   Et0/1         10.6.11.5       UP    29       01
+BR-1            L2   Et0/2         10.6.20.1       UP    27       BR-2.01
+BR-2            L2   Et0/2         10.6.20.2       UP    9        BR-2.01
+BR-3            L2   Et0/2         10.6.20.3       UP    29       BR-2.01
+```
+
+> **Instructor talking point:** Before we inject the fault, look at the
+> Circuit Id column. The backbone links (Et0/0 and Et0/1) show `01` —
+> point-to-point links have no DIS election, just a simple circuit number.
+> The LAN interfaces (Et0/2) all show `BR-2.01` — every router on the
+> 10.6.20.0/24 segment is reporting the same DIS. `BR-2` is the System ID
+> of the elected DIS. `.01` is the pseudonode number assigned to this LAN
+> segment. Three routers, one Circuit Id — unanimous agreement that BR-2
+> won the election.
+>
+> Now watch what happens when we lower BR-2's priority to zero.
 
 ---
 
