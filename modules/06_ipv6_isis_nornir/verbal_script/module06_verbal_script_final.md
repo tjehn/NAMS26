@@ -648,15 +648,19 @@ EXPECTED_NEIGHBORS = {
 }
 ```
 
-> **Instructor talking point:** ABR-1 shows five neighbors — not four
-> physical devices. On a broadcast IS-IS segment, an L1/L2 router forms
-> separate L1 and L2 adjacency entries with each neighbor it has
-> dual-level adjacency with. BR-2 and BR-3 are both L1/L2 routers — so
-> ABR-1 forms two adjacency entries per router: one at Level-1 and one at
-> Level-2. That's two entries each for BR-2 and BR-3, plus one for BR-1
-> (L1-only, single entry), totaling five entries visible in
-> `show isis neighbors`. This is correct IS-IS behavior on a broadcast
-> segment.
+> **Instructor talking point:** ABR-1 shows five neighbors because it has
+> five physical neighbors: BB-1 and BB-2 via point-to-point backbone
+> links, and BR-1, BR-2, and BR-3 via the 10.6.20.0/24 broadcast LAN
+> segment. Two L2 adjacencies to the backbone, three L1 adjacencies to
+> the area leaf routers — five entries total.
+>
+> The LAN count is worth noting. BR-1, BR-2, and BR-3 are all L1-only
+> routers. ABR-1 forms a single L1 adjacency entry with each of them —
+> one entry per router. Doubling would occur if another L1/L2 router
+> shared the LAN segment: ABR-1 would form both a Level-1 and a Level-2
+> adjacency with that peer, yielding two entries for one physical device.
+> That does not apply here. All three leaf routers are L1-only, so each
+> contributes exactly one entry to ABR-1's neighbor table.
 >
 > Notice `BR-2.01` in the Circuit Id column for all LAN members —
 > that's BR-2's DIS signature, which we'll examine more closely in
