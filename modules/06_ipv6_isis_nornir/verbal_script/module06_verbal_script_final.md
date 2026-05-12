@@ -964,6 +964,96 @@ python scripts/verify_06_ipv6_isis_nornir.py --router BR-2 --check neighbors
 > verify script enforces that policy. When the priority drifts, the verifier catches it.
 > The troubleshooter can't, because a DIS re-election doesn't break any adjacency.
 
+`[SCREEN: show clns interface Ethernet0/0 on BR-2 — drift state]`
+
+```
+BR-2#show clns interface Ethernet0/0
+Ethernet0/0 is up, line protocol is up
+Checksums enabled, MTU 1497, Encapsulation SAP
+ERPDUs enabled, min. interval 10 msec.
+CLNS fast switching disabled
+CLNS SSE switching disabled
+DEC compatibility mode OFF for this interface
+Next ESH/ISH in 17 seconds
+Routing Protocol: IS-IS
+Circuit Type: level-1-2
+Interface number 0x0, local circuit ID 0x1
+Level-1 Metric: 10, Priority: 0, Circuit ID: BR-3.01
+DR ID: BR-3.01
+Level-1 IPv6 Metric: 10
+Number of active level-1 adjacencies: 2
+Level-2 Metric: 10, Priority: 0, Circuit ID: BR-3.01
+DR ID: BR-3.01
+Level-2 IPv6 Metric: 10
+Number of active level-2 adjacencies: 3
+Next IS-IS LAN Level-1 Hello in 2 seconds
+Next IS-IS LAN Level-2 Hello in 7 seconds
+```
+
+> **Instructor talking point:** `show clns interface` gives us the
+> definitive confirmation of DIS election state — no parsing required.
+> Two lines tell the complete story: `Priority: 0` confirms the drift
+> injection took effect — BR-2's isis priority was lowered to zero by
+> the configure script fault. `DR ID: BR-3.01` confirms the consequence
+> — BR-3 won the re-election and is now the Designated Router for this
+> LAN segment at both Level-1 and Level-2. The adjacency counts (2
+> active L1, 3 active L2) confirm the protocol is fully healthy — IS-IS
+> did not lose any neighbors during the DIS transition. The troubleshooter
+> saw exactly this — adjacencies UP, protocol working. Only the verifier
+> knew something was wrong.
+
+`[SCREEN: show isis database on BR-2 — DIS transition in progress]`
+
+```
+BR-2#show isis database
+Tag NAMS26:
+IS-IS Level-1 Link State Database:
+LSPID                 LSP Seq Num  LSP Checksum  LSP Holdtime/Rcvd      ATT/P/OL
+BR-1.00-00            0x0000013A   0xA94E        1102/1199              1/0/0
+BR-2.00-00          * 0x0000013D   0xFCF3        1158/*                 1/0/0
+BR-2.01-00          * 0x00000134   0x9190        0 (385)/*              0/0/0
+BR-3.00-00            0x0000013B   0x5A94        1081/1199              1/0/0
+BR-3.01-00            0x00000001   0xA974        374/1199               0/0/0
+IS-IS Level-2 Link State Database:
+LSPID                 LSP Seq Num  LSP Checksum  LSP Holdtime/Rcvd      ATT/P/OL
+BB-1.00-00            0x0000013E   0xB13F        786/1198               0/0/0
+BB-2.00-00            0x0000013B   0xE9FA        740/1198               0/0/0
+ABR-1.00-00           0x0000013D   0xB2A7        1103/1199              0/0/0
+ABR-2.00-00           0x00000138   0xE88E        885/1198               0/0/0
+ABR-3.00-00           0x0000013A   0x38EB        838/1198               0/0/0
+BR-1.00-00            0x00000142   0x3FD1        1180/1199              0/0/0
+BR-2.00-00          * 0x00000144   0x4DBE        1100/*                 0/0/0
+BR-2.01-00          * 0x00000134   0x9190        0 (384)/*              0/0/0
+BR-3.00-00            0x0000013F   0x4FBE        1117/1199              0/0/0
+BR-3.01-00            0x00000002   0xCEC8        1147/1199              0/0/0
+BR-4.00-00            0x00000141   0xA770        984/1198               0/0/0
+BR-5.00-00            0x0000013F   0x44D3        914/1198               0/0/0
+ASBR-1.00-00          0x00000137   0x85E0        915/1198               0/0/0
+```
+
+> **Instructor talking point:** The LSDB shows the DIS transition in
+> real time — two pseudonode LSPs coexisting, one dying and one being
+> born.
+>
+> `BR-2.01-00 *` — the asterisk means BR-2 generated this LSP. Holdtime
+> is `0 (385)` — the holdtime has expired. BR-2 lost DIS and stopped
+> refreshing this LSP. The number in parentheses (385) is the purge
+> timer — IS-IS keeps expired LSPs in the database briefly before
+> flushing them completely. BR-2.01-00 is a ghost. It will be gone in
+> approximately six minutes.
+>
+> `BR-3.01-00` — sequence number `0x00000001`. This LSP has never existed
+> before in this topology. BR-3 just won the DIS election and generated
+> its first pseudonode LSP to represent the LAN segment. Holdtime 374 —
+> actively being refreshed. This is the new DIS signature.
+>
+> Two pseudonode LSPs in the same LSDB — one expiring, one newborn. This
+> is IS-IS handling a live DIS transition without dropping a single
+> adjacency. Engineers who have only worked with OSPF have never seen
+> this. The IS-IS DIS transition is non-disruptive by design — there is
+> no BDR waiting in the wings, no SPF hold-down, just an immediate
+> re-election and a clean pseudonode handoff.
+
 ---
 
 ### Part 4 — Restore from Source of Truth
