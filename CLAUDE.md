@@ -272,7 +272,7 @@ devices:
 | 03 | OSPF Classic | OSPF | NAPALM | Single act — COMPLETE |
 | 04 | OSPF Advanced | OSPF Advanced | NAPALM | Single act — COMPLETE |
 | 05 | IPv6 EIGRP + OSPFv3 | IPv6 EIGRP + OSPFv3 | Nornir | Single act — IN PROGRESS |
-| 06 | IS-IS | IS-IS (IPv4 + IPv6 zone) | Nornir | Single act — NOT STARTED |
+| 06 | IS-IS | IS-IS (IPv4 + IPv6 zone) | Nornir | Single act — COMPLETE |
 | 07 | BGP Part 1 | BGP | Ansible | Single act — NOT STARTED |
 | 08 | BGP Part 2 | BGP Advanced | Ansible | Single act — NOT STARTED |
 | 09 | Route Policy | Route Maps, Prefix Lists, AD, Redistribution | Ansible | Single act — NOT STARTED |
