@@ -1,0 +1,70 @@
+!
+! BGP Configuration for {{ hostname }}
+! AS {{ bgp_as }}
+!
+router bgp {{ bgp_as }}
+ bgp router-id {{ bgp_router_id }}
+ bgp log-neighbor-changes
+ !
+{% if bgp_peer_groups is defined and bgp_peer_groups %}
+{% for pg in bgp_peer_groups %}
+ neighbor {{ pg.name }} peer-group
+ neighbor {{ pg.name }} remote-as {{ pg.remote_as }}
+{% if pg.update_source is defined %}
+ neighbor {{ pg.name }} update-source {{ pg.update_source }}
+{% endif %}
+{% if pg.password is defined %}
+ neighbor {{ pg.name }} password {{ pg.password }}
+{% endif %}
+{% if pg.route_reflector_client is defined and pg.route_reflector_client %}
+ neighbor {{ pg.name }} route-reflector-client
+{% endif %}
+{% if pg.next_hop_self is defined and pg.next_hop_self %}
+ neighbor {{ pg.name }} next-hop-self
+{% endif %}
+ !
+{% endfor %}
+{% endif %}
+{% if ibgp_neighbors is defined and ibgp_neighbors %}
+{% for neighbor in ibgp_neighbors %}
+{% if neighbor.peer_group is defined %}
+ neighbor {{ neighbor.ip }} peer-group {{ neighbor.peer_group }}
+{% else %}
+ neighbor {{ neighbor.ip }} remote-as {{ bgp_as }}
+ neighbor {{ neighbor.ip }} update-source Loopback0
+{% if neighbor.password is defined %}
+ neighbor {{ neighbor.ip }} password {{ neighbor.password }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if ebgp_neighbors is defined and ebgp_neighbors %}
+{% for neighbor in ebgp_neighbors %}
+ neighbor {{ neighbor.ip }} remote-as {{ neighbor.remote_as }}
+{% if neighbor.description is defined %}
+ neighbor {{ neighbor.ip }} description {{ neighbor.description }}
+{% endif %}
+{% if neighbor.password is defined %}
+ neighbor {{ neighbor.ip }} password {{ neighbor.password }}
+{% endif %}
+{% endfor %}
+{% endif %}
+ !
+ address-family ipv4
+{% if ibgp_neighbors is defined and ibgp_neighbors %}
+{% for neighbor in ibgp_neighbors %}
+  neighbor {{ neighbor.ip }} activate
+{% endfor %}
+{% endif %}
+{% if ebgp_neighbors is defined and ebgp_neighbors %}
+{% for neighbor in ebgp_neighbors %}
+  neighbor {{ neighbor.ip }} activate
+{% endfor %}
+{% endif %}
+{% if bgp_networks is defined and bgp_networks %}
+{% for net in bgp_networks %}
+  network {{ net.network }} mask {{ net.mask }}
+{% endfor %}
+{% endif %}
+ exit-address-family
+!

@@ -1,0 +1,83 @@
+---
+# EDGE-P2 (R9) — Provider router, ASBR
+# Physical router: R9 (192.168.1.109)
+# AS 65002 — Full mesh iBGP
+# eBGP peers: STUB-BR2 (R11), STUB-BR3 (R12) in AS 65003
+
+hostname: EDGE-P2
+
+# Loopback (RFC 2544 test address space for BGP)
+loopback0_ip: 198.18.1.4
+loopback0_mask: 255.255.255.255
+
+# Data plane interfaces
+interfaces:
+  - name: Ethernet0/0
+    description: "to EDGE-PE2"
+    ip: 10.7.12.10
+    mask: 255.255.255.252
+    ospf_area: 20
+    shutdown: false
+  
+  - name: Ethernet0/1
+    description: "to EDGE-P1"
+    ip: 10.7.12.14
+    mask: 255.255.255.252
+    ospf_area: 20
+    shutdown: false
+  
+  - name: Ethernet0/2
+    description: "to STUB-BR2 (eBGP)"
+    ip: 198.18.13.5
+    mask: 255.255.255.252
+    ospf_area: null
+    shutdown: false
+  
+  - name: Ethernet0/3
+    description: "to STUB-BR3 (eBGP)"
+    ip: 198.18.13.9
+    mask: 255.255.255.252
+    ospf_area: null
+    shutdown: false
+
+# OSPF configuration
+ospf_process_id: 2
+ospf_router_id: 198.18.1.4
+
+# BGP configuration
+bgp_as: 65002
+bgp_router_id: 198.18.1.4
+
+# BGP networks to advertise
+bgp_networks:
+  - network: 198.18.1.4
+    mask: 255.255.255.255
+
+# iBGP peer group definition (full mesh)
+bgp_peer_groups:
+  - name: IBGP_PEERS
+    remote_as: 65002
+    update_source: Loopback0
+    password: "{{ ibgp_password_as65002 }}"
+    next_hop_self: true
+
+# iBGP neighbors (full mesh - all other AS 65002 routers)
+ibgp_neighbors:
+  - ip: 198.18.1.1
+    peer_group: IBGP_PEERS
+  - ip: 198.18.1.2
+    peer_group: IBGP_PEERS
+  - ip: 198.18.1.3
+    peer_group: IBGP_PEERS
+
+# eBGP neighbors (two peers in AS 65003)
+ebgp_neighbors:
+  - ip: 198.18.13.6
+    remote_as: 65003
+    password: "{{ ebgp_password_r9_r11 }}"
+    description: "STUB-BR2"
+  
+  - ip: 198.18.13.10
+    remote_as: 65003
+    password: "{{ ebgp_password_r9_r12 }}"
+    description: "STUB-BR3"

@@ -1,0 +1,59 @@
+---
+# CORE-PE2 (R3) — Provider Edge, ASBR
+# Physical router: R3 (192.168.1.103)
+# eBGP peer: EDGE-PE2 (R7) in AS 65002
+
+hostname: CORE-PE2
+
+# Loopback (RFC 2544 test address space for BGP)
+loopback0_ip: 198.18.0.3
+loopback0_mask: 255.255.255.255
+
+# Data plane interfaces
+interfaces:
+  - name: Ethernet0/0
+    description: "to CORE-RR1"
+    ip: 10.7.10.6
+    mask: 255.255.255.252
+    ospf_area: 0
+    shutdown: false
+  
+  - name: Ethernet0/1
+    description: "to EDGE-PE2 (eBGP)"
+    ip: 198.18.11.5
+    mask: 255.255.255.252
+    ospf_area: null
+    shutdown: false
+
+# OSPF configuration
+ospf_process_id: 1
+ospf_router_id: 198.18.0.3
+
+# BGP configuration
+bgp_as: 65001
+bgp_router_id: 198.18.0.3
+
+# BGP networks to advertise
+bgp_networks:
+  - network: 198.18.0.3
+    mask: 255.255.255.255
+
+# iBGP peer group definition
+bgp_peer_groups:
+  - name: IBGP_PEERS
+    remote_as: 65001
+    update_source: Loopback0
+    password: "{{ ibgp_password_as65001 }}"
+    next_hop_self: true
+
+# iBGP neighbors (to RR only)
+ibgp_neighbors:
+  - ip: 198.18.0.1
+    peer_group: IBGP_PEERS
+
+# eBGP neighbors
+ebgp_neighbors:
+  - ip: 198.18.11.6
+    remote_as: 65002
+    password: "{{ ebgp_password_r3_r7 }}"
+    description: "EDGE-PE2"

@@ -1,0 +1,48 @@
+!
+! OSPF Underlay Configuration for {{ hostname }}
+{% if ospf_process_id is not none %}
+!
+router ospf {{ ospf_process_id }}
+ router-id {{ ospf_router_id }}
+ passive-interface Loopback0
+!
+! Loopback0 in OSPF Area 0
+interface Loopback0
+ description "BGP Router-ID / OSPF Loopback"
+ ip address {{ loopback0_ip }} {{ loopback0_mask }}
+ ip ospf {{ ospf_process_id }} area 0
+!
+{% for intf in interfaces %}
+{% if intf.ospf_area is not none %}
+! {{ intf.description }}
+interface {{ intf.name }}
+ description {{ intf.description }}
+ ip address {{ intf.ip }} {{ intf.mask }}
+ ip ospf {{ ospf_process_id }} area {{ intf.ospf_area }}
+ no shutdown
+!
+{% else %}
+! {{ intf.description }} — eBGP link, no OSPF
+interface {{ intf.name }}
+ description {{ intf.description }}
+ ip address {{ intf.ip }} {{ intf.mask }}
+ no shutdown
+!
+{% endif %}
+{% endfor %}
+{% else %}
+!
+! No OSPF (stub AS router)
+!
+interface Loopback0
+ description "BGP Router-ID"
+ ip address {{ loopback0_ip }} {{ loopback0_mask }}
+!
+{% for intf in interfaces %}
+interface {{ intf.name }}
+ description {{ intf.description }}
+ ip address {{ intf.ip }} {{ intf.mask }}
+ no shutdown
+!
+{% endfor %}
+{% endif %}

@@ -1,0 +1,50 @@
+---
+# Module 07 — BGP Part 1 / Ansible
+# Ansible Inventory File
+#
+# All 12 routers organized by AS membership
+
+all:
+  children:
+    # AS 65001 — CORE (Route Reflector design)
+    core_as:
+      hosts:
+        CORE-RR1:
+          ansible_host: core-rr1.lab
+        CORE-PE1:
+          ansible_host: core-pe1.lab
+        CORE-PE2:
+          ansible_host: core-pe2.lab
+        CORE-P1:
+          ansible_host: core-p1.lab
+        CORE-P2:
+          ansible_host: core-p2.lab
+
+    # AS 65002 — EDGE (Full mesh iBGP)
+    edge_as:
+      hosts:
+        EDGE-PE1:
+          ansible_host: edge-pe1.lab
+        EDGE-PE2:
+          ansible_host: edge-pe2.lab
+        EDGE-P1:
+          ansible_host: edge-p1.lab
+        EDGE-P2:
+          ansible_host: edge-p2.lab
+
+    # AS 65003 — STUB (No iBGP, eBGP only)
+    stub_as:
+      hosts:
+        STUB-BR1:
+          ansible_host: stub-br1.lab
+        STUB-BR2:
+          ansible_host: stub-br2.lab
+        STUB-BR3:
+          ansible_host: stub-br3.lab
+
+  vars:
+    # Global connection settings
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_become: yes
+    ansible_become_method: enable

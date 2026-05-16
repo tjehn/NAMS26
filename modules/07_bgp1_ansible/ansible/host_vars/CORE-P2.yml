@@ -1,0 +1,53 @@
+---
+# CORE-P2 (R5) — Provider router (internal only, no eBGP)
+# Physical router: R5 (192.168.1.105)
+
+hostname: CORE-P2
+
+# Loopback (RFC 2544 test address space for BGP)
+loopback0_ip: 198.18.0.5
+loopback0_mask: 255.255.255.255
+
+# Data plane interfaces
+interfaces:
+  - name: Ethernet0/0
+    description: "to CORE-RR1"
+    ip: 10.7.10.14
+    mask: 255.255.255.252
+    ospf_area: 10
+    shutdown: false
+  
+  - name: Ethernet0/1
+    description: "to CORE-P1"
+    ip: 10.7.10.18
+    mask: 255.255.255.252
+    ospf_area: 10
+    shutdown: false
+
+# OSPF configuration
+ospf_process_id: 1
+ospf_router_id: 198.18.0.5
+
+# BGP configuration
+bgp_as: 65001
+bgp_router_id: 198.18.0.5
+
+# BGP networks to advertise
+bgp_networks:
+  - network: 198.18.0.5
+    mask: 255.255.255.255
+
+# iBGP peer group definition
+bgp_peer_groups:
+  - name: IBGP_PEERS
+    remote_as: 65001
+    update_source: Loopback0
+    password: "{{ ibgp_password_as65001 }}"
+
+# iBGP neighbors (to RR only)
+ibgp_neighbors:
+  - ip: 198.18.0.1
+    peer_group: IBGP_PEERS
+
+# eBGP neighbors (none for P router)
+ebgp_neighbors: []

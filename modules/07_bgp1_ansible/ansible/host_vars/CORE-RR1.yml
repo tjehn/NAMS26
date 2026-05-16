@@ -1,0 +1,74 @@
+---
+# CORE-RR1 (R1) — Route Reflector for AS 65001
+# Physical router: R1 (192.168.1.101)
+
+hostname: CORE-RR1
+
+# Loopback (RFC 2544 test address space for BGP)
+loopback0_ip: 198.18.0.1
+loopback0_mask: 255.255.255.255
+
+# Data plane interfaces
+interfaces:
+  - name: Ethernet0/0
+    description: "to CORE-PE1"
+    ip: 10.7.10.1
+    mask: 255.255.255.252
+    ospf_area: 0
+    shutdown: false
+  
+  - name: Ethernet0/1
+    description: "to CORE-PE2"
+    ip: 10.7.10.5
+    mask: 255.255.255.252
+    ospf_area: 0
+    shutdown: false
+  
+  - name: Ethernet0/2
+    description: "to CORE-P1"
+    ip: 10.7.10.9
+    mask: 255.255.255.252
+    ospf_area: 0
+    shutdown: false
+  
+  - name: Ethernet0/3
+    description: "to CORE-P2"
+    ip: 10.7.10.13
+    mask: 255.255.255.252
+    ospf_area: 0
+    shutdown: false
+
+# OSPF configuration
+ospf_process_id: 1
+ospf_router_id: 198.18.0.1
+
+# BGP configuration
+bgp_as: 65001
+bgp_router_id: 198.18.0.1
+
+# BGP networks to advertise
+bgp_networks:
+  - network: 198.18.0.1
+    mask: 255.255.255.255
+
+# iBGP peer group definition
+bgp_peer_groups:
+  - name: IBGP_CLIENTS
+    remote_as: 65001
+    update_source: Loopback0
+    password: "{{ ibgp_password_as65001 }}"
+    route_reflector_client: true
+
+# iBGP neighbors (all RR clients)
+ibgp_neighbors:
+  - ip: 198.18.0.2
+    peer_group: IBGP_CLIENTS
+  - ip: 198.18.0.3
+    peer_group: IBGP_CLIENTS
+  - ip: 198.18.0.4
+    peer_group: IBGP_CLIENTS
+  - ip: 198.18.0.5
+    peer_group: IBGP_CLIENTS
+
+# eBGP neighbors (none for RR)
+ebgp_neighbors: []

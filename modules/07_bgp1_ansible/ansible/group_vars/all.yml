@@ -1,0 +1,30 @@
+---
+# Module 07 — BGP Part 1 / Ansible
+# Global Variables
+#
+# These variables apply to all routers in the inventory
+
+# Credentials (plaintext for Module 07, vault in Module 08)
+ansible_user: netadmin
+ansible_password: admin
+
+# OSPF process IDs per AS
+ospf_process_id_as65001: 1
+ospf_process_id_as65002: 2
+
+# BGP AS numbers
+bgp_as_core: 65001
+bgp_as_edge: 65002
+bgp_as_stub: 65003
+
+# BGP authentication passwords
+# iBGP passwords (shared within each AS)
+ibgp_password_as65001: "iBGP_AS65001"
+ibgp_password_as65002: "iBGP_AS65002"
+
+# eBGP passwords (unique per peering)
+ebgp_password_r2_r6: "eBGP_R2_R6"
+ebgp_password_r3_r7: "eBGP_R3_R7"
+ebgp_password_r8_r10: "eBGP_R8_R10"
+ebgp_password_r9_r11: "eBGP_R9_R11"
+ebgp_password_r9_r12: "eBGP_R9_R12"

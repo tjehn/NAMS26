@@ -1,0 +1,42 @@
+---
+# STUB-BR2 (R11) — Stub AS border router
+# Physical router: R11 (192.168.1.111)
+# AS 65003 — No iBGP, no OSPF, eBGP only
+
+hostname: STUB-BR2
+
+# Loopback (RFC 2544 test address space for BGP)
+loopback0_ip: 198.18.2.2
+loopback0_mask: 255.255.255.255
+
+# Data plane interfaces
+interfaces:
+  - name: Ethernet0/0
+    description: "to EDGE-P2 (eBGP)"
+    ip: 198.18.13.6
+    mask: 255.255.255.252
+    ospf_area: null
+    shutdown: false
+
+# No OSPF (stub AS)
+ospf_process_id: null
+
+# BGP configuration
+bgp_as: 65003
+bgp_router_id: 198.18.2.2
+
+# BGP networks to advertise
+bgp_networks:
+  - network: 198.18.2.2
+    mask: 255.255.255.255
+
+# No iBGP (stub AS, single router)
+bgp_peer_groups: []
+ibgp_neighbors: []
+
+# eBGP neighbors
+ebgp_neighbors:
+  - ip: 198.18.13.5
+    remote_as: 65002
+    password: "{{ ebgp_password_r9_r11 }}"
+    description: "EDGE-P2"
