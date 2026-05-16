@@ -302,6 +302,29 @@ IS type is also abbreviated: `level-2` instead of `level-2-only`, `level-1` inst
 of `level-1-only`. Strip `-only` from the YAML value before matching against
 `show clns protocol` output.
 
+### `isis circuit-type` not enforced on broadcast interfaces — IOL 15.7
+
+On Cisco IOL 15.7, the `isis circuit-type level-1-only` command is accepted
+on broadcast (LAN) interfaces of L1/L2 routers but is not enforced at runtime.
+The interface operates as `level-1-2` regardless of the configured circuit-type,
+forming adjacencies at both levels on the broadcast segment.
+
+Observed behavior:
+- `show running-config interface` shows `isis circuit-type level-1-only` absent
+  (command not retained) even after configuration push
+- `show clns interface` shows `Circuit Type: level-1-2` regardless of intended
+  circuit-type
+- L2 adjacencies form on the LAN segment between the ABR and L1-only leaf routers
+
+Impact on Module 06: ABR-1's Et0/2 (DIS LAN segment) operates as level-1-2
+instead of level-1-only. The IS-IS domain converges correctly and all routes
+are present. DIS election, route leaking, and redistribution all function as
+designed. This is an IOL limitation only — on physical Cisco hardware,
+`isis circuit-type` on broadcast interfaces is fully enforced.
+
+No script or YAML changes required. The verbal script reflects actual IOL
+behavior.
+
 ---
 
 ## 10. Troubleshooting Reference

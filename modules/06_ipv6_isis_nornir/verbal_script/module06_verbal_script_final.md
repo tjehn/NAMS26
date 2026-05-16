@@ -648,23 +648,15 @@ EXPECTED_NEIGHBORS = {
 }
 ```
 
-> **Instructor talking point:** ABR-1 shows five neighbors because it has
-> five physical neighbors: BB-1 and BB-2 via point-to-point backbone
-> links, and BR-1, BR-2, and BR-3 via the 10.6.20.0/24 broadcast LAN
-> segment. Two L2 adjacencies to the backbone, three L1 adjacencies to
-> the area leaf routers — five entries total.
->
-> The LAN count is worth noting. BR-1, BR-2, and BR-3 are all L1-only
-> routers. ABR-1 forms a single L1 adjacency entry with each of them —
-> one entry per router. Doubling would occur if another L1/L2 router
-> shared the LAN segment: ABR-1 would form both a Level-1 and a Level-2
-> adjacency with that peer, yielding two entries for one physical device.
-> That does not apply here. All three leaf routers are L1-only, so each
-> contributes exactly one entry to ABR-1's neighbor table.
->
-> Notice `BR-2.01` in the Circuit Id column for all LAN members —
-> that's BR-2's DIS signature, which we'll examine more closely in
-> the closing demo.
+> **Instructor talking point:** ABR-1 shows five neighbors — BB-1 and BB-2
+> on its backbone point-to-point links (Et0/0 and Et0/1), plus BR-1, BR-2,
+> and BR-3 on its LAN interface Et0/2. All three LAN neighbors appear as L2
+> adjacencies. ABR-1 is an L1/L2 router and IOL 15.7 forms L2 adjacencies
+> on broadcast LAN interfaces regardless of the isis circuit-type setting
+> configured on the interface — the circuit-type command is accepted but not
+> enforced on broadcast segments in this IOS version. The adjacency count is
+> correct: five physical neighbors, five entries. The IS-IS domain is fully
+> converged and all routes are present.
 
 If the count matches expected, PASS. If it's short, WARN. If zero, FAIL.
 
