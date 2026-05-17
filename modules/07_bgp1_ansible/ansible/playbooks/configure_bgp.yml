@@ -1,0 +1,116 @@
+---
+# Module 07 — BGP Part 1 / Ansible
+# Configuration Deployment Playbook
+#
+# This playbook deploys OSPF underlay and BGP configuration to all 12 routers.
+#
+# Usage:
+#   ansible-playbook playbooks/configure_bgp.yml                    # Deploy to all routers
+#   ansible-playbook playbooks/configure_bgp.yml --limit CORE-RR1   # Deploy to specific router
+#   ansible-playbook playbooks/configure_bgp.yml --check            # Dry-run mode
+#
+# Prerequisites:
+#   - All routers reachable via SSH (run utils/init_ssh.py first)
+#   - Switch VLANs configured (docs/switch_configs/)
+#   - Ansible inventory and host_vars populated
+
+- name: Deploy OSPF and BGP Configuration
+  hosts: all
+  gather_facts: no
+  
+  tasks:
+    # ================================================================
+    # Task 1: Configure Loopback0
+    # ================================================================
+    - name: Configure Loopback0 interface
+      cisco.ios.ios_config:
+        lines:
+          - description "BGP Router ID and OSPF Router ID"
+          - ip address {{ loopback0_ip }} {{ loopback0_mask }}
+          - no shutdown
+        parents: interface Loopback0
+      tags:
+        - loopback
+        - interfaces
+    
+    # ================================================================
+    # Task 2: Configure Data Plane Interfaces
+    # ================================================================
+    - name: Configure data plane interfaces
+      cisco.ios.ios_config:
+        lines:
+          - description "{{ item.description }}"
+          - ip address {{ item.ip }} {{ item.mask }}
+          - no shutdown
+        parents: "interface {{ item.name }}"
+      loop: "{{ interfaces }}"
+      when: not item.shutdown
+      tags:
+        - interfaces
+    
+    - name: Shutdown unused interfaces
+      cisco.ios.ios_config:
+        lines:
+          - shutdown
+        parents: "interface {{ item.name }}"
+      loop: "{{ interfaces }}"
+      when: item.shutdown
+      tags:
+        - interfaces
+    
+    # ================================================================
+    # Task 3: Deploy OSPF Underlay (AS 65001 and AS 65002 only)
+    # ================================================================
+    - name: Deploy OSPF underlay configuration
+      cisco.ios.ios_config:
+        src: ../templates/ospf_underlay.j2
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+        - igp
+    
+    # ================================================================
+    # Task 4: Deploy BGP Configuration
+    # ================================================================
+    - name: Deploy BGP configuration
+      cisco.ios.ios_config:
+        src: ../templates/bgp_config.j2
+      tags:
+        - bgp
+    
+    # ================================================================
+    # Task 5: Save Configuration
+    # ================================================================
+    - name: Save running configuration to startup
+      cisco.ios.ios_command:
+        commands:
+          - write memory
+      tags:
+        - save
+        - always
+
+# ================================================================
+# Post-Deployment Summary
+# ================================================================
+- name: Display deployment summary
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Show completion message
+      debug:
+        msg:
+          - "=========================================="
+          - "Module 07 — BGP Configuration Deployed"
+          - "=========================================="
+          - ""
+          - "Next steps:"
+          - "  1. Run verify_bgp.yml to check BGP neighbors and routes"
+          - "  2. Check OSPF adjacencies: show ip ospf neighbor"
+          - "  3. Check BGP neighbors: show ip bgp summary"
+          - ""
+          - "Troubleshooting:"
+          - "  - If BGP neighbors stuck in Idle/Active: check OSPF reachability to loopbacks"
+          - "  - If authentication failures: verify passwords in group_vars/all.yml"
+          - "  - Run troubleshoot_bgp.yml for detailed diagnostics"
+          - "=========================================="

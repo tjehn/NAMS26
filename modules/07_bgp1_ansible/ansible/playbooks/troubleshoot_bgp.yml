@@ -1,0 +1,236 @@
+---
+# Module 07 — BGP Part 1 / Ansible
+# Troubleshooting Playbook
+#
+# This playbook performs detailed diagnostics when BGP neighbors fail to establish
+# or OSPF adjacencies are not forming.
+#
+# Usage:
+#   ansible-playbook playbooks/troubleshoot_bgp.yml                    # Troubleshoot all routers
+#   ansible-playbook playbooks/troubleshoot_bgp.yml --limit CORE-PE1   # Specific router
+#   ansible-playbook playbooks/troubleshoot_bgp.yml --limit core_as    # Specific AS group
+#
+# Diagnostic checks:
+#   - Interface operational status
+#   - OSPF neighbor states and timers
+#   - BGP neighbor states and statistics
+#   - Loopback reachability (ping tests)
+#   - BGP configuration verification
+
+- name: Troubleshoot OSPF and BGP Issues
+  hosts: all
+  gather_facts: no
+  
+  tasks:
+    # ================================================================
+    # Basic Connectivity Checks
+    # ================================================================
+    - name: Check interface operational status
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief | exclude unassigned
+      register: intf_status
+      tags:
+        - interfaces
+        - connectivity
+    
+    - name: Display interface status
+      debug:
+        msg: "{{ intf_status.stdout_lines }}"
+      tags:
+        - interfaces
+        - display
+    
+    # ================================================================
+    # OSPF Troubleshooting (AS 65001 and AS 65002 only)
+    # ================================================================
+    - name: Check OSPF neighbor adjacencies
+      cisco.ios.ios_command:
+        commands:
+          - show ip ospf neighbor
+      register: ospf_neighbors
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+    
+    - name: Check OSPF interface states
+      cisco.ios.ios_command:
+        commands:
+          - show ip ospf interface brief
+      register: ospf_interfaces
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+    
+    - name: Check OSPF database summary
+      cisco.ios.ios_command:
+        commands:
+          - show ip ospf database database-summary
+      register: ospf_database
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+    
+    - name: Display OSPF neighbor status
+      debug:
+        msg: "{{ ospf_neighbors.stdout_lines }}"
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+        - display
+    
+    - name: Display OSPF interface status
+      debug:
+        msg: "{{ ospf_interfaces.stdout_lines }}"
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+        - display
+    
+    # ================================================================
+    # BGP Troubleshooting
+    # ================================================================
+    - name: Check BGP neighbor summary
+      cisco.ios.ios_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_summary
+      tags:
+        - bgp
+    
+    - name: Check detailed BGP neighbor states
+      cisco.ios.ios_command:
+        commands:
+          - show ip bgp neighbors | include BGP neighbor|BGP state|route-map|filter-list
+      register: bgp_neighbor_detail
+      tags:
+        - bgp
+    
+    - name: Check BGP configuration
+      cisco.ios.ios_command:
+        commands:
+          - show running-config | section router bgp
+      register: bgp_config
+      tags:
+        - bgp
+        - config
+    
+    - name: Display BGP summary
+      debug:
+        msg: "{{ bgp_summary.stdout_lines }}"
+      tags:
+        - bgp
+        - display
+    
+    - name: Display BGP neighbor details
+      debug:
+        msg: "{{ bgp_neighbor_detail.stdout_lines }}"
+      tags:
+        - bgp
+        - display
+    
+    - name: Display BGP configuration
+      debug:
+        msg: "{{ bgp_config.stdout_lines }}"
+      tags:
+        - bgp
+        - config
+        - display
+    
+    # ================================================================
+    # Reachability Tests
+    # ================================================================
+    - name: Test reachability to local loopback
+      cisco.ios.ios_ping:
+        dest: "{{ loopback0_ip }}"
+        count: 3
+      register: loopback_ping
+      tags:
+        - ping
+        - connectivity
+    
+    - name: Display loopback ping results
+      debug:
+        msg: 
+          - "Ping to {{ loopback0_ip }}: {{ 'SUCCESS' if loopback_ping.packet_loss == '0%' else 'FAILED' }}"
+          - "Packet loss: {{ loopback_ping.packet_loss }}"
+      tags:
+        - ping
+        - display
+    
+    # ================================================================
+    # Route Table Analysis
+    # ================================================================
+    - name: Check routing table
+      cisco.ios.ios_command:
+        commands:
+          - show ip route | begin Gateway
+      register: routing_table
+      tags:
+        - routing
+    
+    - name: Display routing table
+      debug:
+        msg: "{{ routing_table.stdout_lines }}"
+      tags:
+        - routing
+        - display
+
+# ================================================================
+# Troubleshooting Summary and Recommendations
+# ================================================================
+- name: Generate troubleshooting summary
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Display troubleshooting guide
+      debug:
+        msg:
+          - "=========================================="
+          - "Module 07 — BGP Troubleshooting Guide"
+          - "=========================================="
+          - ""
+          - "Common BGP neighbor issues and solutions:"
+          - ""
+          - "1. BGP neighbor stuck in Idle state:"
+          - "   - Check interface status (must be up/up)"
+          - "   - Verify IP connectivity to neighbor"
+          - "   - Check routing table for route to neighbor loopback"
+          - "   - For iBGP: verify OSPF is advertising loopbacks"
+          - ""
+          - "2. BGP neighbor stuck in Active state:"
+          - "   - TCP connection failing (check ACLs, firewall)"
+          - "   - Neighbor not configured on remote side"
+          - "   - Source interface mismatch (check update-source)"
+          - ""
+          - "3. BGP neighbor stuck in Connect state:"
+          - "   - Remote router not listening on TCP 179"
+          - "   - BGP process not running on remote side"
+          - "   - Incorrect neighbor IP address configured"
+          - ""
+          - "4. Authentication failures:"
+          - "   - MD5 password mismatch"
+          - "   - Check group_vars/all.yml password definitions"
+          - "   - Verify password applied on both sides"
+          - ""
+          - "5. OSPF adjacencies not forming:"
+          - "   - Interface not in correct OSPF area"
+          - "   - OSPF network type mismatch"
+          - "   - Hello/Dead timer mismatch"
+          - "   - MTU mismatch on broadcast segments"
+          - ""
+          - "Manual verification commands:"
+          - "  show ip ospf neighbor"
+          - "  show ip bgp summary"
+          - "  show ip bgp neighbors <IP>"
+          - "  show ip route bgp"
+          - "  show ip protocols"
+          - "  debug ip bgp updates        (use with caution)"
+          - "  debug ip ospf adj           (use with caution)"
+          - ""
+          - "Next steps:"
+          - "  - Fix identified issues"
+          - "  - Re-run verify_bgp.yml to confirm resolution"
+          - "  - If persistent issues, check switch VLAN config"
+          - "=========================================="

@@ -1,0 +1,142 @@
+---
+# Module 07 — BGP Part 1 / Ansible
+# Verification Playbook
+#
+# This playbook verifies OSPF adjacencies, BGP neighbor states, and route presence.
+#
+# Usage:
+#   ansible-playbook playbooks/verify_bgp.yml                    # Verify all routers
+#   ansible-playbook playbooks/verify_bgp.yml --limit core_as    # Verify specific group
+#   ansible-playbook playbooks/verify_bgp.yml --limit CORE-RR1   # Verify specific router
+#
+# Verification checks:
+#   - OSPF neighbor adjacencies (for routers running OSPF)
+#   - BGP neighbor states (all should be Established)
+#   - BGP route table (loopback routes from all ASes)
+#   - Interface operational status
+
+- name: Verify OSPF and BGP Operational State
+  hosts: all
+  gather_facts: no
+  
+  tasks:
+    # ================================================================
+    # Gather Operational State
+    # ================================================================
+    - name: Gather OSPF neighbor information
+      cisco.ios.ios_command:
+        commands:
+          - show ip ospf neighbor
+      register: ospf_neighbors
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+        - gather
+    
+    - name: Gather BGP summary information
+      cisco.ios.ios_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_summary
+      tags:
+        - bgp
+        - gather
+    
+    - name: Gather BGP route table
+      cisco.ios.ios_command:
+        commands:
+          - show ip bgp
+      register: bgp_routes
+      tags:
+        - bgp
+        - gather
+        - routes
+    
+    - name: Gather interface status
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+      register: interface_status
+      tags:
+        - interfaces
+        - gather
+    
+    # ================================================================
+    # Display Results
+    # ================================================================
+    - name: Display OSPF neighbor status
+      debug:
+        msg: "{{ ospf_neighbors.stdout_lines }}"
+      when: ospf_process_id is defined
+      tags:
+        - ospf
+        - display
+    
+    - name: Display BGP summary
+      debug:
+        msg: "{{ bgp_summary.stdout_lines }}"
+      tags:
+        - bgp
+        - display
+    
+    - name: Display BGP route table
+      debug:
+        msg: "{{ bgp_routes.stdout_lines }}"
+      tags:
+        - bgp
+        - routes
+        - display
+    
+    - name: Display interface status
+      debug:
+        msg: "{{ interface_status.stdout_lines }}"
+      tags:
+        - interfaces
+        - display
+
+# ================================================================
+# Verification Summary Report
+# ================================================================
+- name: Generate verification summary
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Display verification instructions
+      debug:
+        msg:
+          - "=========================================="
+          - "Module 07 — BGP Verification Complete"
+          - "=========================================="
+          - ""
+          - "Expected BGP neighbor counts per router:"
+          - "  CORE-RR1:  4 iBGP neighbors (all RR clients)"
+          - "  CORE-PE1:  2 total (1 iBGP RR, 1 eBGP to EDGE-PE1)"
+          - "  CORE-PE2:  2 total (1 iBGP RR, 1 eBGP to EDGE-PE2)"
+          - "  CORE-P1:   1 iBGP (RR only)"
+          - "  CORE-P2:   1 iBGP (RR only)"
+          - "  EDGE-PE1:  4 total (3 iBGP full mesh, 1 eBGP to CORE-PE1)"
+          - "  EDGE-PE2:  4 total (3 iBGP full mesh, 1 eBGP to CORE-PE2)"
+          - "  EDGE-P1:   4 total (3 iBGP full mesh, 1 eBGP to STUB-BR1)"
+          - "  EDGE-P2:   5 total (3 iBGP full mesh, 2 eBGP to STUB-BR2/BR3)"
+          - "  STUB-BR1:  1 eBGP (to EDGE-P1)"
+          - "  STUB-BR2:  1 eBGP (to EDGE-P2)"
+          - "  STUB-BR3:  1 eBGP (to EDGE-P2)"
+          - ""
+          - "All BGP neighbors should show state: Established"
+          - ""
+          - "Expected route counts:"
+          - "  AS 65001 routers: Should see 198.18.0.x, 198.18.1.x, 198.18.2.x routes"
+          - "  AS 65002 routers: Should see 198.18.0.x, 198.18.1.x, 198.18.2.x routes"
+          - "  AS 65003 routers: Should see 198.18.0.x, 198.18.1.x routes (no full mesh)"
+          - ""
+          - "OSPF adjacency counts:"
+          - "  AS 65001 routers: CORE-RR1(4), CORE-PE1(1), CORE-PE2(1), CORE-P1(2), CORE-P2(2)"
+          - "  AS 65002 routers: EDGE-PE1(2), EDGE-PE2(2), EDGE-P1(2), EDGE-P2(2)"
+          - "  AS 65003 routers: No OSPF (eBGP only)"
+          - ""
+          - "If any neighbors are not Established:"
+          - "  - Run troubleshoot_bgp.yml for diagnostics"
+          - "  - Check OSPF reachability to BGP loopbacks"
+          - "  - Verify MD5 passwords match in group_vars/all.yml"
+          - "=========================================="
