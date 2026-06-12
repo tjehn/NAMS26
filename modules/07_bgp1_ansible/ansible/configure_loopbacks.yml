@@ -1,0 +1,13 @@
+---
+- name: Configure Loopback0 interfaces
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Configure Loopback0 with IP
+      cisco.ios.ios_config:
+        lines:
+          - "ip address {{ loopback0_ip }} {{ loopback0_mask }}"
+          - "description BGP Router ID"
+          - "no shutdown"
+        parents: "interface Loopback0"
