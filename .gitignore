@@ -100,3 +100,11 @@ docs/publication_sop.md
 
 # Module raw IOS config captures (instructor reference — not published)
 modules/*/[0-9][0-9]_ios_configs/
+
+# Internal — instructor production documents
+docs/publication_sop.md
+development_team/
+
+# Generated / temp artifacts
+tree.txt
+*.drawio.bkp
